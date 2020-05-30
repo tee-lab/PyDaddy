@@ -92,6 +92,12 @@ class output(preprocessing):
 		plt.title('R2 Diff vs order')
 		plt.show()
 
+
+
+class plot_3d():
+	def __init__(self, **kwargs):
+		self.__dict__.update(kwargs)
+
 	def histogram3d(self,x,bins = 10, normed = False, color = 'blue', alpha = 1, hold = False):
 		"""
 		Plotting a 3D histogram
