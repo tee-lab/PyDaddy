@@ -90,7 +90,11 @@ class SDE():
 		diffusionY = self.diffusion(vel_y, t_int, delta_t)
 		diffusionXY = self.diffusionXY(vel_x, vel_y, t_int, delta_t)
 
-		avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY = np.zeros((len(op_x), len(op_y)))
+		avgdriftX = np.zeros((len(op_x), len(op_y)))
+		avgdriftY = np.zeros((len(op_x), len(op_y)))
+		avgdiffX = np.zeros((len(op_x), len(op_y)))
+		avgdiffY = np.zeros((len(op_x), len(op_y)))
+		avgdiffXY = np.zeros((len(op_x), len(op_y)))
 
 		m = 0
 		vel_x_, vel_y_ = vel_x[0:-dt], vel_y[0:-dt]
