@@ -175,16 +175,19 @@ class plot_3d():
 		if (not hold):
 		    fig = plt.figure(dpi = 300)
 		    ax = fig.add_subplot(111, projection='3d')
-		    ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = color);
+		    colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+		    ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
 		else:
 		    try:
 		        ax = plt.gca();
-		        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = color);
+		        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+		        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
 		    except:
 		        plt.close(plt.get_fignums()[-1])
 		        fig = plt.figure()
 		        ax = fig.add_subplot(111, projection='3d')
-		        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = color);
+		        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+		        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
 		        
 		        
 		plt.xlabel('X');
