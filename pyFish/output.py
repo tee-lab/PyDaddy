@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.matlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
@@ -9,63 +10,145 @@ import statsmodels.stats.diagnostic
 from pyFish.preprocessing import preprocessing
 
 class output(preprocessing):
-	def __init__(self, X, t, drift, diff, avgdrift, avgdiff, op, drift_order, diff_order, variables,**kwargs):
-		self.X = X
-		self.t = t
-		self.t_int= self.t[-1]/len(self.t)
-		self.drift = drift
-		self.diff = diff
-		self.avgdrift = avgdrift
-		self.avgdiff = avgdiff
-		self.op = op
-		self.drift_order = drift_order
-		self.diff_order = diff_order
-		self.variables = variables
+	def __init__(self, out, **kwargs):
+		self.X = out._X
+		self.t = out._t
+		#self.t_int= self.t[-1]/len(self.t)
+		self.drift = out._drift
+		self.diff = out._diff
+		self.avgdrift = out._avgdrift
+		self.avgdiff = out._avgdiff
+		self.op = out._op
+		self.drift_order = out._drift_order
+		self.diff_order = out._diff_order
+
+		self.vel_x = out._vel_x
+		self.vel_y = out._vel_y
+		self.avgdriftX = out._avgdriftX
+		self.avgdriftY = out._avgdriftY
+		self.avgdiffX = out._avgdiffX
+		self.avgdiffY = out._avgdiffY
+		self.avgdiffXY = out._avgdiffXY
+		self.op_x = out._op_x
+		self.op_y = out._op_y
+
+		self.vector = out.vector
+		self.out = out
+
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 	
 	def data(self):
-		return self.drift, self.diff, self.avgdrift, self.avgdiff, self.op
+		if self.vector:
+			return self.drift, self.diff, self.avgdrift, self.avgdiff, self.op
+		return self.avgdriftX, self.avgdriftY, self.avgdiffX, self.avgdiffY, self.avgdiffXY, self.op_x, self.op_y
 
 	def parameters(self):
 		params = dict()
-		for keys in self.variables.keys():
+		for keys in self.out.__dict__.keys():
 			if str(keys)[0] != '_':
-				params[keys] = self.variables[keys]
+				params[keys] = self.out.__dict__[keys]
 		return params
 
 	def visualize(self):
+		if not self.vector:
 		#Time series
-		fig1 = fig = plt.figure(dpi=150)
-		l = int(len(self.X)/4)
-		plt.plot(self.t[0:l],self.X[0:l])
-		plt.title('Figure 1')
-		#PDF
-		fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
-		sns.distplot(self.X)
-		plt.title('Figure 2')
-		plt.xlim([-1,1])
-		plt.ylabel('PDF')
-		plt.xlabel('Order Parameter')
-		#Drift
-		fig3 = fig = plt.figure(dpi=150,figsize=(5,5))
-		p_drift, _ = self.fit_poly(self.op, self.avgdrift, self.drift_order)
-		plt.scatter(self.op, self.avgdrift, marker='.')
-		plt.scatter(self.op, p_drift(self.op), marker='.')
-		plt.title('Figure 3')
-		plt.xlabel('Order Parameter')
-		plt.ylabel("Deterministic")
-		plt.xlim([-1,1])
-		#Diffusion
-		fig4 = fig = plt.figure(dpi=150,figsize=(5,5))
-		p_diff, _ = self.fit_poly(self.op, self.avgdiff, self.diff_order)
-		plt.scatter(self.op, self.avgdiff, marker='.')
-		plt.scatter(self.op, p_diff(self.op), marker='.')
-		plt.title('Figure 4')
-		plt.xlim([-1,1])
-		plt.xlabel("Order Parameter")
-		plt.ylabel('Stochastic')
-		plt.show()
+			fig1 = fig = plt.figure(dpi=150)
+			l = int(len(self.X)/4)
+			plt.plot(self.t[0:l],self.X[0:l])
+			plt.title('Figure 1')
+			#PDF
+			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
+			sns.distplot(self.X)
+			plt.title('Figure 2')
+			plt.xlim([min(self.X),max(self.X)])
+			plt.ylabel('PDF')
+			plt.xlabel('Order Parameter')
+			#Drift
+			fig3 = fig = plt.figure(dpi=150,figsize=(5,5))
+			p_drift, _ = self.fit_poly(self.op, self.avgdrift, self.drift_order)
+			plt.scatter(self.op, self.avgdrift, marker='.')
+			plt.scatter(self.op, p_drift(self.op), marker='.')
+			plt.title('Figure 3')
+			plt.xlabel('Order Parameter')
+			plt.ylabel("Deterministic")
+			plt.xlim([min(self.X),max(self.X)])
+			#Diffusion
+			fig4 = fig = plt.figure(dpi=150,figsize=(5,5))
+			p_diff, _ = self.fit_poly(self.op, self.avgdiff, self.diff_order)
+			plt.scatter(self.op, self.avgdiff, marker='.')
+			plt.scatter(self.op, p_diff(self.op), marker='.')
+			plt.title('Figure 4')
+			plt.xlim([min(self.X),max(self.X)])
+			plt.xlabel("Order Parameter")
+			plt.ylabel('Stochastic')
+			plt.show()
+		else:
+			fig1 = plt.figure()
+			ax - fig1.add_subplot(111, projection='3d')
+			vel_x = self.interploate_missing(self.vel_x)
+			vel_y = self.interploate_missing(self.vel_y)
+			H, edges, X, Y, Z, dx, dy, dz = self.histogram3d(np.array([vel_x[~np.isnan(vel_x)], vel_y[~np.isnan(vel_y)]]))
+			colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+			ax.bar3d(X,Y,Z,dx,dy,dz, alpha=1, color=colors)
+			plt.xlim([1,-1])
+			plt.title('Figure 1')
+			ax.set_xlabel('X')
+			ax.set_ylabel('Y')
+			ax.set_zlabel('Frequency')
+
+			fig2 = plt.figure()
+			ax = fig2.axes(projection="3d")
+			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
+			x.ravel().sort()
+			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
+			z = self.avgdiffY[self.avgdiffY==0] = np.nan
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			plt.xlim([1,-1])
+			plt.title('Figure 2')
+			ax.set_xlabel('Mx')
+			ax.set_ylabel('My')
+			ax.set_zlabel('Stochastic Factor')
+
+			fig3 = plt.figure()
+			ax = fig3.axes(projection="3d")
+			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
+			x.ravel().sort()
+			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
+			z = self.avgdiffX[self.avgdiffX==0] = np.nan
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			plt.xlim([1,-1])
+			plt.title('Figure 3')
+			ax.set_xlabel('Mx')
+			ax.set_ylabel('My')
+			ax.set_zlabel('Stochastic Factor')
+
+			fig4 = plt.figure()
+			ax = fig4.axes(projection="3d")
+			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
+			x.ravel().sort()
+			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
+			z = self.avgdriftY[self.avgdriftY==0] = np.nan
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			plt.xlim([1,-1])
+			plt.title('Figure 4')
+			ax.set_xlabel('Mx')
+			ax.set_ylabel('My')
+			ax.set_zlabel('Stochastic Factor')
+
+			fig5 = plt.figure()
+			ax = fig5.axes(projection="3d")
+			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
+			x.ravel().sort()
+			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
+			z = self.avgdriftX[self.avgdriftX==0] = np.nan
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			plt.xlim([1,-1])
+			plt.title('Figure 5')
+			ax.set_xlabel('Mx')
+			ax.set_ylabel('My')
+			ax.set_zlabel('Stochastic Factor')
+
 
 	def diagnostic(self):
 		#ACF
@@ -92,13 +175,7 @@ class output(preprocessing):
 		plt.title('R2 Diff vs order')
 		plt.show()
 
-
-
-class plot_3d():
-	def __init__(self, **kwargs):
-		self.__dict__.update(kwargs)
-
-	def histogram3d(self,x,bins = 10, normed = False, color = 'blue', alpha = 1, hold = False):
+	def histogram3d(self,x,bins = 10, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
 		"""
 		Plotting a 3D histogram
 
@@ -172,22 +249,23 @@ class plot_3d():
 		dx = X[1] - X[0]   
 		dy = Y[bins[0]] - Y[0]
 
-		if (not hold):
-		    fig = plt.figure(dpi = 300)
-		    ax = fig.add_subplot(111, projection='3d')
-		    colors = plt.cm.jet(dz.flatten()/float(dz.max()))
-		    ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
-		else:
-		    try:
-		        ax = plt.gca();
-		        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
-		        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
-		    except:
-		        plt.close(plt.get_fignums()[-1])
-		        fig = plt.figure()
-		        ax = fig.add_subplot(111, projection='3d')
-		        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
-		        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
+		if plot_hist:
+			if (not hold):
+			    fig = plt.figure(dpi = 300)
+			    ax = fig.add_subplot(111, projection='3d')
+			    colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+			    ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
+			else:
+			    try:
+			        ax = plt.gca();
+			        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+			        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
+			    except:
+			        plt.close(plt.get_fignums()[-1])
+			        fig = plt.figure()
+			        ax = fig.add_subplot(111, projection='3d')
+			        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
+			        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
 		        
 		        
 		plt.xlabel('X');
@@ -195,4 +273,24 @@ class plot_3d():
 		edges = [X,Y];
 		H = dz.reshape(bins[0],bins[1]);
 
-		return H, edges;
+		#return H, edges;
+		return H, edges, X, Y, Z, dx, dy, dz
+
+
+
+class Error(Exception):
+    """Base class for exceptions in this module."""
+	pass
+
+
+class InputError(Error):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+
+	def __init__(self, expression, message):
+		self.expression = expression
+		self.message = message

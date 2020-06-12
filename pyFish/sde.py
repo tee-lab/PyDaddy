@@ -111,7 +111,7 @@ class SDE():
 
 				n = n + 1
 			m = m + 1
-			return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY
+			return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y
 
 
 

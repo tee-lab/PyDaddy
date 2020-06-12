@@ -8,6 +8,7 @@ from pyFish.analysis import gaussian_test
 from pyFish.preprocessing import preprocessing
 from pyFish.metrics import metrics
 from pyFish.output import output
+from pyFish.output import InputError
 
 class Characterize(preprocessing):
 	def __init__(self, **kwargs):
@@ -71,11 +72,27 @@ class Characterize(preprocessing):
 				params[keys] = self.__dict__[keys]
 		return params
 
-	def __call__(self, X, t, inc=0.01, t_lag=1000, max_order=10, simple_method=True, dt='auto', **kwargs):
-		self.t_int = self._timestep(t)
+	def __call__(self, data, t, inc=0.01, inc_x=0.1, inc_y=0.1, t_lag=1000, max_order=10, simple_method=True, dt='auto', **kwargs):
+		self._t = t
+		if len(data) == 1:
+			self._X = data[0]
+			self.vector = False
+		else if len(data) == 2:
+			self._vel_x, self._vel_y = data
+			self._X = np.sqrt((np.square(self.vel_x) + np.square(self.vel_y)))
+			self.vector = True
+		else:
+			raise InputError('Characterize(data=[x1,x2],...)', 'data input must be a list!')
+		self.t_int = self._timestep(t) if not 't_int' in locals() else t_int
 		self.__dict__.update(kwargs)
-		self.dt = self.optimium_timescale(X, t, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
-		diff, drift, avgdiff, avgdrift, op = self.drift_and_diffusion(X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
-		#self._drift, self._diff, self._avgdrift, self._avgdiff, self._op = drift, diff, avgdrift, avgdiff, op
-		return output(X,t,drift, diff,avgdrift, avgdiff,op, self.drift_order, self.diff_order, self.__dict__)
-		#return drift, diff, avgdrift, avgdiff, op
+		self.dt = self.optimium_timescale(self._X, t, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
+		if not vector:
+			self._diff, self._drift, self._avgdiff, self._avgdrift, self._op = self.drift_and_diffusion(X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
+			#self._drift, self._diff, self._avgdrift, self._avgdiff, self._op = drift, diff, avgdrift, avgdiff, op
+			#return output(self)
+			#return drift, diff, avgdrift, avgdiff, op
+		else:
+			self._avgdriftX, self._avgdriftY, self._avgdiffX, self._avgdiffY, self._avgdiffXY, self._op_x, self._op_y = self.vector_drift_diff(self, vel_x, vel_y, inc_x=self.inc_x, inc_y=self.inc_y, t_int=self.t_int, dt=self.dt, delta_t=self.delta_t)
+
+		return output(self)
+
