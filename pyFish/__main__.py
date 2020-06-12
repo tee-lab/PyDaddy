@@ -31,7 +31,7 @@ class Characterize(preprocessing):
 
 	def _timestep(self, t):
 		return t[-1]/len(t)
-
+		"""
 	def visualize(self, X, t):
 		drift, drff, avgdrift, avgdiff, op = self.__call__(X,t)
 		#Time series
@@ -71,7 +71,7 @@ class Characterize(preprocessing):
 			if str(keys)[0] != '_':
 				params[keys] = self.__dict__[keys]
 		return params
-
+		"""
 	def __call__(self, data, t, inc=0.01, inc_x=0.1, inc_y=0.1, t_lag=1000, max_order=10, simple_method=True, dt='auto', **kwargs):
 		self._t = t
 		if len(data) == 1:

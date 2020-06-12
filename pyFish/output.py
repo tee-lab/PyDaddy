@@ -54,7 +54,7 @@ class output(preprocessing):
 
 	def visualize(self):
 		if not self.vector:
-		#Time series
+			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			l = int(len(self.X)/4)
 			plt.plot(self.t[0:l],self.X[0:l])
@@ -136,7 +136,7 @@ class output(preprocessing):
 			plt.title('Figure 4')
 			ax.set_xlabel('Mx')
 			ax.set_ylabel('My')
-			ax.set_zlabel('Stochastic Factor')
+			ax.set_zlabel('Deterministic Factor')
 
 			fig5 = plt.figure()
 			ax = fig5.axes(projection="3d")
@@ -149,7 +149,7 @@ class output(preprocessing):
 			plt.title('Figure 5')
 			ax.set_xlabel('Mx')
 			ax.set_ylabel('My')
-			ax.set_zlabel('Stochastic Factor')
+			ax.set_zlabel('Deterministic Factor')
 
 
 	def diagnostic(self):
