@@ -77,7 +77,7 @@ class Characterize(preprocessing):
 		if len(data) == 1:
 			self._X = data[0]
 			self.vector = False
-		else if len(data) == 2:
+		elif len(data) == 2:
 			self._vel_x, self._vel_y = data
 			self._X = np.sqrt((np.square(self.vel_x) + np.square(self.vel_y)))
 			self.vector = True
@@ -86,8 +86,8 @@ class Characterize(preprocessing):
 		self.t_int = self._timestep(t) if not 't_int' in locals() else t_int
 		self.__dict__.update(kwargs)
 		self.dt = self.optimium_timescale(self._X, t, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
-		if not vector:
-			self._diff, self._drift, self._avgdiff, self._avgdrift, self._op = self.drift_and_diffusion(X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
+		if not self.vector:
+			self._diff, self._drift, self._avgdiff, self._avgdrift, self._op = self.drift_and_diffusion(self._X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
 			#self._drift, self._diff, self._avgdrift, self._avgdiff, self._op = drift, diff, avgdrift, avgdiff, op
 			#return output(self)
 			#return drift, diff, avgdrift, avgdiff, op

@@ -11,35 +11,37 @@ from pyFish.preprocessing import preprocessing
 
 class output(preprocessing):
 	def __init__(self, out, **kwargs):
-		self.X = out._X
-		self.t = out._t
-		#self.t_int= self.t[-1]/len(self.t)
-		self.drift = out._drift
-		self.diff = out._diff
-		self.avgdrift = out._avgdrift
-		self.avgdiff = out._avgdiff
-		self.op = out._op
-		self.drift_order = out._drift_order
-		self.diff_order = out._diff_order
-
-		self.vel_x = out._vel_x
-		self.vel_y = out._vel_y
-		self.avgdriftX = out._avgdriftX
-		self.avgdriftY = out._avgdriftY
-		self.avgdiffX = out._avgdiffX
-		self.avgdiffY = out._avgdiffY
-		self.avgdiffXY = out._avgdiffXY
-		self.op_x = out._op_x
-		self.op_y = out._op_y
-
 		self.vector = out.vector
+
+		if not self.vector:
+			self.X = out._X
+			self.t = out._t
+			#self.t_int= self.t[-1]/len(self.t)
+			self.drift = out._drift
+			self.diff = out._diff
+			self.avgdrift = out._avgdrift
+			self.avgdiff = out._avgdiff
+			self.op = out._op
+			self.drift_order = out.drift_order
+			self.diff_order = out.diff_order
+		else:
+			self.vel_x = out._vel_x
+			self.vel_y = out._vel_y
+			self.avgdriftX = out._avgdriftX
+			self.avgdriftY = out._avgdriftY
+			self.avgdiffX = out._avgdiffX
+			self.avgdiffY = out._avgdiffY
+			self.avgdiffXY = out._avgdiffXY
+			self.op_x = out._op_x
+			self.op_y = out._op_y
+
 		self.out = out
 
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 	
 	def data(self):
-		if self.vector:
+		if not self.vector:
 			return self.drift, self.diff, self.avgdrift, self.avgdiff, self.op
 		return self.avgdriftX, self.avgdriftY, self.avgdiffX, self.avgdiffY, self.avgdiffXY, self.op_x, self.op_y
 
@@ -154,22 +156,22 @@ class output(preprocessing):
 		#ACF
 		fig1 = plt.figure(dpi=150)
 		exp_fn = lambda t,a,b: a*np.exp((-1/b)*t)
-		plt.plot(self.variables['_autocorr_x'], self.variables['_autocorr_y'])
-		y = exp_fn(self.variables['_autocorr_x'], self.variables['_a'], self.variables['autocorrelation_time'])
-		plt.plot(self.variables['_autocorr_x'], y)
+		plt.plot(self.out._autocorr_x, self.out._autocorr_y)
+		y = exp_fn(self.out._autocorr_x, self.out._a, self.out.autocorrelation_time)
+		plt.plot(self.out._autocorr_x, y)
 		plt.legend(('ACF', 'exp_fit'))
 		plt.title('Autocorrelation Function')
 		plt.xlabel('Time Lag')
 		plt.ylabel('ACF')
 		#R2 vs order for drift
 		fig2 = plt.figure(dpi=150)
-		plt.plot(range(self.variables['max_order']), self.variables['_r2_drift'])
+		plt.plot(range(self.out.max_order), self.out._r2_drift)
 		plt.xlabel('order')
 		plt.ylabel('R2')
 		plt.title('R2 Drift vs order')
 		#R2 vs order for diff
 		fig3 = plt.figure(dpi=150)
-		plt.plot(range(self.variables['max_order']), self.variables['_r2_diff'])
+		plt.plot(range(self.out.max_order), self.out._r2_diff)
 		plt.xlabel('order')
 		plt.ylabel('R2')
 		plt.title('R2 Diff vs order')
@@ -279,17 +281,17 @@ class output(preprocessing):
 
 
 class Error(Exception):
-    """Base class for exceptions in this module."""
+	"""Base class for exceptions in this module."""
 	pass
 
 
 class InputError(Error):
-    """Exception raised for errors in the input.
+	"""Exception raised for errors in the input.
 
-    Attributes:
-        expression -- input expression in which the error occurred
-        message -- explanation of the error
-    """
+	Attributes:
+	    expression -- input expression in which the error occurred
+	    message -- explanation of the error
+	"""
 
 	def __init__(self, expression, message):
 		self.expression = expression
