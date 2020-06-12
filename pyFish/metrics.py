@@ -24,3 +24,7 @@ class metrics:
 		nans, x = self.nan_helper(y)
 		y[nans] = np.interp(x(nans), x(~nans), y[~nans])
 		return y
+
+	def kl_divergence(self, p, q):
+		p,q = np.abs(p), np.abs(q)
+		return np.sum(p*np.log2(p/q))
