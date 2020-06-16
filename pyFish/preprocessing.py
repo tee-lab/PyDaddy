@@ -31,17 +31,12 @@ class preprocessing(AutoCorrelation, SDE, metrics):
 		#self.drift_order = np.diff(r2_drift).argmax() + 1
 		self.drift_order = np.where(np.isclose(self._r2_drift, max(self._r2_drift), atol=0.1))[0][0]
 		self.diff_order = np.diff(self._r2_diff).argmax() + 1
-		#plt.plot(range(max_order), self._r2_drift)
-		#plt.show()
 		return self.drift_order , np.array(self._r2_drift)
 
 	def simple_estimate(self, X,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
 		order, r2 = self.order(X, t_int, dt=dt, max_order=max_order, inc=inc)
-		#print('_____________order')
-		#print(order)
 		autocorr_time = self.get_autocorr_time(X, t_lag=t_lag)
 		optimum_dt = autocorr_time - 1 if order==1 else autocorr_time/10
-		#print(autocorr_time)
 		return int(np.ceil(optimum_dt))
 
 

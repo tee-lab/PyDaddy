@@ -98,7 +98,6 @@ class SDE():
 
 		m = 0
 		vel_x_, vel_y_ = vel_x[0:-dt], vel_y[0:-dt]
-		#print(len(vel_x_), len(vel_y_))
 		for bin_x in op_x:
 			n = 0
 			for bin_y in op_y:
