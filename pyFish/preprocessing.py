@@ -44,25 +44,6 @@ class preprocessing(AutoCorrelation, SDE, metrics):
 		#print(autocorr_time)
 		return int(np.ceil(optimum_dt))
 
-	"""
-	def detail_estimate(self, X, t, dt='auto', delta_t=1 ,max_order=10, t_lag=1000, inc=0.01):
-		rms = []
-		autocorr_time = AutoCorrelation.get_autocorr_time(X, t_lag=t_lag)
-		order = self.order(X, t, dt='auto', max_order=max_order, inc=inc)
-		for i in range(1,autocorr_time):
-			t_int = t[-1]/len(t)
-			_,_,_, avgDrift, op = SDE.drift_and_diffusion(X, t_int, dt=i, delta_t=delat_t ,inc=inc)
-			if i == 1:
-				p_, op_ = metrics.fit_poly(x=op, y=avgDrift, deg=order)
-				continue
-			p, op = metrics.fit_poly(x=op, y=avgDrift, deg=order)
-			rms.append(metrics.rms(p_(op_) - p(op)))
-			p_, op_ = p, op
-		rms = np.array(rms)
-		r = np.array(list(range(1,autocorr_time))[1:])
-		coeff1, coeff2 = AutoCorrelation.fit_exp(r, rms)
-		return coeff1[-1]
-	"""
 
 	def detailed_estimate(self, X, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01, t_lag=1000):
 		self._kl_min = []
@@ -86,7 +67,6 @@ class preprocessing(AutoCorrelation, SDE, metrics):
 			self._kl_min_index.append(kl.argmin())
 		print("Optimium dt found : {}".format(np.abs(self._kl_min).argmin()))
 		return np.abs(self._kl_min).argmin()
-
 
 
 	def optimium_timescale(self, X, t_int, simple_method=True, dt='auto', max_order=10, t_lag=1000, inc=0.01):
