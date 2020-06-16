@@ -88,7 +88,7 @@ class SDE():
 		driftY = self.drift(vel_y, t_int, dt)
 		diffusionX = self.diffusion(vel_x, t_int, delta_t)
 		diffusionY = self.diffusion(vel_y, t_int, delta_t)
-		diffusionXY = self.diffusionXY(vel_x, vel_y, t_int, delta_t)
+		diffusionXY = self.diffusion_xy(vel_x, vel_y, t_int, delta_t)
 
 		avgdriftX = np.zeros((len(op_x), len(op_y)))
 		avgdriftY = np.zeros((len(op_x), len(op_y)))
@@ -98,20 +98,20 @@ class SDE():
 
 		m = 0
 		vel_x_, vel_y_ = vel_x[0:-dt], vel_y[0:-dt]
+		#print(len(vel_x_), len(vel_y_))
 		for bin_x in op_x:
 			n = 0
 			for bin_y in op_y:
-				i = np.where(np.logical_and(np.logical_and(vel_x_<(bin_x+bin_x+inc_x), vel_x_>=bin_x), np.logical_and(vel_y_<(bin_y+inc_y), vel_y>=bin_y)))
-				if not len(i): continue
+				i = np.where(np.logical_and(np.logical_and(vel_x_<(bin_x+inc_x), vel_x_>=bin_x), np.logical_and(vel_y_<(bin_y+inc_y), vel_y_>=bin_y)))[0]
+				#if not len(i): continue
 				avgdriftX[n,m] = np.nanmean(driftX[i])
 				avgdriftY[n,m] = np.nanmean(driftY[i])
 				avgdiffX[n,m] = np.nanmean(diffusionX[i])
 				avgdiffY[n,m] = np.nanmean(diffusionY[i])
 				avgdiffXY[n,m] = np.nanmean(diffusionXY[i])
-
 				n = n + 1
 			m = m + 1
-			return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y
+		return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y
 
 
 

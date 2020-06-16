@@ -96,7 +96,7 @@ class AutoCorrelation:
 		coeff1, coeff2 = self.fit_exp(t_lag, c)
 		a,b = coeff1
 		self._a, self.autocorrelation_time = a, b
-		return b
+		return int(np.ceil(b))
 
 class gaussian_test:
 	"""

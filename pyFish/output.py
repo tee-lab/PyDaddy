@@ -87,7 +87,7 @@ class output(preprocessing):
 			plt.show()
 		else:
 			fig1 = plt.figure()
-			ax - fig1.add_subplot(111, projection='3d')
+			ax = fig1.add_subplot(111, projection='3d')
 			vel_x = self.interploate_missing(self.vel_x)
 			vel_y = self.interploate_missing(self.vel_y)
 			H, edges, X, Y, Z, dx, dy, dz = self.histogram3d(np.array([vel_x[~np.isnan(vel_x)], vel_y[~np.isnan(vel_y)]]))
@@ -100,11 +100,12 @@ class output(preprocessing):
 			ax.set_zlabel('Frequency')
 
 			fig2 = plt.figure()
-			ax = fig2.axes(projection="3d")
+			ax = fig2.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
-			z = self.avgdiffY[self.avgdiffY==0] = np.nan
+			self.avgdiffY[self.avgdiffY==0] = np.nan
+			z = self.avgdiffY
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 2')
@@ -113,11 +114,12 @@ class output(preprocessing):
 			ax.set_zlabel('Stochastic Factor')
 
 			fig3 = plt.figure()
-			ax = fig3.axes(projection="3d")
+			ax = fig3.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
-			z = self.avgdiffX[self.avgdiffX==0] = np.nan
+			self.avgdiffX[self.avgdiffX==0] = np.nan
+			z = self.avgdriftX
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 3')
@@ -126,11 +128,12 @@ class output(preprocessing):
 			ax.set_zlabel('Stochastic Factor')
 
 			fig4 = plt.figure()
-			ax = fig4.axes(projection="3d")
+			ax = fig4.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
-			z = self.avgdriftY[self.avgdriftY==0] = np.nan
+			self.avgdriftY[self.avgdriftY==0] = np.nan
+			z = self.avgdriftY
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 4')
@@ -139,17 +142,19 @@ class output(preprocessing):
 			ax.set_zlabel('Deterministic Factor')
 
 			fig5 = plt.figure()
-			ax = fig5.axes(projection="3d")
+			ax = fig5.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
-			z = self.avgdriftX[self.avgdriftX==0] = np.nan
+			self.avgdriftX[self.avgdriftX==0] = np.nan
+			z = self.avgdriftX
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 5')
 			ax.set_xlabel('Mx')
 			ax.set_ylabel('My')
 			ax.set_zlabel('Deterministic Factor')
+			plt.show()
 
 
 	def diagnostic(self):
