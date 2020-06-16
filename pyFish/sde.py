@@ -49,6 +49,9 @@ class SDE():
 		"""
 		return np.square(np.array([b-a for a, b in zip(X, X[delta_t:])]))/(t_int*delta_t)
 
+	def diffusion_xy(self, vel_x, vel_y, t_int, delta_t):
+		return np.array([(b-a)*(d-c) for a,b,c,d in zip(vel_x, vel_x[delta_t:], vel_y, vel_y[delta_t:])])/(delta_t*t_int)
+
 	def drift_and_diffusion(self, X, t_int, dt,delta_t=1, inc = 0.01):
 		"""
 		Calcualtes drift, diffusion, average drift and avarage difussion.
@@ -76,6 +79,42 @@ class SDE():
 			avgdiff.append(diff[i].mean())
 			avgdrift.append(drift[i].mean())
 		return diff, drift, np.array(avgdiff), np.array(avgdrift), op
+
+	def vector_drift_diff(self, vel_x, vel_y, inc_x=0.1, inc_y=0.1, t_int=0.12, dt=40, delta_t=1):
+		op_x = np.arange(-1, 1, inc_x)
+		op_y = np.arange(-1, 1, inc_y)
+
+		driftX = self.drift(vel_x, t_int, dt)
+		driftY = self.drift(vel_y, t_int, dt)
+		diffusionX = self.diffusion(vel_x, t_int, delta_t)
+		diffusionY = self.diffusion(vel_y, t_int, delta_t)
+		diffusionXY = self.diffusion_xy(vel_x, vel_y, t_int, delta_t)
+
+		avgdriftX = np.zeros((len(op_x), len(op_y)))
+		avgdriftY = np.zeros((len(op_x), len(op_y)))
+		avgdiffX = np.zeros((len(op_x), len(op_y)))
+		avgdiffY = np.zeros((len(op_x), len(op_y)))
+		avgdiffXY = np.zeros((len(op_x), len(op_y)))
+
+		m = 0
+		vel_x_, vel_y_ = vel_x[0:-dt], vel_y[0:-dt]
+		#print(len(vel_x_), len(vel_y_))
+		for bin_x in op_x:
+			n = 0
+			for bin_y in op_y:
+				i = np.where(np.logical_and(np.logical_and(vel_x_<(bin_x+inc_x), vel_x_>=bin_x), np.logical_and(vel_y_<(bin_y+inc_y), vel_y_>=bin_y)))[0]
+				#if not len(i): continue
+				avgdriftX[n,m] = np.nanmean(driftX[i])
+				avgdriftY[n,m] = np.nanmean(driftY[i])
+				avgdiffX[n,m] = np.nanmean(diffusionX[i])
+				avgdiffY[n,m] = np.nanmean(diffusionY[i])
+				avgdiffXY[n,m] = np.nanmean(diffusionXY[i])
+				n = n + 1
+			m = m + 1
+		return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y
+
+
+
 
 	def __call__(self, X, t_int, dt, delta_t=1, inc=0.01, **kwargs):
 		"""

@@ -16,3 +16,15 @@ class metrics:
 		y_ = np.delete(y,nan_idx)
 		z = np.polyfit(x_,y_,deg)
 		return np.poly1d(z), x_
+
+	def nan_helper(self, x):
+		return np.isnan(x), lambda z: z.nonzero()[0]
+
+	def interploate_missing(self, y):
+		nans, x = self.nan_helper(y)
+		y[nans] = np.interp(x(nans), x(~nans), y[~nans])
+		return y
+
+	def kl_divergence(self, p, q):
+		p,q = np.abs(p), np.abs(q)
+		return np.sum(p*np.log2(p/q))
