@@ -1,6 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
 from pyFish.sde import SDE
 from pyFish.analysis import underlying_noise
 from pyFish.analysis import AutoCorrelation
@@ -9,6 +10,8 @@ from pyFish.preprocessing import preprocessing
 from pyFish.metrics import metrics
 from pyFish.output import output
 from pyFish.output import InputError
+
+warnings.filterwarnings("ignore")
 
 class Characterize(preprocessing):
 	def __init__(self, **kwargs):
