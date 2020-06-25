@@ -3,6 +3,8 @@ import scipy.optimize
 import scipy.stats
 import statsmodels.api as sm 
 import statsmodels.stats.diagnostic
+from statsmodels.stats import weightstats, stests
+from tqdm import tqdm
 from pyFish.sde import SDE
 from pyFish.metrics import metrics
 
@@ -30,7 +32,7 @@ class underlying_noise:
 			avgDrift.append(drift[i].mean())
 		return np.array(avgDrift), i
 
-	def __call__(self, X, inc, dt, t_int, point=0):
+	def noise(self, X, dt, t_int, inc=0.01, point=0):
 		drift = SDE.drift(X, t_int, dt)
 		x = X[0:-dt]
 		avgDrift, i = self.bin(x, point, inc)
@@ -98,7 +100,7 @@ class AutoCorrelation:
 		self._a, self.autocorrelation_time = a, b
 		return int(np.ceil(b))
 
-class gaussian_test:
+class gaussian_test(underlying_noise):
 	"""
 	This class is used to chack if the noise is gaussian in nature
 	it uses three well known tests:
@@ -116,11 +118,12 @@ class gaussian_test:
 	<bool> : True or False
 	"""
 	def __init__(self, **kwargs):
-		self.sh_alpha = 0.05
-		self.K2_alpha = 0.05
-		self.pass_difficulty = 1
+		#self.sh_alpha = 0.05
+		#self.K2_alpha = 0.05
+		#self.pass_difficulty = 1
+		underlying_noise.__init__(self)
 		self.__dict__.update(kwargs)
-
+	"""
 	def shapiro_wiki(self, noise, **kwargs):
 		self.__dict__.update(kwargs)
 		stats,  = scipy.stats.shapiro(noise)
@@ -134,18 +137,25 @@ class gaussian_test:
 	def andreson(self, noise):
 		stats, cv, cl = scipy.stats.anderson(noise)
 		return np.array([True if stats < cv[i] else False for i in range(len(cv))])
+	"""
+	def ttest(self, noise, kl_dist):
+		ttest, pval = scipy.stats.ttest_ind(noise, kl_dist)
+		return ttest, pval
 
-	def __call__(self, noise, **kwargs):
+	def ztest(self, noise, kl_dist):
+		ztest, pval = stests.ztest(noise, x2=kl_dist, value=0)
+		return ztest, pval
+
+	def __call__(self,  X, dt, t_int, inc=0.01, point=0, noise, **kwargs):
 		self.__dict__.update(kwargs)
-		results = []
-		results.append(self.shapiro_wiki(noise))
-		results.append(self.agostinok2(noise))
-		results.append(self.andreson(noise).all())
-		return True if np.where(results == True)[0].size >= self.pass_difficulty else False
-
-class analysis(underlying_noise, AutoCorrelation, gaussian_test):
-	def __init__(self):
-		self.underlying_noise = underlying_noise()
-		self.AutoCorrelation = AutoCorrelation()
-		self.gaussian_test = gaussian_test()
-
+		noise = self.noise(X, dt, t_int, inc=0.01, point=0)
+		s = noise.size
+		kl_dist = []
+		for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
+			p = np.random.normal(size = s)
+			q = np.random.normal(size = s)
+			kl_dist.append(metrics.kl_divergence(p,q))
+		ttest, pval_t = self.ttest(noise, kl_dist)
+		ztest, pval_z = self.ztest(noise, kl_dist)
+		gaussian_noise = True if pval_t > 0.05 else False
+		return noise, kl_dist, ttest, pval_t, z_test, pval_z
