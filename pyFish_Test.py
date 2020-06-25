@@ -19,7 +19,7 @@ import seaborn as sns
 
 
 data = np.loadtxt('data/pairwise/TimeSeries/TimeSeries_pairwise_N_50_.csv', delimiter=',')
-data = np.loadtxt('data/ternary/TimeSeries/TimeSeries_ternary_N_50_.csv', delimiter=',')
+#data = np.loadtxt('data/ternary/TimeSeries/TimeSeries_ternary_N_50_.csv', delimiter=',')
 X = data[:,0]
 t = data[:,1]
 t_int = t[-1]/len(t)
@@ -30,7 +30,7 @@ t_int = t[-1]/len(t)
 # In[ ]:
 
 
-sde = pyFish.Characterize(inc=0.01, t_lag=1000, simple_method=True, max_order=10, delta_t=1)
+sde = pyFish.Characterize(inc=0.01, t_lag=1000, simple_method=False, max_order=10, delta_t=1)
 
 
 # # Analyse
