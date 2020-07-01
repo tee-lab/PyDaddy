@@ -55,19 +55,22 @@ class output(preprocessing):
 	def visualize(self):
 		if not self.vector:
 			#Time series
-			fig1 = fig = plt.figure(dpi=150)
+			fig1 = plt.figure(dpi=150, figsize=(5,5))
 			l = int(len(self.X)/4)
-			plt.plot(self.t[0:l],self.X[0:l])
+			if self.t is not None:
+				plt.plot(self.t[0:l],self.X[0:l])
+			else:
+				plt.plot(self.X[0:l])
 			plt.title('Figure 1')
 			#PDF
-			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
+			fig2 = plt.figure(dpi=150, figsize=(5,5))
 			sns.distplot(self.X)
 			plt.title('Figure 2')
 			plt.xlim([min(self.X),max(self.X)])
 			plt.ylabel('PDF')
 			plt.xlabel('Order Parameter')
 			#Drift
-			fig3 = fig = plt.figure(dpi=150,figsize=(5,5))
+			fig3 = plt.figure(dpi=150, figsize=(5,5))
 			p_drift, _ = self.fit_poly(self.op, self.avgdrift, self.drift_order)
 			plt.scatter(self.op, self.avgdrift, marker='.')
 			plt.scatter(self.op, p_drift(self.op), marker='.')
@@ -76,7 +79,7 @@ class output(preprocessing):
 			plt.ylabel("Deterministic")
 			plt.xlim([min(self.X),max(self.X)])
 			#Diffusion
-			fig4 = fig = plt.figure(dpi=150,figsize=(5,5))
+			fig4 = plt.figure(dpi=150, figsize=(5,5))
 			p_diff, _ = self.fit_poly(self.op, self.avgdiff, self.diff_order)
 			plt.scatter(self.op, self.avgdiff, marker='.')
 			plt.scatter(self.op, p_diff(self.op), marker='.')
@@ -86,7 +89,7 @@ class output(preprocessing):
 			plt.ylabel('Stochastic')
 			plt.show()
 		else:
-			fig1 = plt.figure()
+			fig1 = plt.figure(dpi=150)
 			ax = fig1.add_subplot(111, projection='3d')
 			vel_x = self.interploate_missing(self.vel_x)
 			vel_y = self.interploate_missing(self.vel_y)
@@ -99,7 +102,7 @@ class output(preprocessing):
 			ax.set_ylabel('Y')
 			ax.set_zlabel('Frequency')
 
-			fig2 = plt.figure()
+			fig2 = plt.figure(dpi=150)
 			ax = fig2.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -113,7 +116,7 @@ class output(preprocessing):
 			ax.set_ylabel('My')
 			ax.set_zlabel('Stochastic Factor')
 
-			fig3 = plt.figure()
+			fig3 = plt.figure(dpi=150)
 			ax = fig3.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -127,7 +130,7 @@ class output(preprocessing):
 			ax.set_ylabel('My')
 			ax.set_zlabel('Stochastic Factor')
 
-			fig4 = plt.figure()
+			fig4 = plt.figure(dpi=150)
 			ax = fig4.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -141,7 +144,7 @@ class output(preprocessing):
 			ax.set_ylabel('My')
 			ax.set_zlabel('Deterministic Factor')
 
-			fig5 = plt.figure()
+			fig5 = plt.figure(dpi=150)
 			ax = fig5.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()

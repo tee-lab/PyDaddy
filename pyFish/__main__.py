@@ -94,8 +94,6 @@ class Characterize(preprocessing):
 		
 		if not hasattr(self,'t_int'): self.t_int = self._timestep(t)
 		self.dt = self.optimium_timescale(self._X, t_int=self.t_int, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
-		#print("_________________________________________")
-		#print(self.dt)
 		if not self.vector:
 			self._diff, self._drift, self._avgdiff, self._avgdrift, self._op = self.drift_and_diffusion(self._X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
 			#self._drift, self._diff, self._avgdrift, self._avgdiff, self._op = drift, diff, avgdrift, avgdiff, op
