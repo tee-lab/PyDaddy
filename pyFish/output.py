@@ -55,22 +55,19 @@ class output(preprocessing):
 	def visualize(self):
 		if not self.vector:
 			#Time series
-			fig1 = plt.figure(dpi=150, figsize=(5,5))
+			fig1 = fig = plt.figure(dpi=150)
 			l = int(len(self.X)/4)
-			if self.t is not None:
-				plt.plot(self.t[0:l],self.X[0:l])
-			else:
-				plt.plot(self.X[0:l])
+			plt.plot(self.t[0:l],self.X[0:l])
 			plt.title('Figure 1')
 			#PDF
-			fig2 = plt.figure(dpi=150, figsize=(5,5))
+			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
 			sns.distplot(self.X)
 			plt.title('Figure 2')
 			plt.xlim([min(self.X),max(self.X)])
 			plt.ylabel('PDF')
 			plt.xlabel('Order Parameter')
 			#Drift
-			fig3 = plt.figure(dpi=150, figsize=(5,5))
+			fig3 = fig = plt.figure(dpi=150,figsize=(5,5))
 			p_drift, _ = self.fit_poly(self.op, self.avgdrift, self.drift_order)
 			plt.scatter(self.op, self.avgdrift, marker='.')
 			plt.scatter(self.op, p_drift(self.op), marker='.')
@@ -79,7 +76,7 @@ class output(preprocessing):
 			plt.ylabel("Deterministic")
 			plt.xlim([min(self.X),max(self.X)])
 			#Diffusion
-			fig4 = plt.figure(dpi=150, figsize=(5,5))
+			fig4 = fig = plt.figure(dpi=150,figsize=(5,5))
 			p_diff, _ = self.fit_poly(self.op, self.avgdiff, self.diff_order)
 			plt.scatter(self.op, self.avgdiff, marker='.')
 			plt.scatter(self.op, p_diff(self.op), marker='.')
@@ -89,7 +86,7 @@ class output(preprocessing):
 			plt.ylabel('Stochastic')
 			plt.show()
 		else:
-			fig1 = plt.figure(dpi=150)
+			fig1 = plt.figure()
 			ax = fig1.add_subplot(111, projection='3d')
 			vel_x = self.interploate_missing(self.vel_x)
 			vel_y = self.interploate_missing(self.vel_y)
@@ -102,7 +99,7 @@ class output(preprocessing):
 			ax.set_ylabel('Y')
 			ax.set_zlabel('Frequency')
 
-			fig2 = plt.figure(dpi=150)
+			fig2 = plt.figure()
 			ax = fig2.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -116,7 +113,7 @@ class output(preprocessing):
 			ax.set_ylabel('My')
 			ax.set_zlabel('Stochastic Factor')
 
-			fig3 = plt.figure(dpi=150)
+			fig3 = plt.figure()
 			ax = fig3.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -130,7 +127,7 @@ class output(preprocessing):
 			ax.set_ylabel('My')
 			ax.set_zlabel('Stochastic Factor')
 
-			fig4 = plt.figure(dpi=150)
+			fig4 = plt.figure()
 			ax = fig4.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -144,7 +141,7 @@ class output(preprocessing):
 			ax.set_ylabel('My')
 			ax.set_zlabel('Deterministic Factor')
 
-			fig5 = plt.figure(dpi=150)
+			fig5 = plt.figure()
 			ax = fig5.add_subplot(projection="3d")
 			x = np.matlib.repmat(self.op_x,len(self.op_x),1)
 			x.ravel().sort()
@@ -184,6 +181,32 @@ class output(preprocessing):
 		plt.ylabel('R2')
 		plt.title('R2 Diff vs order')
 		plt.show()
+
+	def noise_characterstics(self):
+		print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
+		fig1 = plt.figure(dpi=150)
+		sns.distplot(self.out._noise)
+		plt.title("Noise Distribution")
+		fig2 = plt.figure(dpi=150)
+		sns.distplot(self.out._kl_dist)
+		start, stop = plt.gca().get_ylim()
+		plt.plot(np.ones(len(self.out._X1))*self.out.l_lim, np.linspace(start,stop,len(self.out._X1)),'r', label='upper_cl')
+		plt.plot(np.ones(len(self.out._X1))*self.out.h_lim, np.linspace(start,stop,len(self.out._X1)),'r', label="lower_cl")
+		plt.plot(np.ones(len(self.out._X1))*self.out.k, np.linspace(start,stop,len(self.out._X1)),'g', label='Test Stat')
+		plt.legend()
+		plt.title("Test of hypothesis")
+		fig3 = plt.figure(dpi=150)
+		plt.plot(self.out._X1[1:], self.out._f)
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.l_lim, self.out._f, 'r', label='lower_cl')
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.h_lim, self.out._f, 'r', label='upper_cl')
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.k, self.out._f, 'g', label='Test Stat')
+		plt.legend()
+		plt.title("Cummulative Density Function")
+		fig4 = plt.figure(dpi=150)
+		plt.plot(self.out._noise_correlation[0], self.out._noise_correlation[1])
+		plt.title("Noise ACF")
+		plt.show()
+
 
 	def histogram3d(self,x,bins = 10, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
 		"""

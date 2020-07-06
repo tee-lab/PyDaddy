@@ -26,5 +26,6 @@ class metrics:
 		return y
 
 	def kl_divergence(self, p, q):
-		p,q = np.abs(p), np.abs(q)
-		return np.sum(p*np.log2(p/q))
+		k = p*np.log(np.abs(((p+1e-100)/(q+1e-100))))
+		#k[np.where(np.isnan(k))] = 0
+		return np.sum(k)
