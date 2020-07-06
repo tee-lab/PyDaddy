@@ -3,12 +3,12 @@ import scipy.optimize
 import scipy.stats
 import statsmodels.api as sm 
 import statsmodels.stats.diagnostic
-from statsmodels.stats import weightstats, stests
+from statsmodels.stats import weightstats as stests
 from tqdm import tqdm
 from pyFish.sde import SDE
 from pyFish.metrics import metrics
 
-class underlying_noise:
+class underlying_noise(SDE):
 	"""
 	Calculates noise in time series
 
@@ -24,22 +24,39 @@ class underlying_noise:
 	"""
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
+		SDE.__init__(self)
 
-	def bin(self, x, point, inc):
+	"""def bin(self, x, drift, point, inc):
+		avgDrift = []
 		op = np.arange(-1,1,inc).round(4)
 		for b in np.arange(point, point+inc, inc):
-			i = np.where(np.logical_and(x<(b+inc), x>b))[0]
+			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
 			avgDrift.append(drift[i].mean())
-		return np.array(avgDrift), i
+		return np.array(avgDrift), i, op
 
 	def noise(self, X, dt, t_int, inc=0.01, point=0):
-		drift = SDE.drift(X, t_int, dt)
+		drift = self.drift(X, t_int, dt)
 		x = X[0:-dt]
-		avgDrift, i = self.bin(x, point, inc)
+		avgDrift, i, op = self.bin(x, drift, point, inc)
+		print(avgDrift)
 		j = np.where(op==point)[0]
-		avgDrift = 0 if j >len(avgDrift) else avgDrift[j]
-		noise = ((x[i+i] - x[i]) - (t_int*dt)*avgDrift)/np.sqrt(t_int)
+		_avgDrift = 0 if j >len(avgDrift) else avgDrift[j]
+		noise = ((x[i+i] - x[i]) - (t_int*dt)*_avgDrift)/np.sqrt(t_int)
 		return noise
+	"""
+	def noise(self, X, dt, t_int, inc=0.01, point=0):
+		op = np.arange(-1,1,inc).round(4)
+		avgDrift = []
+		x = X[0:-dt]
+		drift = self.drift(X,t_int,dt)
+		for b in np.arange(point, point+inc, inc):
+			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
+			avgDrift.append(drift[i].mean())
+		avgDrift = np.array(avgDrift)
+		j = np.where(op==point)[0]
+		_avgDrift = 0 if j>len(avgDrift) else avgDrift[j]
+		noise = ((x[i+1] - x[i]) - (t_int*dt)*_avgDrift)/np.sqrt(t_int)
+		return noise 
 
 class AutoCorrelation:
 	"""
@@ -100,7 +117,7 @@ class AutoCorrelation:
 		self._a, self.autocorrelation_time = a, b
 		return int(np.ceil(b))
 
-class gaussian_test(underlying_noise):
+class gaussian_test(underlying_noise, metrics):
 	"""
 	This class is used to chack if the noise is gaussian in nature
 	it uses three well known tests:
@@ -122,6 +139,7 @@ class gaussian_test(underlying_noise):
 		#self.K2_alpha = 0.05
 		#self.pass_difficulty = 1
 		underlying_noise.__init__(self)
+		metrics.__init__(self)
 		self.__dict__.update(kwargs)
 	"""
 	def shapiro_wiki(self, noise, **kwargs):
@@ -146,16 +164,16 @@ class gaussian_test(underlying_noise):
 		ztest, pval = stests.ztest(noise, x2=kl_dist, value=0)
 		return ztest, pval
 
-	def __call__(self,  X, dt, t_int, inc=0.01, point=0, noise, **kwargs):
+	def noise_analysis(self,  X, dt, t_int, inc=0.01, point=0, **kwargs):
 		self.__dict__.update(kwargs)
-		noise = self.noise(X, dt, t_int, inc=0.01, point=0)
+		noise = self.noise(X, dt, t_int, inc, point)
 		s = noise.size
 		kl_dist = []
 		for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
 			p = np.random.normal(size = s)
 			q = np.random.normal(size = s)
-			kl_dist.append(metrics.kl_divergence(p,q))
+			kl_dist.append(self.kl_divergence(p,q))
 		ttest, pval_t = self.ttest(noise, kl_dist)
 		ztest, pval_z = self.ztest(noise, kl_dist)
 		gaussian_noise = True if pval_t > 0.05 else False
-		return noise, kl_dist, ttest, pval_t, z_test, pval_z
+		return gaussian_noise, noise, kl_dist, ttest, pval_t, ztest, pval_z

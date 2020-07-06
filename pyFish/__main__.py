@@ -13,7 +13,7 @@ from pyFish.output import InputError
 
 warnings.filterwarnings("ignore")
 
-class Characterize(preprocessing):
+class Characterize(preprocessing, gaussian_test):
 	def __init__(self, **kwargs):
 		"""
 		input parms:
@@ -31,6 +31,7 @@ class Characterize(preprocessing):
 		#self.optimium_timescale = optimium_timescale()
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
+		gaussian_test.__init__(self)
 
 	def _timestep(self, t):
 		return t[-1]/len(t)
@@ -103,6 +104,6 @@ class Characterize(preprocessing):
 			#return drift, diff, avgdrift, avgdiff, op
 		else:
 			self._avgdriftX, self._avgdriftY, self._avgdiffX, self._avgdiffY, self._avgdiffXY, self._op_x, self._op_y = self.vector_drift_diff(self._vel_x, self._vel_y, inc_x=self.inc_x, inc_y=self.inc_y, t_int=self.t_int, dt=self.dt, delta_t=self.delta_t)
-
+		self.gaussian_noise, self._noise, self._kl_dist, self.ttest, self.pval_t, self.z_test, self.pval_z = self.noise_analysis(self._X, self.dt, self.t_int, inc=self.inc, point=0)
 		return output(self)
 
