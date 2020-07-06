@@ -26,24 +26,6 @@ class underlying_noise(SDE):
 		self.__dict__.update(kwargs)
 		SDE.__init__(self)
 
-	"""def bin(self, x, drift, point, inc):
-		avgDrift = []
-		op = np.arange(-1,1,inc).round(4)
-		for b in np.arange(point, point+inc, inc):
-			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
-			avgDrift.append(drift[i].mean())
-		return np.array(avgDrift), i, op
-
-	def noise(self, X, dt, t_int, inc=0.01, point=0):
-		drift = self.drift(X, t_int, dt)
-		x = X[0:-dt]
-		avgDrift, i, op = self.bin(x, drift, point, inc)
-		print(avgDrift)
-		j = np.where(op==point)[0]
-		_avgDrift = 0 if j >len(avgDrift) else avgDrift[j]
-		noise = ((x[i+i] - x[i]) - (t_int*dt)*_avgDrift)/np.sqrt(t_int)
-		return noise
-	"""
 	def noise(self, X, dt, t_int, inc=0.01, point=0):
 		op = np.arange(-1,1,inc).round(4)
 		avgDrift = []
@@ -135,34 +117,17 @@ class gaussian_test(underlying_noise, metrics):
 	<bool> : True or False
 	"""
 	def __init__(self, **kwargs):
-		#self.sh_alpha = 0.05
-		#self.K2_alpha = 0.05
-		#self.pass_difficulty = 1
 		underlying_noise.__init__(self)
 		metrics.__init__(self)
 		self.__dict__.update(kwargs)
-	"""
-	def shapiro_wiki(self, noise, **kwargs):
-		self.__dict__.update(kwargs)
-		stats,  = scipy.stats.shapiro(noise)
-		return True if p > self.sh_alpha else False
 
-	def agostinoK2(self, noise, **kwargs):
-		self.__dict__.update(kwargs)
-		ststs, p = scipy.stats.normaltest(noise)
-		return True if p > self.K2_alpha else False
-
-	def andreson(self, noise):
-		stats, cv, cl = scipy.stats.anderson(noise)
-		return np.array([True if stats < cv[i] else False for i in range(len(cv))])
-	"""
-	def ttest(self, noise, kl_dist):
-		ttest, pval = scipy.stats.ttest_ind(noise, kl_dist)
-		return ttest, pval
-
-	def ztest(self, noise, kl_dist):
-		ztest, pval = stests.ztest(noise, x2=kl_dist, value=0)
-		return ztest, pval
+	def get_critical_values(self, kl_dist):
+		hist, self._X1 = np.histogram(kl_dist, normed=True)
+		dx = self._X1[1] - self._X1[0]
+		self._f = np.cumsum(hist)*dx
+		l_lim = self._X1[1:][np.where(self._f <= 0.05)][-1]
+		h_lim = self._X1[1:][np.where(self._f >= 0.95)][0]
+		return l_lim, h_lim
 
 	def noise_analysis(self,  X, dt, t_int, inc=0.01, point=0, **kwargs):
 		self.__dict__.update(kwargs)
@@ -173,7 +138,8 @@ class gaussian_test(underlying_noise, metrics):
 			p = np.random.normal(size = s)
 			q = np.random.normal(size = s)
 			kl_dist.append(self.kl_divergence(p,q))
-		ttest, pval_t = self.ttest(noise, kl_dist)
-		ztest, pval_z = self.ztest(noise, kl_dist)
-		gaussian_noise = True if pval_t > 0.05 else False
-		return gaussian_noise, noise, kl_dist, ttest, pval_t, ztest, pval_z
+		l_lim, h_lim = self.get_critical_values(kl_dist)
+		k = self.kl_divergence(noise, np.random.normal(size=s))
+		gaussian_noise = True if k >= l_lim and k <= h_lim else False
+		noise_correlation = AutoCorrelation().autocorr(noise, t_lag=10)
+		return gaussian_noise, noise, kl_dist, k, l_lim, h_lim, noise_correlation

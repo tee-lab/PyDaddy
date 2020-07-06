@@ -182,6 +182,32 @@ class output(preprocessing):
 		plt.title('R2 Diff vs order')
 		plt.show()
 
+	def noise_characterstics(self):
+		print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
+		fig1 = plt.figure(dpi=150)
+		sns.distplot(self.out._noise)
+		plt.title("Noise Distribution")
+		fig2 = plt.figure(dpi=150)
+		sns.distplot(self.out._kl_dist)
+		start, stop = plt.gca().get_ylim()
+		plt.plot(np.ones(len(self.out._X1))*self.out.l_lim, np.linspace(start,stop,len(self.out._X1)),'r', label='upper_cl')
+		plt.plot(np.ones(len(self.out._X1))*self.out.h_lim, np.linspace(start,stop,len(self.out._X1)),'r', label="lower_cl")
+		plt.plot(np.ones(len(self.out._X1))*self.out.k, np.linspace(start,stop,len(self.out._X1)),'g', label='Test Stat')
+		plt.legend()
+		plt.title("Test of hypothesis")
+		fig3 = plt.figure(dpi=150)
+		plt.plot(self.out._X1[1:], self.out._f)
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.l_lim, self.out._f, 'r', label='lower_cl')
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.h_lim, self.out._f, 'r', label='upper_cl')
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.k, self.out._f, 'g', label='Test Stat')
+		plt.legend()
+		plt.title("Cummulative Density Function")
+		fig4 = plt.figure(dpi=150)
+		plt.plot(self.out._noise_correlation[0], self.out._noise_correlation[1])
+		plt.title("Noise ACF")
+		plt.show()
+
+
 	def histogram3d(self,x,bins = 10, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
 		"""
 		Plotting a 3D histogram

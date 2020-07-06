@@ -52,7 +52,7 @@ out.data()
 # In[9]:
 
 
-out.parameters()
+print(out.parameters())
 
 
 # # Visualize Output
@@ -72,6 +72,9 @@ out.diagnostic()
 
 
 # In[ ]:
+
+# # Noise Characterstics
+out.noise_characterstics()
 
 
 

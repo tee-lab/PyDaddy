@@ -76,6 +76,8 @@ out.diagnostic()
 
 # In[ ]:
 
+# # Noise Characterstics
+out.noise_characterstics()
 
 
 
