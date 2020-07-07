@@ -57,7 +57,10 @@ class output(preprocessing):
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			l = int(len(self.X)/4)
-			plt.plot(self.t[0:l],self.X[0:l])
+			try:
+				plt.plot(self.t[0:l],self.X[0:l])
+			except:
+				plt.plot(self.X[0:l])
 			plt.title('Figure 1')
 			#PDF
 			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
@@ -158,6 +161,7 @@ class output(preprocessing):
 
 
 	def diagnostic(self):
+		t1 = "R2" if self.out.order_metric=="R2" else "R2_adj"
 		#ACF
 		fig1 = plt.figure(dpi=150)
 		exp_fn = lambda t,a,b: a*np.exp((-1/b)*t)
@@ -172,14 +176,14 @@ class output(preprocessing):
 		fig2 = plt.figure(dpi=150)
 		plt.plot(range(self.out.max_order), self.out._r2_drift)
 		plt.xlabel('order')
-		plt.ylabel('R2')
-		plt.title('R2 Drift vs order')
+		plt.ylabel(t1)
+		plt.title('{} Drift vs order'.format(t1))
 		#R2 vs order for diff
 		fig3 = plt.figure(dpi=150)
 		plt.plot(range(self.out.max_order), self.out._r2_diff)
 		plt.xlabel('order')
-		plt.ylabel('R2')
-		plt.title('R2 Diff vs order')
+		plt.ylabel(t1)
+		plt.title('{} Diff vs order'.format(t1))
 		plt.show()
 
 	def noise_characterstics(self):

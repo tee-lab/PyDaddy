@@ -8,38 +8,6 @@ from tqdm import tqdm
 from pyFish.sde import SDE
 from pyFish.metrics import metrics
 
-class underlying_noise(SDE):
-	"""
-	Calculates noise in time series
-
-	input parms:
-	X 			: time series
-	inc 		: max binning increments
-	point = 0 	: measurement in time sereis when moise in maxmium
-	dt 			: analysis time step
-	t_int 		:
-
-	returns:
-	noise : noise in time series 
-	"""
-	def __init__(self, **kwargs):
-		self.__dict__.update(kwargs)
-		SDE.__init__(self)
-
-	def noise(self, X, dt, t_int, inc=0.01, point=0):
-		op = np.arange(-1,1,inc).round(4)
-		avgDrift = []
-		x = X[0:-dt]
-		drift = self.drift(X,t_int,dt)
-		for b in np.arange(point, point+inc, inc):
-			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
-			avgDrift.append(drift[i].mean())
-		avgDrift = np.array(avgDrift)
-		j = np.where(op==point)[0]
-		_avgDrift = 0 if j>len(avgDrift) else avgDrift[j]
-		noise = ((x[i+1] - x[i]) - (t_int*dt)*_avgDrift)/np.sqrt(t_int)
-		return noise 
-
 class AutoCorrelation:
 	"""
 	This class defines methods to calculate the autocorrelation function of time series,
@@ -47,6 +15,18 @@ class AutoCorrelation:
 	"""
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
+
+	def acf_fft(self, data, t_lag):
+		x = np.arange(0, t_lag+1)
+		c = np.fft.ifft(np.square(np.abs(np.fft.fft(data))))[0:t_lag+1]
+		return x,c
+
+	def acf(self, data, t_lag):
+		if self.fft: self.acf_fft(data, t_lag)
+		x = np.arange(0, t_lag+1)
+		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
+		c.insert(0,1)
+		return x, np.array(c)
 
 	def autocorr(self, data, t_lag):
 		"""
@@ -60,11 +40,9 @@ class AutoCorrelation:
 		x : array of lags
 		c : array of auto correlation factors 
 		"""
-		x = np.arange(0, t_lag+1)
-		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
-		c.insert(0,1)
-		self._autocorr_x, self._autocorr_y = x, np.array(c)
-		return x, np.array(c)
+		x, c = self.acf(data, t_lag)
+		self._autocorr_x, self._autocorr_y = x, c
+		return x, c
 
 	def fit_exp(self, x, y):
 		"""
@@ -99,7 +77,39 @@ class AutoCorrelation:
 		self._a, self.autocorrelation_time = a, b
 		return int(np.ceil(b))
 
-class gaussian_test(underlying_noise, metrics):
+class underlying_noise(SDE):
+	"""
+	Calculates noise in time series
+
+	input parms:
+	X 			: time series
+	inc 		: max binning increments
+	point = 0 	: measurement in time sereis when moise in maxmium
+	dt 			: analysis time step
+	t_int 		:
+
+	returns:
+	noise : noise in time series 
+	"""
+	def __init__(self, **kwargs):
+		self.__dict__.update(kwargs)
+		SDE.__init__(self)
+
+	def noise(self, X, dt, t_int, inc=0.01, point=0):
+		op = np.arange(-1,1,inc).round(4)
+		avgDrift = []
+		x = X[0:-dt]
+		drift = self.drift(X,t_int,dt)
+		for b in np.arange(point, point+inc, inc):
+			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
+			avgDrift.append(drift[i].mean())
+		avgDrift = np.array(avgDrift)
+		j = np.where(op==point)[0]
+		_avgDrift = 0 if j>len(avgDrift) else avgDrift[j]
+		noise = ((x[i+1] - x[i]) - (t_int*dt)*_avgDrift)/np.sqrt(t_int)
+		return noise 
+
+class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 	"""
 	This class is used to chack if the noise is gaussian in nature
 	it uses three well known tests:
@@ -119,6 +129,7 @@ class gaussian_test(underlying_noise, metrics):
 	def __init__(self, **kwargs):
 		underlying_noise.__init__(self)
 		metrics.__init__(self)
+		AutoCorrelation.__init__(self)
 		self.__dict__.update(kwargs)
 
 	def get_critical_values(self, kl_dist):
@@ -141,5 +152,5 @@ class gaussian_test(underlying_noise, metrics):
 		l_lim, h_lim = self.get_critical_values(kl_dist)
 		k = self.kl_divergence(noise, np.random.normal(size=s))
 		gaussian_noise = True if k >= l_lim and k <= h_lim else False
-		noise_correlation = AutoCorrelation().autocorr(noise, t_lag=10)
+		noise_correlation = self.acf(noise, t_lag=10)
 		return gaussian_noise, noise, kl_dist, k, l_lim, h_lim, noise_correlation
