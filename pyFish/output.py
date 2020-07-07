@@ -109,7 +109,9 @@ class output(preprocessing):
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
 			self.avgdiffY[self.avgdiffY==0] = np.nan
 			z = self.avgdiffY
+			self.plane_avgdiffY = self.fit_plane(x,y,z,order=self.out.diff_order)
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			ax.plot_surface(x,y,self.plane_avgdiffY(x,y), rstride=1, cstride=1, alpha=0.5)
 			plt.xlim([1,-1])
 			plt.title('Figure 2')
 			ax.set_xlabel('Mx')
@@ -122,7 +124,10 @@ class output(preprocessing):
 			x.ravel().sort()
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
 			self.avgdiffX[self.avgdiffX==0] = np.nan
-			z = self.avgdriftX
+			z = self.avgdiffX
+			self.plane_avgdiffX = self.fit_plane(x,y,z,order=self.out.diff_order)
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			ax.plot_surface(x,y,self.plane_avgdiffX(x,y), rstride=1, cstride=1, alpha=0.5)
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 3')
@@ -137,6 +142,9 @@ class output(preprocessing):
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
 			self.avgdriftY[self.avgdriftY==0] = np.nan
 			z = self.avgdriftY
+			self.plane_avgdriftY = self.fit_plane(x,y,z,order=self.out.drift_order)
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			ax.plot_surface(x,y,self.plane_avgdriftY(x,y), rstride=1, cstride=1, alpha=0.5)
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 4')
@@ -151,6 +159,9 @@ class output(preprocessing):
 			y = np.matlib.repmat(self.op_y, len(self.op_y),1)
 			self.avgdriftX[self.avgdriftX==0] = np.nan
 			z = self.avgdriftX
+			self.plane_avgdriftX = self.fit_plane(x,y,z,order=self.out.drift_order)
+			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
+			ax.plot_surface(x,y,self.plane_avgdriftX(x,y), rstride=1, cstride=1, alpha=0.5)
 			ax.scatter3D(x, y, z.ravel(), c=z.ravel(), cmap='jet');
 			plt.xlim([1,-1])
 			plt.title('Figure 5')
