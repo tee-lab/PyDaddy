@@ -7,12 +7,13 @@ from pyFish.analysis import gaussian_test
 from pyFish.metrics import metrics
 from pyFish.sde import SDE
 
-class preprocessing(AutoCorrelation, SDE, metrics):
+class preprocessing(gaussian_test):
 	def __init__(self,**kwargs):
 		self.__dict__.update(kwargs)
-		AutoCorrelation.__init__(self)
-		SDE.__init__(self)
-		metrics.__init__(self)
+		#AutoCorrelation.__init__(self)
+		#SDE.__init__(self)
+		#metrics.__init__(self)
+		gaussian_test.__init__(self)
 
 	def _get_dt(self, X):
 		return int(self.get_autocorr_time(X, t_lag=1000)/10)
