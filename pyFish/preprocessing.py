@@ -18,6 +18,7 @@ class preprocessing(AutoCorrelation, SDE, metrics):
 		return int(self.get_autocorr_time(X, t_lag=1000)/10)
 
 	def order(self, X, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
+		adj = False if self.order_metric=="R2" else True
 		self._r2_drift = []
 		self._r2_diff = []
 		dt = self._get_dt(X)+5 if dt == 'auto' else dt
@@ -26,11 +27,12 @@ class preprocessing(AutoCorrelation, SDE, metrics):
 		for i in range(max_order):
 			p_drift, _ = self.fit_poly(x=op, y=avgDrift, deg=i)
 			p_diff, _ = self.fit_poly(x=op, y=avgDiff, deg=i)
-			self._r2_drift.append(self.R2(data=avgDrift,op=op, poly=p_drift))
-			self._r2_diff.append(self.R2(data=avgDiff, op=op, poly=p_diff))
+			self._r2_drift.append(self.R2(data=avgDrift,op=op, poly=p_drift, k=i, adj=adj))
+			self._r2_diff.append(self.R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
 		#self.drift_order = np.diff(r2_drift).argmax() + 1
 		self.drift_order = np.where(np.isclose(self._r2_drift, max(self._r2_drift), atol=0.1))[0][0]
-		self.diff_order = np.diff(self._r2_diff).argmax() + 1
+		#self.diff_order = np.diff(self._r2_diff).argmax() + 1
+		self.diff_order = np.where(np.isclose(self._r2_diff, max(self._r2_diff), atol=0.1))[0][0]
 		#plt.plot(range(max_order), self._r2_drift)
 		#plt.show()
 		return self.drift_order , np.array(self._r2_drift)

@@ -28,6 +28,7 @@ class Characterize(preprocessing, gaussian_test):
 		self.inc = 0.01
 		self.dt_ = 'auto'
 		self.delta_t = 1
+		self.order_metric = "R2_adj"
 		#self.optimium_timescale = optimium_timescale()
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
@@ -48,7 +49,8 @@ class Characterize(preprocessing, gaussian_test):
 			self._vel_x, self._vel_y = data
 			vx = self.interploate_missing(self._vel_x)
 			vy = self.interploate_missing(self._vel_y)
-			self._X = np.sqrt((np.square(vx) + np.square(vy)))
+			#self._X = np.sqrt((np.square(vx) + np.square(vy)))
+			self._X = vx
 			self.vector = True
 		else:
 			raise InputError('Characterize(data=[x1,x2],...)', 'data input must be a list of length 1 or 2!')
