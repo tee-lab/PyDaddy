@@ -18,7 +18,7 @@ import seaborn as sns
 # In[2]:
 
 
-data = np.loadtxt('data/pairwise/TimeSeries/TimeSeries_pairwise_N_50_.csv', delimiter=',')
+#data = np.loadtxt('data/pairwise/TimeSeries/TimeSeries_pairwise_N_50_.csv', delimiter=',')
 data = np.loadtxt('data/ternary/TimeSeries/TimeSeries_ternary_N_50_.csv', delimiter=',')
 X = data[:,0]
 t = data[:,1]
@@ -76,6 +76,8 @@ out.diagnostic()
 
 # In[ ]:
 
+# # Noise Characterstics
+out.noise_characterstics()
 
 
 

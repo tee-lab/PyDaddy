@@ -29,7 +29,7 @@ tint = 0.12
 # In[19]:
 
 
-sde = pyFish.Characterize(inc=0.01, inc_x=0.1, inc_y=0.1,t_lag=1000, simple_method=False, max_order=10, delta_t=1)
+sde = pyFish.Characterize(inc=0.01, inc_x=0.1, inc_y=0.1,t_lag=1000, simple_method=True, max_order=10, delta_t=1)
 
 
 # # Analyse
@@ -52,7 +52,7 @@ out.data()
 # In[9]:
 
 
-out.parameters()
+print(out.parameters())
 
 
 # # Visualize Output
@@ -72,6 +72,9 @@ out.diagnostic()
 
 
 # In[ ]:
+
+# # Noise Characterstics
+out.noise_characterstics()
 
 
 

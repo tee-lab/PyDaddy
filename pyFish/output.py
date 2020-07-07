@@ -57,7 +57,10 @@ class output(preprocessing):
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			l = int(len(self.X)/4)
-			plt.plot(self.t[0:l],self.X[0:l])
+			try:
+				plt.plot(self.t[0:l],self.X[0:l])
+			except:
+				plt.plot(self.X[0:l])
 			plt.title('Figure 1')
 			#PDF
 			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
@@ -158,6 +161,7 @@ class output(preprocessing):
 
 
 	def diagnostic(self):
+		t1 = "R2" if self.out.order_metric=="R2" else "R2_adj"
 		#ACF
 		fig1 = plt.figure(dpi=150)
 		exp_fn = lambda t,a,b: a*np.exp((-1/b)*t)
@@ -172,15 +176,41 @@ class output(preprocessing):
 		fig2 = plt.figure(dpi=150)
 		plt.plot(range(self.out.max_order), self.out._r2_drift)
 		plt.xlabel('order')
-		plt.ylabel('R2')
-		plt.title('R2 Drift vs order')
+		plt.ylabel(t1)
+		plt.title('{} Drift vs order'.format(t1))
 		#R2 vs order for diff
 		fig3 = plt.figure(dpi=150)
 		plt.plot(range(self.out.max_order), self.out._r2_diff)
 		plt.xlabel('order')
-		plt.ylabel('R2')
-		plt.title('R2 Diff vs order')
+		plt.ylabel(t1)
+		plt.title('{} Diff vs order'.format(t1))
 		plt.show()
+
+	def noise_characterstics(self):
+		print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
+		fig1 = plt.figure(dpi=150)
+		sns.distplot(self.out._noise)
+		plt.title("Noise Distribution")
+		fig2 = plt.figure(dpi=150)
+		sns.distplot(self.out._kl_dist)
+		start, stop = plt.gca().get_ylim()
+		plt.plot(np.ones(len(self.out._X1))*self.out.l_lim, np.linspace(start,stop,len(self.out._X1)),'r', label='upper_cl')
+		plt.plot(np.ones(len(self.out._X1))*self.out.h_lim, np.linspace(start,stop,len(self.out._X1)),'r', label="lower_cl")
+		plt.plot(np.ones(len(self.out._X1))*self.out.k, np.linspace(start,stop,len(self.out._X1)),'g', label='Test Stat')
+		plt.legend()
+		plt.title("Test of hypothesis")
+		fig3 = plt.figure(dpi=150)
+		plt.plot(self.out._X1[1:], self.out._f)
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.l_lim, self.out._f, 'r', label='lower_cl')
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.h_lim, self.out._f, 'r', label='upper_cl')
+		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.k, self.out._f, 'g', label='Test Stat')
+		plt.legend()
+		plt.title("Cummulative Density Function")
+		fig4 = plt.figure(dpi=150)
+		plt.plot(self.out._noise_correlation[0], self.out._noise_correlation[1])
+		plt.title("Noise ACF")
+		plt.show()
+
 
 	def histogram3d(self,x,bins = 10, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
 		"""

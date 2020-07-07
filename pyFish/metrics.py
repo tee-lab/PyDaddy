@@ -7,8 +7,14 @@ class metrics:
 	def rms(self,x1,x2):
 		return np.nanmean(np.sqrt(np.square(x2 - x1)))
 
-	def R2(self,data,op,poly):
+	def R2(self,data,op,poly,k,adj=False):
+		if adj: return self.R2_adj(data, op, poly, k)
 		return 1 - (np.nanmean(np.square(data - poly(op)))/np.nanmean(np.square(data - np.nanmean(data))))
+
+	def R2_adj(self, data, op, poly, k):
+		r2 = 1 - (np.nanmean(np.square(data - poly(op)))/np.nanmean(np.square(data - np.nanmean(data))))
+		n = len(op)
+		return 1-(((1-r2)*(n-1))/(n-k-1))
 
 	def fit_poly(self,x,y,deg):
 		nan_idx = np.argwhere(np.isnan(y))
@@ -26,5 +32,6 @@ class metrics:
 		return y
 
 	def kl_divergence(self, p, q):
-		p,q = np.abs(p), np.abs(q)
-		return np.sum(p*np.log2(p/q))
+		k = p*np.log(np.abs(((p+1e-100)/(q+1e-100))))
+		#k[np.where(np.isnan(k))] = 0
+		return np.sum(k)
