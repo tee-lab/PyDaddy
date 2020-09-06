@@ -3,41 +3,10 @@ import scipy.optimize
 import scipy.stats
 import statsmodels.api as sm 
 import statsmodels.stats.diagnostic
+from statsmodels.stats import weightstats as stests
+from tqdm import tqdm
 from pyFish.sde import SDE
 from pyFish.metrics import metrics
-
-class underlying_noise:
-	"""
-	Calculates noise in time series
-
-	input parms:
-	X 			: time series
-	inc 		: max binning increments
-	point = 0 	: measurement in time sereis when moise in maxmium
-	dt 			: analysis time step
-	t_int 		:
-
-	returns:
-	noise : noise in time series 
-	"""
-	def __init__(self, **kwargs):
-		self.__dict__.update(kwargs)
-
-	def bin(self, x, point, inc):
-		op = np.arange(-1,1,inc).round(4)
-		for b in np.arange(point, point+inc, inc):
-			i = np.where(np.logical_and(x<(b+inc), x>b))[0]
-			avgDrift.append(drift[i].mean())
-		return np.array(avgDrift), i
-
-	def __call__(self, X, inc, dt, t_int, point=0):
-		drift = SDE.drift(X, t_int, dt)
-		x = X[0:-dt]
-		avgDrift, i = self.bin(x, point, inc)
-		j = np.where(op==point)[0]
-		avgDrift = 0 if j >len(avgDrift) else avgDrift[j]
-		noise = ((x[i+i] - x[i]) - (t_int*dt)*avgDrift)/np.sqrt(t_int)
-		return noise
 
 class AutoCorrelation:
 	"""
@@ -46,6 +15,22 @@ class AutoCorrelation:
 	"""
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
+
+	def acf_fft(self, data, t_lag):
+		x = np.arange(0, self.t_lag+1)
+		try:
+			c = np.fft.ifft(np.square(np.abs(np.fft.fft(data))))[0:self.t_lag+1]
+		except ValueError:
+			print("Warning: Invalid FFT points {}. returning array of zeros".format(len(x)))
+			c = np.ones(t_lag+1)*0
+		return x,c
+
+	def acf(self, data, t_lag):
+		if self.fft: self.acf_fft(data, self.t_lag)
+		x = np.arange(0, self.t_lag+1)
+		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
+		c.insert(0,1)
+		return x, np.array(c)
 
 	def autocorr(self, data, t_lag):
 		"""
@@ -59,11 +44,9 @@ class AutoCorrelation:
 		x : array of lags
 		c : array of auto correlation factors 
 		"""
-		x = np.arange(0, t_lag+1)
-		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
-		c.insert(0,1)
-		self._autocorr_x, self._autocorr_y = x, np.array(c)
-		return x, np.array(c)
+		x, c = self.acf(data, t_lag)
+		self._autocorr_x, self._autocorr_y = x, c
+		return x, c
 
 	def fit_exp(self, x, y):
 		"""
@@ -98,7 +81,39 @@ class AutoCorrelation:
 		self._a, self.autocorrelation_time = a, b
 		return int(np.ceil(b))
 
-class gaussian_test:
+class underlying_noise(SDE):
+	"""
+	Calculates noise in time series
+
+	input parms:
+	X 			: time series
+	inc 		: max binning increments
+	point = 0 	: measurement in time sereis when moise in maxmium
+	dt 			: analysis time step
+	t_int 		:
+
+	returns:
+	noise : noise in time series 
+	"""
+	def __init__(self, **kwargs):
+		self.__dict__.update(kwargs)
+		SDE.__init__(self)
+
+	def noise(self, X, dt, t_int, inc=0.01, point=0):
+		op = np.arange(-1,1,inc).round(4)
+		avgDrift = []
+		x = X[0:-dt]
+		drift = self.drift(X,t_int,dt)
+		for b in np.arange(point, point+inc, inc):
+			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
+			avgDrift.append(drift[i].mean())
+		avgDrift = np.array(avgDrift)
+		j = np.where(op==point)[0]
+		_avgDrift = 0 if j>len(avgDrift) else avgDrift[j]
+		noise = ((x[i+1] - x[i]) - (t_int*dt)*_avgDrift)/np.sqrt(t_int)
+		return noise 
+
+class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 	"""
 	This class is used to chack if the noise is gaussian in nature
 	it uses three well known tests:
@@ -116,36 +131,30 @@ class gaussian_test:
 	<bool> : True or False
 	"""
 	def __init__(self, **kwargs):
-		self.sh_alpha = 0.05
-		self.K2_alpha = 0.05
-		self.pass_difficulty = 1
+		underlying_noise.__init__(self)
+		metrics.__init__(self)
+		AutoCorrelation.__init__(self)
 		self.__dict__.update(kwargs)
 
-	def shapiro_wiki(self, noise, **kwargs):
+	def get_critical_values(self, kl_dist):
+		hist, self._X1 = np.histogram(kl_dist, normed=True)
+		dx = self._X1[1] - self._X1[0]
+		self._f = np.cumsum(hist)*dx
+		l_lim = self._X1[1:][np.where(self._f <= 0.05)][-1]
+		h_lim = self._X1[1:][np.where(self._f >= 0.95)][0]
+		return l_lim, h_lim
+
+	def noise_analysis(self,  X, dt, t_int, inc=0.01, point=0, **kwargs):
 		self.__dict__.update(kwargs)
-		stats,  = scipy.stats.shapiro(noise)
-		return True if p > self.sh_alpha else False
-
-	def agostinoK2(self, noise, **kwargs):
-		self.__dict__.update(kwargs)
-		ststs, p = scipy.stats.normaltest(noise)
-		return True if p > self.K2_alpha else False
-
-	def andreson(self, noise):
-		stats, cv, cl = scipy.stats.anderson(noise)
-		return np.array([True if stats < cv[i] else False for i in range(len(cv))])
-
-	def __call__(self, noise, **kwargs):
-		self.__dict__.update(kwargs)
-		results = []
-		results.append(self.shapiro_wiki(noise))
-		results.append(self.agostinok2(noise))
-		results.append(self.andreson(noise).all())
-		return True if np.where(results == True)[0].size >= self.pass_difficulty else False
-
-class analysis(underlying_noise, AutoCorrelation, gaussian_test):
-	def __init__(self):
-		self.underlying_noise = underlying_noise()
-		self.AutoCorrelation = AutoCorrelation()
-		self.gaussian_test = gaussian_test()
-
+		noise = self.noise(X, dt, t_int, inc, point)
+		s = noise.size
+		kl_dist = []
+		for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
+			p = np.random.normal(size = s)
+			q = np.random.normal(size = s)
+			kl_dist.append(self.kl_divergence(p,q))
+		l_lim, h_lim = self.get_critical_values(kl_dist)
+		k = self.kl_divergence(noise, np.random.normal(size=s))
+		gaussian_noise = True if k >= l_lim and k <= h_lim else False
+		noise_correlation = self.acf(noise, t_lag=10)
+		return gaussian_noise, noise, kl_dist, k, l_lim, h_lim, noise_correlation

@@ -49,6 +49,9 @@ class SDE():
 		"""
 		return np.square(np.array([b-a for a, b in zip(X, X[delta_t:])]))/(t_int*delta_t)
 
+	#def drift_xy(self, vel_x, vel_y, t_int, dt):
+	#	return np.array([(b-a)*(d-c) for a,b,c,d in zip(vel_x, vel_x[dt:], vel_y, vel_y[dt:])])/(dt*t_int)
+
 	def diffusion_xy(self, vel_x, vel_y, t_int, delta_t):
 		return np.array([(b-a)*(d-c) for a,b,c,d in zip(vel_x, vel_x[delta_t:], vel_y, vel_y[delta_t:])])/(delta_t*t_int)
 
@@ -68,7 +71,8 @@ class SDE():
 		avgdiff : avarage diffusion 			<numpy.ndarray>
 		avgdrift: avaerage drift 				<numpy.ndarray>
 		"""
-		op = np.arange(-1,1,inc)
+		#op = np.arange(-1,1,inc)
+		op = np.arange(min(X), max(X), inc)
 		#self.avgdiff, self.avgdrift = [], []
 		avgdiff, avgdrift = [], []
 		drift = self.drift(X, t_int, dt)
