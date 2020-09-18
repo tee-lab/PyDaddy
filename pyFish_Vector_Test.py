@@ -3,19 +3,25 @@
 
 # # Import Modules
 
-# In[17]:
+# In[1]:
 
 
 import pyFish
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
+
+
+# In[2]:
+
+
+warnings.filterwarnings('ignore')
 
 
 # # Load Sample data
-# > Comment second line for pairwise data
 
-# In[18]:
+# In[3]:
 
 
 data = np.loadtxt('data/sample_vel_x_vel_y.csv', delimiter=',')
@@ -26,22 +32,15 @@ tint = 0.12
 
 # # Initialize object with parameters
 
-# In[19]:
+# In[4]:
 
 
-sde = pyFish.Characterize(inc=0.01, inc_x=0.1, inc_y=0.1,t_lag=1000, simple_method=True, max_order=10, delta_t=1)
+out = pyFish.Characterize([vel_x, vel_y], t=None, t_int=tint)
 
 
 # # Analyse
 
-# In[21]:
-
-
-out = sde([vel_x, vel_y],t=None,dt='auto',t_int=tint)
-out
-
-
-# In[7]:
+# In[5]:
 
 
 out.data()
@@ -49,32 +48,49 @@ out.data()
 
 # # View parameters
 
-# In[9]:
+# In[6]:
 
 
-print(out.parameters())
+out.parameters(save=True)
 
 
 # # Visualize Output
 
-# In[22]:
+# In[7]:
 
 
-out.visualize()
+out.visualize(show=False, save=True)
+
+
+# # 2D Slice
+
+# In[8]:
+
+
+out.slices_2d(show=False, save=True)
 
 
 # # Diagnostics graphs
 
-# In[23]:
+# In[9]:
 
 
-out.diagnostic()
+out.diagnostic(show=False, save=True)
+
+
+# In[10]:
+
+
+out.noise_characterstics(show=False, save=True)
+
+
+# In[11]:
+
+
+out.save_data()
 
 
 # In[ ]:
-
-# # Noise Characterstics
-out.noise_characterstics()
 
 
 
