@@ -1,0 +1,43 @@
+{
+ "dt_":"auto"
+
+ "t_int":"0.999990000099999"
+
+ "t_lag":"1000"
+
+ "simple_method":"True"
+
+ "max_order":"10"
+
+ "inc":"0.01"
+
+ "inc_x":"0.1"
+
+ "inc_y":"0.1"
+
+ "delta_t":"1"
+
+ "order_metric":"R2_adj"
+
+ "fft":"True"
+
+ "drift_order":"3"
+
+ "diff_order":"2"
+
+ "n_trials":"1"
+
+ "vector":"False"
+
+ "autocorrelation_time":"78.80827753926768"
+
+ "dt":"8"
+
+ "gaussian_noise":"True"
+
+ "k":"4.473806035391455"
+
+ "l_lim":"-89.9842626846214"
+
+ "h_lim":"97.11666510411317"
+}
