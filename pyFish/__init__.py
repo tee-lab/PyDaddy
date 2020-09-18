@@ -7,7 +7,7 @@ pyFish : a package to analyse timeseries data using stocastic differential equat
 """
 
 __title__ = "pyFish"
-__author__ = ""
+__author__ = "Ashwin Karichannavar, (e-mail: ashwinkk.23@gmail.com)"
 __license__ = ""
 __copyright__ = ""
 

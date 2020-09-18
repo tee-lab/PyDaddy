@@ -4,7 +4,7 @@ with open("README.md", 'r') as f:
 		long_description = f.read()
 
 with open('requirements.txt', 'r') as f:
-	requirements = f.read().split()
+	INSTALL_REQUIREMENTS = f.read().split()
 	
 
 setup(
@@ -17,5 +17,7 @@ setup(
 	 author_email='ashwinkk.23@gmail.com',
 	 url="https://github.com/ashwinkk23/pyFish",
 	 packages=find_packages(),  #same as name
-	 install_requires=requirements, #external packages as dependencies
+	 include_package_data=True,
+	 package_data={'': ['data/extras/*.csv', 'data/pairwise/*.csv', 'data/ternary/*.csv', 'data/vector/*.csv']},
+	 install_requires=INSTALL_REQUIREMENTS, #external packages as dependencies
 )
