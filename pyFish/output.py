@@ -10,6 +10,7 @@ import scipy.optimize
 import scipy.stats
 import scipy.io
 import pickle
+import time
 import statsmodels.api as sm 
 import statsmodels.stats.diagnostic
 from pyFish.preprocessing import preprocessing
@@ -17,6 +18,7 @@ from pyFish.preprocessing import preprocessing
 class output(preprocessing):
 	def __init__(self, out, **kwargs):
 		self.vector = out.vector
+		self._res_dir = str(int(time.time()))
 
 		if not self.vector:
 			self.X = out._X
@@ -65,8 +67,10 @@ class output(preprocessing):
 			return self.drift, self.diff, self.avgdrift, self.avgdiff, self.op
 		return self.avgdriftX, self.avgdriftY, self.avgdiffX, self.avgdiffY, self.avgdiffXY, self.op_x, self.op_y
 
-	def save_data(self, file_name, savepath=None, savemat=True):
-		if savepath is None: savepath = ""
+	def save_data(self, file_name=None, savepath=None, savemat=True):
+		if savepath is None: savepath = 'results'
+		if file_name is None: file_name = self._res_dir
+		savepath = self.make_dirctory(os.path.join(savepath, self._res_dir))
 		if not self.vector:
 			data_dict = {'drift':self.drift, 'diff':self.diff, 'avgdrift':self.avgdrift, 'avgdiff':self.avgdiff, 'op':self.op}
 		else:
@@ -78,19 +82,21 @@ class output(preprocessing):
 			scipy.io.savemat(os.path.join(savepath, file_name+'.mat'), mdict=data_dict)
 
 	def parameters(self, save=False, savepath=None, file_name="parameters.txt"):
-		if savepath is None: savepath = ""
+		if savepath is None: savepath = "results"
 		params = dict()
 		for keys in self.out.__dict__.keys():
 			if str(keys)[0] != '_':
 				params[keys] = str(self.out.__dict__[keys])
 		if save:
+			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir))
 			with open(os.path.join(savepath, file_name), 'w') as f:
 				json.dump(params, f, indent=True, separators='\n:')
 		return params
 
 	def visualize(self, show=True, save=False, savepath=None):
-		if savepath is None: savepath = ""
+		if savepath is None: savepath = "results"
 		if not self.vector:
+			savepath = os.path.join(savepath, self._res_dir, 'visualize')
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			plt.suptitle("Time_Series")
@@ -125,6 +131,7 @@ class output(preprocessing):
 			plt.xlabel("Order Parameter")
 			plt.ylabel('Stochastic')
 		else:
+			savepath = os.path.join(savepath ,self._res_dir, 'visualize','plot_3d')
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
@@ -320,6 +327,7 @@ class output(preprocessing):
 		
 		if show: plt.show()
 		if save:
+			savepath = self.make_dirctory(savepath)
 			dpi = 150
 			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"))
 			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"))
@@ -339,7 +347,7 @@ class output(preprocessing):
 
 
 	def diagnostic(self, show=True, save=False, savepath=None):
-		if savepath is None: savepath = ""
+		if savepath is None: savepath="results"
 		t1 = "R2" if self.out.order_metric=="R2" else "R2_adj"
 		#ACF
 		fig1 = plt.figure(dpi=150)
@@ -354,27 +362,49 @@ class output(preprocessing):
 
 		#R2 vs order for drift
 		fig2 = plt.figure(dpi=150)
-		plt.suptitle("{}_vs_drift".format(t1))
+		plt.suptitle("{}_vs_drift_order".format(t1))
 		plt.plot(range(self.out.max_order), self.out._r2_drift)
 		plt.xlabel('order')
 		plt.ylabel(t1)
 
 		#R2 vs order for diff
 		fig3 = plt.figure(dpi=150)
-		plt.suptitle("{}_vs_Diff".format(t1))
+		plt.suptitle("{}_vs_Diff_order".format(t1))
 		plt.plot(range(self.out.max_order), self.out._r2_diff)
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		#plt.title('{} Diff vs order'.format(t1))
+
+		#R2 vs order for drift, multiple dt
+		label = ["dt={}".format(i) for i in self.out._r2_drift_m_dt[-1]]
+		fig4 = plt.figure(dpi=150)
+		plt.suptitle("{}_Drift_different_dt".format(t1))
+		for i in range(len(self.out._r2_drift_m_dt) -1): plt.plot(range(self.out.max_order), self.out._r2_drift_m_dt[i], label=self.out._r2_drift_m_dt[-1][i])
+		plt.xlabel('order')
+		plt.ylabel(t1)
+		plt.legend()
+
+		#R2 vs order for diff, multiple dt
+		fig5 = plt.figure(dpi=150)
+		plt.suptitle("{}_Diff_different_dt".format(t1))
+		for i in range(len(self.out._r2_drift_m_dt) -1): plt.plot(range(self.out.max_order), self.out._r2_drift_m_dt[i], label=self.out._r2_drift_m_dt[-1][i])
+		plt.xlabel('order')
+		plt.ylabel(t1)
+		plt.legend()
+
+
 		
 		if show: plt.show()
 		if save:
+			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir, 'diagnostic'))
 			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"))
 			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"))
 			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"))
+			fig4.savefig(os.path.join(savepath, fig4.texts[0].get_text()+".png"))
+			fig5.savefig(os.path.join(savepath, fig5.texts[0].get_text()+".png"))
 
 	def noise_characterstics(self, show=True, save=False, savepath=None):
-		if savepath is None: savepath = ""
+		if savepath is None: savepath = "results"
 		print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
 
 		fig1 = plt.figure(dpi=150)
@@ -404,6 +434,7 @@ class output(preprocessing):
 		
 		if show: plt.show()
 		if save:
+			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir, 'noise_characterstics'))
 			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"), transparent=True)
 			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"), transparent=True)
 			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"), transparent=True)
@@ -411,6 +442,8 @@ class output(preprocessing):
 
 
 	def slices_2d(self, show=True, save=False, savepath=None):
+		if savepath is None: savepath="results"
+
 		if not self.vector: return None
 		x,y = np.meshgrid(self.op_x, self.op_y)
 
@@ -487,8 +520,8 @@ class output(preprocessing):
 
 		if show: plt.show()
 		if save:
+			savepath=self.make_dirctory(os.path.join(savepath, self._res_dir, 'visualize', 'slices_2d'))
 			dpi=150
-			if savepath is None: savepath = ""
 			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"),dpi=150, transparent=True)
 			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"),dpi=150, transparent=True)
 			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"),dpi=150, transparent=True)

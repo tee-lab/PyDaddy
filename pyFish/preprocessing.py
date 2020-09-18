@@ -15,21 +15,50 @@ class preprocessing(gaussian_test):
 	def _get_dt(self, X):
 		return int(self.get_autocorr_time(X, t_lag=1000)/10)
 
-	def order(self, X, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
+	def _r2_vs_order(self, op, avgDrift, avgDiff, max_order):
 		adj = False if self.order_metric=="R2" else True
-		self._r2_drift = []
-		self._r2_diff = []
+		r2_drift = []
+		r2_diff = []
+		for i in range(max_order):
+			p_drift,_ = self.fit_poly(x=op, y=avgDrift, deg=i)
+			p_diff,_ = self.fit_poly(x=op, y=avgDiff, deg=i)
+			r2_drift.append(self.R2(data=avgDrift,op=op, poly=p_drift, k=i, adj=adj))
+			r2_diff.append(self.R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
+		return r2_drift, r2_diff
+
+	def order(self, X, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
+		#adj = False if self.order_metric=="R2" else True
 		dt = self._get_dt(X)+5 if dt == 'auto' else dt
 		_,_,avgDiff, avgDrift, op = self.drift_and_diffusion(X, t_int, dt=dt, delta_t=delta_t, inc=inc)
+		self._r2_drift, self._r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
+		"""
+		self._r2_drift = []
+		self._r2_diff = []
 		for i in range(max_order):
 			p_drift, _ = self.fit_poly(x=op, y=avgDrift, deg=i)
 			p_diff, _ = self.fit_poly(x=op, y=avgDiff, deg=i)
 			self._r2_drift.append(self.R2(data=avgDrift,op=op, poly=p_drift, k=i, adj=adj))
 			self._r2_diff.append(self.R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
+		"""
 		if self.drift_order is None:
 			self.drift_order = np.where(np.isclose(self._r2_drift, max(self._r2_drift), atol=0.1))[0][0]
 		if self.diff_order is None:
 			self.diff_order = np.where(np.isclose(self._r2_diff, max(self._r2_diff), atol=0.1))[0][0]
+
+		#R2_adj multiple dt
+		self._r2_drift_m_dt = []
+		self._r2_diff_m_dt = []
+		max_dt = self.get_autocorr_time(X)
+		N = 4
+		for n in range(1,N+1):
+			_,_,avgDiff, avgDrift, op = self.drift_and_diffusion(X, t_int, dt=int((n/N)*max_dt), delta_t=delta_t, inc=inc)
+			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
+			self._r2_drift_m_dt.append(_r2_drift)
+			self._r2_diff_m_dt.append(_r2_diff)
+		self._r2_drift_m_dt.append([int((i/N)*max_dt) for i in range(1,N+1)])
+		self._r2_diff_m_dt.append([int((i/N)*max_dt) for i in range(1,N+1)])
+
+		#return
 		return self.drift_order , np.array(self._r2_drift)
 
 	def simple_estimate(self, X,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
