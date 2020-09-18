@@ -387,7 +387,7 @@ class output(preprocessing):
 		#R2 vs order for diff, multiple dt
 		fig5 = plt.figure(dpi=150)
 		plt.suptitle("{}_Diff_different_dt".format(t1))
-		for i in range(len(self.out._r2_drift_m_dt) -1): plt.plot(range(self.out.max_order), self.out._r2_drift_m_dt[i], label=self.out._r2_drift_m_dt[-1][i])
+		for i in range(len(self.out._r2_drift_m_dt) -1): plt.plot(range(self.out.max_order), self.out._r2_diff_m_dt[i], label=self.out._r2_drift_m_dt[-1][i])
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		plt.legend()
