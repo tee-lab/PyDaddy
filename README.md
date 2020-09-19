@@ -1,3 +1,4 @@
+
 ![Characterizing Noise](https://raw.githubusercontent.com/ashwinkk23/Characterizing_noise/master/.fig.jpg)
 # pyFish
 ![](https://img.shields.io/badge/numpy-1.19.1-green)    ![](https://img.shields.io/badge/scipy-1.5.2-blue) ![](https://img.shields.io/badge/statsmodels-0.11.1-yellow) ![](https://img.shields.io/badge/matplotlib-3.2.2-red) ![](https://img.shields.io/badge/tqdm-4.48.2-lightgrey)  ![](https://img.shields.io/badge/seaborm-0.10.1-orange)
@@ -6,16 +7,24 @@ Package to analyse the characteristics of stochastic time series data.
 
 # How does it work
 Suppose m(t) is a stochastic time series data, then the package calculates the deterministic and stochastic component of dm/dt.
-> ![](https://latex.codecogs.com/gif.latex?\frac{dm}{dt}=f(m)+g(m)\eta(t))
 
-The method of extracting the deterministic and stochastic and deterministic functions is based on the assumption that the noise is uncorrelated and Gaussian in nature.
- > ![]( https://latex.codecogs.com/gif.latex?\eta(t)=0;\eta(t)\eta(t')=\delta(t-t'))
-
-The package extracts the noise from the data and checks to make sure the noise is Gaussian and uncorrelated in nature. 
+>![](https://latex.codecogs.com/gif.latex?\frac{dm}{dt}=f(m)+g(m)\eta(t))
 
 ![](https://latex.codecogs.com/gif.latex?f(m))          |  ![](https://latex.codecogs.com/gif.latex?g(m)\eta(t))
 :-------------------------:|:-------------------------:
 ![](https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/deterministic.png?raw=true)  |  ![](https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/stochastic.png?raw=True)
+
+
+The method of extracting the deterministic and stochastic and deterministic functions is based on the assumption that the noise is uncorrelated and Gaussian in nature.
+ > ![]( https://latex.codecogs.com/gif.latex?<\eta(t)>=0;<\eta(t)\eta(t')>=\delta(t-t'))
+ > 
+![](https://latex.codecogs.com/gif.latex?\<eta(t)>=0)          |  ![](https://latex.codecogs.com/gif.latex?<\eta(t)\eta(t')>=\delta(t-t'))
+:-------------------------:|:-------------------------:
+![](https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/Test_of_hypothesis.png?raw=true)  |  ![](https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/Noise_ACF.png?raw=true)
+
+
+The package extracts the noise from the data and checks to make sure the noise is Gaussian and uncorrelated in nature. 
+
 
 # Motivation
 ![](https://teelabiisc.files.wordpress.com/2019/03/cropped-fish-7.jpg)
