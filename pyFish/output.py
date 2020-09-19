@@ -81,6 +81,16 @@ class output(preprocessing):
 		if savemat:
 			scipy.io.savemat(os.path.join(savepath, file_name+'.mat'), mdict=data_dict)
 
+	def save_all_data(self, show=False, file_name=None, savepath=None):
+		if savepath is None: savepath = "results"
+		self.save_data(file_name=file_name, savepath=savepath)
+		self.parameters(save=True, savepath=savepath)
+		self.visualize(show=show, save=True, savepath=savepath)
+		self.diagnostic(show=show, save=True, savepath=savepath)
+		self.noise_characterstics(show=show, save=True, savepath=savepath)
+		self.slices_2d(show=show, save=True, savepath=savepath)
+		print('Results saved in: {}'.format(os.path.join(savepath, self._res_dir)))
+
 	def parameters(self, save=False, savepath=None, file_name="parameters.txt"):
 		if savepath is None: savepath = "results"
 		params = dict()
@@ -405,7 +415,7 @@ class output(preprocessing):
 
 	def noise_characterstics(self, show=True, save=False, savepath=None):
 		if savepath is None: savepath = "results"
-		print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
+		#print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
 
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("Noise_Distrubution")
