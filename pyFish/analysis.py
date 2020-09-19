@@ -34,9 +34,9 @@ class AutoCorrelation:
 		c : numpy.array
 			correlation values
 		"""
-		x = np.arange(0, self.t_lag+1)
+		x = np.arange(0, t_lag+1)
 		try:
-			c = np.fft.ifft(np.square(np.abs(np.fft.fft(data))))[0:self.t_lag+1]
+			c = np.fft.ifft(np.square(np.abs(np.fft.fft(data))))[0:t_lag+1]
 		except ValueError:
 			print("Warning: Invalid FFT points {}. returning array of zeros".format(len(x)))
 			c = np.ones(t_lag+1)*0
@@ -61,8 +61,8 @@ class AutoCorrelation:
 		c : numpy.array
 			correlation values
 		"""
-		if self.fft: self.acf_fft(data, self.t_lag)
-		x = np.arange(0, self.t_lag+1)
+		if self.fft: self.acf_fft(data, t_lag)
+		x = np.arange(0, t_lag+1)
 		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
 		c.insert(0,1)
 		return x, np.array(c)
