@@ -1,7 +1,7 @@
 {
  "dt_":"auto"
 
- "t_int":"0.12"
+ "t_int":"0.999990000099999"
 
  "t_lag":"1000"
 
@@ -21,23 +21,23 @@
 
  "fft":"True"
 
- "drift_order":"1"
+ "drift_order":"3"
 
  "diff_order":"2"
 
  "n_trials":"1"
 
- "vector":"True"
+ "vector":"False"
 
- "autocorrelation_time":"32.90204595771374"
+ "autocorrelation_time":"78.80827753926768"
 
- "dt":"32"
+ "dt":"8"
 
  "gaussian_noise":"True"
 
- "k":"1.9528149435029576"
+ "k":"11.871140833996323"
 
- "l_lim":"-43.05315691097438"
+ "l_lim":"-89.46392524762979"
 
- "h_lim":"39.5585142134272"
+ "h_lim":"92.40414280511959"
 }

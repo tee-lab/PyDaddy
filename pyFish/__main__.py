@@ -15,6 +15,9 @@ warnings.filterwarnings("ignore")
 
 
 class Main(preprocessing, gaussian_test):
+	"""
+	main driver class
+	"""
 	def __init__(
 			self, 
 			data, 
@@ -35,14 +38,6 @@ class Main(preprocessing, gaussian_test):
 			n_trials = 1,
 			**kwargs
 				):
-
-		"""
-		input parms:
-		t_lag : maxmium lag for autocorelation relation analysis
-		simple_method : rule to use to find Dt
-		inc : bin increments
-		delta_t : time step to calculate diffusion
-		"""
 
 		self._data = data
 		self._t = t
@@ -129,7 +124,48 @@ class Characterize(object):
 			n_trials = 1,
 			**kwargs
 			):
+		"""
+		Input params:
+		--------------
+		data : list
+			time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
+			where x, x1 and x2 are of numpy.array object type
+		t : numpy.array
+			time stamp of time series
+		t_int : float
+			time increment between consecutive observations of the time series
+		dt = 'auto' : 'auto' or int
+			time scale to run the analysis on (for determinsitic part);
+			algorithm estimates dt if 'auto' is passed, else takes the user input
+		delta_t = 1 : int
+			time scale to run the analysis on (for stochastic part)
+		inc = 0.01 : float
+			increment in order parameter for scalar data
+		inc_x = 0.1 : float
+			increment in order parameter for vector data x1
+		inc_y = 0.1 : float
+			increment in order parameter for vector data x2
+		drift_order = None : int
+			order of polynomial to be fit for calculated drift (deterministic part);
+			if None, algorithim estimates the optimium drift_order
+		diff_order = None : int
+			order of polynomial to be fit for calculated diff (stochastic part);
+			if None, algorithim estimates the optimium diff_order
+		max_order = 10 : int
+			maxmium drift_order and diff_order to consider
+		fft = True : bool
+			if true use fft method to calculate autocorrelation else, use standard method
+		t_lag = 1000 : int
+			maxmium lag to use to calculate acf
 
+		**kwargs 
+			all the parameters for pyFish.preporcessing and pyFish.noise_analysis
+
+		returns:
+		-----------
+		output : pyFish.output
+			object to access the analysed data, parameters, plots and save them.
+		"""
 		sde = Main(
 			data=data, 
 			t=t, 

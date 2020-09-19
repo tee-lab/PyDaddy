@@ -142,7 +142,7 @@ class output(preprocessing):
 
 		return None
 
-	def save_all_data(self, show=False, file_name=None, savepath=None):
+	def save_all_data(self, savepath=None ,show=False, file_name=None):
 		"""
 		Saves all data and figures
 
