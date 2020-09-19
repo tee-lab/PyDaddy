@@ -16,6 +16,9 @@ import statsmodels.stats.diagnostic
 from pyFish.preprocessing import preprocessing
 
 class output(preprocessing):
+	"""
+	Class to plot and save data and parameters
+	"""
 	def __init__(self, out, **kwargs):
 		self.vector = out.vector
 		self._res_dir = str(int(time.time()))
@@ -23,7 +26,6 @@ class output(preprocessing):
 		if not self.vector:
 			self.X = out._X
 			self.t = out._t
-			#self.t_int= self.t[-1]/len(self.t)
 			self.drift = out._drift
 			self.diff = out._diff
 			self.avgdrift = out._avgdrift
@@ -48,10 +50,38 @@ class output(preprocessing):
 		preprocessing.__init__(self)
 
 	def release(self):
+		"""
+		Clears the memory, recommended to be used while analysing multiple
+		data files in loop.
+
+		Input params:
+		--------------
+		None
+
+		returns:
+		--------------
+		None
+		"""
+		self._visualize_figs = []
+		self._diagnostics_figs = []
+		self._noise_figs = []
 		plt.close('all')
 		gc.collect()
+		return None
 
 	def make_dirctory(self, p, i=1):
+		"""
+		Recursively create directories in given path
+
+		Input params:
+		--------------
+		path : str
+			destination path
+
+		returns:
+		-------------
+		path : str
+		"""
 		if type(p) != list: p = p.split('/')
 		if i > len(p):
 			return os.path.join(*p)
@@ -63,11 +93,40 @@ class output(preprocessing):
 		return self.make_dirctory(p,i=i+1)
 	
 	def data(self):
+		"""
+		Get the calculated data
+
+		Input params:
+		--------------
+		None
+
+		returns:
+		--------------
+		data : list
+			if vector [drift, diff, avgdrift, avgdiff, op]
+			else, [avgdriftX, avgdriftY, avgdiffX, avgdiffY, abgdiffXY, op_x, op_y] 
+		"""
 		if not self.vector:
 			return self.drift, self.diff, self.avgdrift, self.avgdiff, self.op
 		return self.avgdriftX, self.avgdriftY, self.avgdiffX, self.avgdiffY, self.avgdiffXY, self.op_x, self.op_y
 
 	def save_data(self, file_name=None, savepath=None, savemat=True):
+		"""
+		Save calculated data to file
+
+		Input params:
+		--------------
+		file_name : str
+			name of the file, if None, file name will be the time a which the data was analysed
+		savepath : str
+			destination path to save data, if None, files will me saved in current/working/directory/results
+		savemat : bool
+			if True also saves the data in matlab compatable (.mat) format.
+
+		returns:
+		-------------
+			None
+		"""
 		if savepath is None: savepath = 'results'
 		if file_name is None: file_name = self._res_dir
 		savepath = self.make_dirctory(os.path.join(savepath, self._res_dir))
@@ -81,7 +140,25 @@ class output(preprocessing):
 		if savemat:
 			scipy.io.savemat(os.path.join(savepath, file_name+'.mat'), mdict=data_dict)
 
+		return None
+
 	def save_all_data(self, show=False, file_name=None, savepath=None):
+		"""
+		Saves all data and figures
+
+		Input params:
+		--------------
+		show : bool
+			if True, shows the figure
+		file_name : str
+			name of the files, if None, time at which data was analysed is consideres as file name
+		savepath : str
+			save destination path, if None, data is saved in current/working/directory/results
+
+		returns:
+		-------------
+			None
+		"""
 		if savepath is None: savepath = "results"
 		self.save_data(file_name=file_name, savepath=savepath)
 		self.parameters(save=True, savepath=savepath)
@@ -92,6 +169,23 @@ class output(preprocessing):
 		print('Results saved in: {}'.format(os.path.join(savepath, self._res_dir)))
 
 	def parameters(self, save=False, savepath=None, file_name="parameters.txt"):
+		"""
+		Get the parameters used and calculated for analysis
+
+		Input params:
+		--------------
+		save : bool
+			if True, save parameters to file
+		savepath : str
+			save destination path, if None, data is saved in current/working/directory/results
+		file_name = 'parameters.txt' : str
+			name of the file
+
+		returns:
+		------------
+		params : dict, json
+			all parameters used and calculated during analysis
+		"""
 		if savepath is None: savepath = "results"
 		params = dict()
 		for keys in self.out.__dict__.keys():
@@ -104,6 +198,23 @@ class output(preprocessing):
 		return params
 
 	def visualize(self, show=True, save=False, savepath=None):
+		"""
+		Plot the data
+
+		Input params:
+		--------------
+		show = True : bool
+			if True, show the figures 
+		save = False : bool
+			if True save the figures to disk
+		savepath = None : str
+			save destination path, if None, data is saved in current/working/directory/results/visualize
+
+		returns:
+		-------------
+			None
+		"""
+		self._visualize_figs = []
 		if savepath is None: savepath = "results"
 		if not self.vector:
 			savepath = os.path.join(savepath, self._res_dir, 'visualize')
@@ -115,6 +226,8 @@ class output(preprocessing):
 				plt.plot(self.t[0:l],self.X[0:l])
 			except:
 				plt.plot(self.X[0:l])
+			self._visualize_figs.append(fig1)
+
 			#PDF
 			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
 			plt.suptitle("PDF")
@@ -122,6 +235,8 @@ class output(preprocessing):
 			plt.xlim([min(self.X),max(self.X)])
 			plt.ylabel('PDF')
 			plt.xlabel('Order Parameter')
+			self._visualize_figs.append(fig2)
+
 			#Drift
 			fig3 = plt.figure(dpi=150,figsize=(5,5))
 			plt.suptitle("Average_Drift")
@@ -131,6 +246,8 @@ class output(preprocessing):
 			plt.xlabel('Order Parameter')
 			plt.ylabel("Deterministic")
 			plt.xlim([min(self.X),max(self.X)])
+			self._visualize_figs.append(fig3)
+
 			#Diffusion
 			fig4 = plt.figure(dpi=150,figsize=(5,5))
 			plt.suptitle("Average_Diffusion")
@@ -140,6 +257,8 @@ class output(preprocessing):
 			plt.xlim([min(self.X),max(self.X)])
 			plt.xlabel("Order Parameter")
 			plt.ylabel('Stochastic')
+			self._visualize_figs.append(fig4)
+
 		else:
 			savepath = os.path.join(savepath ,self._res_dir, 'visualize','plot_3d')
 			fig1 = plt.figure()
@@ -165,8 +284,9 @@ class output(preprocessing):
 			ax.tick_params(axis='both', which='major', labelsize=16)
 			ax.set_xticks(np.linspace(-1,1,5))
 			ax.set_yticks(np.linspace(-1,1,5))
-			#ax.view_init(elev=85,azim=90)
 			self.hist_data = (X, Y, Z, dx, dy, dz)
+			self._visualize_figs.append(fig1)
+
 			fig1_1 = plt.figure()
 			plt.suptitle("PDF_heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -177,6 +297,7 @@ class output(preprocessing):
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
+			self._visualize_figs.append(fig1_1)
 
 			fig2 = plt.figure()
 			plt.suptitle("Average_Diff_Y")
@@ -218,6 +339,8 @@ class output(preprocessing):
 			ax.set_xticks(np.linspace(-1,1,5))
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
+			self._visualize_figs.append(fig2)
+
 			fig2_1 = plt.figure()
 			plt.suptitle("Average_Diff_Y_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -226,6 +349,7 @@ class output(preprocessing):
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
+			self._visualize_figs.append(fig2_1)
 
 			fig3 = plt.figure()
 			plt.suptitle("Average_Diff_X")
@@ -263,6 +387,8 @@ class output(preprocessing):
 			ax.set_xticks(np.linspace(-1,1,5))
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
+			self._visualize_figs.append(fig3)
+
 			fig3_1 = plt.figure()
 			plt.suptitle("Average_Diff_X_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -271,6 +397,7 @@ class output(preprocessing):
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
+			self._visualize_figs.append(fig3_1)
 
 			fig4 = plt.figure()
 			plt.suptitle("Average_Drift_Y")
@@ -294,6 +421,8 @@ class output(preprocessing):
 			ax.set_xticks(np.linspace(-1,1,5))
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
+			self._visualize_figs.append(fig4)
+
 			fig4_1 = plt.figure()
 			plt.suptitle("Average_Drift_Y_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -302,6 +431,7 @@ class output(preprocessing):
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
+			self._visualize_figs.append(fig4_1)
 
 			fig5 = plt.figure()
 			plt.suptitle("Average_Drift_X")
@@ -326,6 +456,8 @@ class output(preprocessing):
 			ax.set_xticks(np.linspace(-1,1,5))
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
+			self._visualize_figs.append(fig5)
+
 			fig5_1 = plt.figure()
 			plt.suptitle("Average_Drift_X_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -334,29 +466,35 @@ class output(preprocessing):
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
+			self._visualize_figs.append(fig5_1)
 		
 		if show: plt.show()
 		if save:
-			savepath = self.make_dirctory(savepath)
 			dpi = 150
-			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"))
-			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"))
-			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"))
-			fig4.savefig(os.path.join(savepath, fig4.texts[0].get_text()+".png"))
-			if self.vector:
-				fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig4.savefig(os.path.join(savepath, fig4.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig5.savefig(os.path.join(savepath, fig5.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig1_1.savefig(os.path.join(savepath, fig1_1.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig2_1.savefig(os.path.join(savepath, fig2_1.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig3_1.savefig(os.path.join(savepath, fig3_1.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig4_1.savefig(os.path.join(savepath, fig4_1.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
-				fig5_1.savefig(os.path.join(savepath, fig5_1.texts[0].get_text()+".png"), dpi=dpi, transparent=True)
+			savepath = self.make_dirctory(savepath)
+			for fig in self._visualize_figs : fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"), dpi=dpi)
+
+		return None
 
 
 	def diagnostic(self, show=True, save=False, savepath=None):
+		"""
+		Plot or save diagnostics data
+
+		Input params:
+		--------------
+		show = True : bool
+			if True, show the figures 
+		save = False : bool
+			if True save the figures to disk
+		savepath = None : str
+			save destination path, if None, data is saved in current/working/directory/results/diagnostics
+
+		returns:
+		-------------
+			None
+		"""
+		self._diagnostics_figs = []
 		if savepath is None: savepath="results"
 		t1 = "R2" if self.out.order_metric=="R2" else "R2_adj"
 		#ACF
@@ -369,6 +507,7 @@ class output(preprocessing):
 		plt.legend(('ACF', 'exp_fit'))
 		plt.xlabel('Time Lag')
 		plt.ylabel('ACF')
+		self._diagnostics_figs.append(fig1)
 
 		#R2 vs order for drift
 		fig2 = plt.figure(dpi=150)
@@ -376,6 +515,7 @@ class output(preprocessing):
 		plt.plot(range(self.out.max_order), self.out._r2_drift)
 		plt.xlabel('order')
 		plt.ylabel(t1)
+		self._diagnostics_figs.append(fig2)
 
 		#R2 vs order for diff
 		fig3 = plt.figure(dpi=150)
@@ -384,6 +524,7 @@ class output(preprocessing):
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		#plt.title('{} Diff vs order'.format(t1))
+		self._diagnostics_figs.append(fig3)
 
 		#R2 vs order for drift, multiple dt
 		label = ["dt={}".format(i) for i in self.out._r2_drift_m_dt[-1]]
@@ -393,6 +534,7 @@ class output(preprocessing):
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		plt.legend()
+		self._diagnostics_figs.append(fig4)
 
 		#R2 vs order for diff, multiple dt
 		fig5 = plt.figure(dpi=150)
@@ -401,25 +543,42 @@ class output(preprocessing):
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		plt.legend()
+		self._diagnostics_figs.append(fig5)
 
 
 		
 		if show: plt.show()
 		if save:
 			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir, 'diagnostic'))
-			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"))
-			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"))
-			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"))
-			fig4.savefig(os.path.join(savepath, fig4.texts[0].get_text()+".png"))
-			fig5.savefig(os.path.join(savepath, fig5.texts[0].get_text()+".png"))
+			for fig in self._diagnostics_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"))
+
+		return None
 
 	def noise_characterstics(self, show=True, save=False, savepath=None):
+		"""
+		Plot or save noise analysis data
+
+		Input params:
+		--------------
+		show = True : bool
+			if True, show the figures 
+		save = False : bool
+			if True save the figures to disk
+		savepath = None : str
+			save destination path, if None, data is saved in current/working/directory/results/noise_characterstics
+
+		returns:
+		--------------
+			None
+		"""
+		self._noise_figs = []
 		if savepath is None: savepath = "results"
 		#print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
 
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("Noise_Distrubution")
 		sns.distplot(self.out._noise)
+		self._noise_figs.append(fig1)
 
 		fig2 = plt.figure(dpi=150)
 		plt.suptitle("Test_of_hypothesis")
@@ -429,6 +588,7 @@ class output(preprocessing):
 		plt.plot(np.ones(len(self.out._X1))*self.out.h_lim, np.linspace(start,stop,len(self.out._X1)),'r', label="lower_cl")
 		plt.plot(np.ones(len(self.out._X1))*self.out.k, np.linspace(start,stop,len(self.out._X1)),'g', label='Test Stat')
 		plt.legend()
+		self._noise_figs.append(fig2)
 
 		fig3 = plt.figure(dpi=150)
 		plt.suptitle("CDF")
@@ -437,21 +597,39 @@ class output(preprocessing):
 		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.h_lim, self.out._f, 'r', label='upper_cl')
 		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.k, self.out._f, 'g', label='Test Stat')
 		plt.legend()
+		self._noise_figs.append(fig3)
 
 		fig4 = plt.figure(dpi=150)
 		plt.suptitle("Noise_ACF")
 		plt.plot(self.out._noise_correlation[0], self.out._noise_correlation[1])
+		self._noise_figs.append(fig4)
 		
 		if show: plt.show()
 		if save:
 			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir, 'noise_characterstics'))
-			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"), transparent=True)
-			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"), transparent=True)
-			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"), transparent=True)
-			fig4.savefig(os.path.join(savepath, fig4.texts[0].get_text()+".png"), transparent=True)
+			for fig in self._noise_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"))
+
+		return None
 
 
 	def slices_2d(self, show=True, save=False, savepath=None):
+		"""
+		Plot or save 2d slice of the vector 3d plots
+
+		Input params:
+		--------------
+		show = True : bool
+			if True, show the figures 
+		save = False : bool
+			if True save the figures to disk
+		savepath = None : str
+			save destination path, if None, data is saved in current/working/directory/results/visulize/slice_2d
+
+		returns:
+		--------------
+			None
+		"""
+		self._slice_figs = []
 		if savepath is None: savepath="results"
 
 		if not self.vector: return None
@@ -462,6 +640,7 @@ class output(preprocessing):
 		sns.distplot(self.vel_x[np.where((self.vel_y>=-1*self.out.inc_y) & (self.vel_y<=self.out.inc_y))])
 		plt.xlabel('Mx', fontsize=16)
 		plt.tight_layout()
+		self._slice_figs.append(fig1)
 
 		fig2 = plt.figure()
 		ax = plt.gca()
@@ -475,6 +654,7 @@ class output(preprocessing):
 		ax.set_xticks(np.linspace(-1,1,5))
 		ax.legend()
 		plt.tight_layout()
+		self._slice_figs.append(fig2)
 
 		fig3 = plt.figure()
 		plt.suptitle("Average_Drift_Y(2d_slice)")
@@ -488,6 +668,7 @@ class output(preprocessing):
 		ax.set_xticks(np.linspace(-1,1,5))
 		ax.legend()
 		plt.tight_layout()
+		self._slice_figs.append(fig3)
 
 		fig4 = plt.figure()
 		plt.suptitle("Average_Diffusion_X(2d_slice)")
@@ -501,6 +682,7 @@ class output(preprocessing):
 		ax.set_xticks(np.linspace(-1,1,5))
 		ax.legend()
 		plt.tight_layout()
+		self._slice_figs.append(fig4)
 
 		fig5 = plt.figure()
 		plt.suptitle("Average_Diffusion_Y(2d_slice)")
@@ -514,9 +696,10 @@ class output(preprocessing):
 		ax.set_xticks(np.linspace(-1,1,5))
 		ax.legend()
 		plt.tight_layout()
+		self._slice_figs.append(fig5)
 
 		fig5_1 = plt.figure()
-		plt.suptitle("Average_Diffusion_Y(2d_slice)")
+		plt.suptitle("Average_Diffusion_Y(2d_slice)_wrt_My")
 		p, _ = self.fit_poly(x[10],self.avgdiffY.T[10], deg=self.out.diff_order)
 		ax = plt.gca()
 		ax.scatter(x[10], self.avgdiffY.T[10], label='avgdriftY')
@@ -527,17 +710,15 @@ class output(preprocessing):
 		ax.set_xticks(np.linspace(-1,1,5))
 		ax.legend()
 		plt.tight_layout()
+		self._slice_figs.append(fig5_1)
 
 		if show: plt.show()
 		if save:
 			savepath=self.make_dirctory(os.path.join(savepath, self._res_dir, 'visualize', 'slices_2d'))
 			dpi=150
-			fig1.savefig(os.path.join(savepath, fig1.texts[0].get_text()+".png"),dpi=150, transparent=True)
-			fig2.savefig(os.path.join(savepath, fig2.texts[0].get_text()+".png"),dpi=150, transparent=True)
-			fig3.savefig(os.path.join(savepath, fig3.texts[0].get_text()+".png"),dpi=150, transparent=True)
-			fig4.savefig(os.path.join(savepath, fig4.texts[0].get_text()+".png"),dpi=150, transparent=True)
-			fig5.savefig(os.path.join(savepath, fig5.texts[0].get_text()+".png"),dpi=150, transparent=True)
-			fig5_1.savefig(os.path.join(savepath, fig5.texts[0].get_text()+"_wrt_My.png"),dpi=150, transparent=True)
+			for fig in self._slice_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"),dpi=150, transparent=True)
+
+		return None
 
 	def histogram3d(self,x,bins = 20, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
 		"""
@@ -577,12 +758,6 @@ class output(preprocessing):
 		edges : list.
 			A list of 2 arrays describing the bin edges for each dimension.
 			
-		See Also 
-		--------
-		histogram: 1-D histogram
-		histogram2d: 2-D histogram
-		histogramdd: N-D histogram
-
 		Examples
 		--------
 		>>> r = np.random.randn(1000,2)
