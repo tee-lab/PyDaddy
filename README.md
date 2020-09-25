@@ -33,16 +33,21 @@ The sample data distributed along with this package is gathered from experiments
 
 # Installation
 
-    python -m pip install git+https://github.com/ashwinkk23/pyFish.git
+
+    $ git clone https://github.com/tee-lab/pyFish.git
+    $ cd pyFish
+    $ python setup.py install
+or
+
+    $ python -m pip install git+https://github.com/tee-lab/pyFish.git
 
 For developers:
 Clone the repo:
 
-    git clone https://github.com/ashwinkk23/pyFish.git
-    cd pyFish
-    python setup.py build
-    python setup.py develop
-
+    $ git clone https://github.com/ashwinkk23/pyFish.git
+    $ cd pyFish
+    $ python setup.py build
+    $ python setup.py develop
 # Usage
 
     pyFish.Characterize(...)
@@ -98,9 +103,11 @@ Example loading sample data and storing all data and plots.
     Results saved in: ternary_n30/1600538555
    
 The results will be saved in ``current/working/directory/ternary_n30/`` folder
-   *For more information and examples, please refer to the [Wiki](https://github.com/ashwinkk23/pyFish/wiki) page*
+
+   *For more information and examples, please refer to the [Wiki](https://github.com/tee-lab/pyFish/wiki) page*
 
 # Licence
+Distributed under **GNU General Public License v3.0**. See `Licence.txt` for more information.
 
 # Reference
 * Noise-induced Effects in Collective Dynamics and Inferring Local Interactions from Data
