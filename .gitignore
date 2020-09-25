@@ -4,6 +4,7 @@ dist/
 *.egg-info/
 *.egg
 *.py[cod]
-__pycache__/
+pyFish/__pycache__/
 *.so
+results/
 *~
