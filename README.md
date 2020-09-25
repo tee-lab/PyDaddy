@@ -18,7 +18,7 @@ Suppose m(t) is a stochastic time series data, then the package calculates the d
 The method of extracting the deterministic and stochastic and deterministic functions is based on the assumption that the noise is uncorrelated and Gaussian in nature.
  > ![]( https://latex.codecogs.com/gif.latex?<\eta(t)>=0;<\eta(t)\eta(t')>=\delta(t-t'))
  > 
-![](https://latex.codecogs.com/gif.latex?\<eta(t)>=0)          |  ![](https://latex.codecogs.com/gif.latex?<\eta(t)\eta(t')>=\delta(t-t'))
+![](https://latex.codecogs.com/gif.latex?<\eta(t)>=0)          |  ![](https://latex.codecogs.com/gif.latex?<\eta(t)\eta(t')>=\delta(t-t'))
 :-------------------------:|:-------------------------:
 ![](https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/Test_of_hypothesis.png?raw=true)  |  ![](https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/Noise_ACF.png?raw=true)
 
@@ -32,6 +32,7 @@ This project is motivated by the study of group behaviour dynamics of animals, e
 The sample data distributed along with this package is gathered from experiments conducted by [TEElab, IISc](https://teelabiisc.wordpress.com/).
 
 # Installation
+See [Installing in new environment](https://github.com/tee-lab/pyFish/wiki/Installing-in-new-environment) for instructions to create and install in new environment
 
 
     $ git clone https://github.com/tee-lab/pyFish.git
@@ -52,9 +53,10 @@ Clone the repo:
 
     pyFish.Characterize(...)
     Input params:
+    -------------
 		data : list
-			time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
-			where x, x1 and x2 are of numpy.array object type
+			time series data to be analysed, data = [x] for scalar data and data = [x1, x2]
+			for vector where x, x1 and x2 are of numpy.array object type
 		t : numpy.array
 			time stamp of time series
 		t_int : float
@@ -84,6 +86,10 @@ Clone the repo:
 			maxmium lag to use to calculate acf
 		**kwargs 
 			All the parameters for pyFish.preporcessing and pyFish.noise_analysis
+	returns:
+	----------
+		obj : pyFish.output.output
+			A an object through which analysed data, parameters, plots can be viewed and saved.
 
 
 # Usage Example
