@@ -6,5 +6,5 @@ dist/
 *.py[cod]
 __pycache__/
 *.so
-norebooks/results/
+notebooks/results/
 *~
