@@ -16,7 +16,7 @@ class AutoCorrelation:
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
 
-	def acf_fft(self, data, t_lag):
+	def _acf_fft(self, data, t_lag):
 		"""
 		Autocorrelation function using fft mothod
 
@@ -42,7 +42,7 @@ class AutoCorrelation:
 			c = np.ones(t_lag+1)*0
 		return x,c
 
-	def acf(self, data, t_lag):
+	def _acf(self, data, t_lag):
 		"""
 		Calculates acf using standard method if fft is False, else
 		uses fft method to calculate acf
@@ -61,13 +61,13 @@ class AutoCorrelation:
 		c : numpy.array
 			correlation values
 		"""
-		if self.fft: self.acf_fft(data, t_lag)
+		if self.fft: self._acf_fft(data, t_lag)
 		x = np.arange(0, t_lag+1)
 		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
 		c.insert(0,1)
 		return x, np.array(c)
 
-	def autocorr(self, data, t_lag):
+	def _autocorr(self, data, t_lag):
 		"""
 		Calculate the auto correlation  function
 
@@ -85,11 +85,11 @@ class AutoCorrelation:
 		c : numpy.array
 			correlation values
 		"""
-		x, c = self.acf(data, t_lag)
+		x, c = self._acf(data, t_lag)
 		self._autocorr_x, self._autocorr_y = x, c
 		return x, c
 
-	def fit_exp(self, x, y):
+	def _fit_exp(self, x, y):
 		"""
 		Fits an exponential function of the form a*exp((-1/b)*t)
 
@@ -110,7 +110,7 @@ class AutoCorrelation:
 		coeff1, coeff2 = scipy.optimize.curve_fit(fn, x, y)
 		return coeff1, coeff2
 
-	def get_autocorr_time(self, X, t_lag=1000):
+	def _get_autocorr_time(self, X, t_lag=1000):
 		"""
 		Calculate autocorrelation time
 		
@@ -126,8 +126,8 @@ class AutoCorrelation:
 		b : float
 			lag corresponding to autocorrelation time
 		"""
-		t_lag, c = self.autocorr(X, t_lag)
-		coeff1, coeff2 = self.fit_exp(t_lag, c)
+		t_lag, c = self._autocorr(X, t_lag)
+		coeff1, coeff2 = self._fit_exp(t_lag, c)
 		a,b = coeff1
 		self._a, self.autocorrelation_time = a, b
 		return int(np.ceil(b))
@@ -158,7 +158,7 @@ class underlying_noise(SDE):
 		self.__dict__.update(kwargs)
 		SDE.__init__(self)
 
-	def noise(self, X, dt, t_int, inc=0.01, point=0):
+	def _noise(self, X, dt, t_int, inc=0.01, point=0):
 		"""
 		Calculates noise in time series
 
@@ -183,7 +183,7 @@ class underlying_noise(SDE):
 		op = np.arange(-1,1,inc).round(4)
 		avgDrift = []
 		x = X[0:-dt]
-		drift = self.drift(X,t_int,dt)
+		drift = self._drift(X,t_int,dt)
 		for b in np.arange(point, point+inc, inc):
 			i = np.where(np.logical_and(x<(b+inc), x>=b))[0]
 			avgDrift.append(drift[i].mean())
@@ -208,7 +208,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		AutoCorrelation.__init__(self)
 		self.__dict__.update(kwargs)
 
-	def generate_test_distrubution(self, s):
+	def _generate_test_distrubution(self, s):
 		"""
 		Generates the test distrubution
 
@@ -226,10 +226,10 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		for _ in tqdm(range(10000), desc = "Gaussian check for underlying noise"):
 			p = np.random.normal(size=s)
 			q = np.random.normal(size=s)
-			kl_dist.append(self.kl_divergence(p,q))
+			kl_dist.append(self._kl_divergence(p,q))
 		return kl_dist
 
-	def get_critical_values(self, kl_dist):
+	def _get_critical_values(self, kl_dist):
 		"""
 		upper and lower critical values corresponding to 95% of a distrubution
 
@@ -252,7 +252,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		h_lim = self._X1[1:][np.where(self._f >= 0.95)][0]
 		return l_lim, h_lim
 
-	def noise_analysis(self,  X, dt, t_int, inc=0.01, point=0, **kwargs):
+	def _noise_analysis(self,  X, dt, t_int, inc=0.01, point=0, **kwargs):
 		"""
 		Does the noise analysis i.e, checks if the underlying noise
 		is gaussian or not
@@ -289,18 +289,18 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 
 		"""
 		self.__dict__.update(kwargs)
-		noise = self.noise(X, dt, t_int, inc, point)
+		noise = self._noise(X, dt, t_int, inc, point)
 		"""
 		s = noise.size
 		kl_dist = []
 		for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
 			p = np.random.normal(size = s)
 			q = np.random.normal(size = s)
-			kl_dist.append(self.kl_divergence(p,q))
+			kl_dist.append(self._kl_divergence(p,q))
 		"""
-		kl_dist = self.generate_test_distrubution(s = noise.size)
-		l_lim, h_lim = self.get_critical_values(kl_dist)
-		k = self.kl_divergence(noise, np.random.normal(size=noise.size))
+		kl_dist = self._generate_test_distrubution(s = noise.size)
+		l_lim, h_lim = self._get_critical_values(kl_dist)
+		k = self._kl_divergence(noise, np.random.normal(size=noise.size))
 		gaussian_noise = True if k >= l_lim and k <= h_lim else False
-		noise_correlation = self.acf(noise, t_lag=10)
+		noise_correlation = self._acf(noise, t_lag=10)
 		return gaussian_noise, noise, kl_dist, k, l_lim, h_lim, noise_correlation

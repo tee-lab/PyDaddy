@@ -24,27 +24,27 @@ class output(preprocessing):
 		self._res_dir = str(int(time.time()))
 
 		if not self.vector:
-			self.X = out._X
-			self.t = out._t
-			self.drift = out._drift
-			self.diff = out._diff
-			self.avgdrift = out._avgdrift
-			self.avgdiff = out._avgdiff
-			self.op = out._op
+			self._data_X = out._X
+			self._data_t = out._t
+			self._data_drift = out._drift_
+			self._data_diff = out._diff_
+			self._data_avgdrift = out._avgdrift_
+			self._data_avgdiff = out._avgdiff_
+			self._data_op = out._op_
 			self.drift_order = out.drift_order
 			self.diff_order = out.diff_order
 		else:
-			self.vel_x = out._vel_x
-			self.vel_y = out._vel_y
-			self.avgdriftX = out._avgdriftX
-			self.avgdriftY = out._avgdriftY
-			self.avgdiffX = out._avgdiffX
-			self.avgdiffY = out._avgdiffY
-			self.avgdiffXY = out._avgdiffXY
-			self.op_x = out._op_x
-			self.op_y = out._op_y
+			self._data_vel_x = out._vel_x
+			self._data_vel_y = out._vel_y
+			self._data_avgdriftX = out._avgdriftX_
+			self._data_avgdriftY = out._avgdriftY_
+			self._data_avgdiffX = out._avgdiffX_
+			self._data_avgdiffY = out._avgdiffY_
+			self._data_avgdiffXY = out._avgdiffXY_
+			self._data_op_x = out._op_x_
+			self._data_op_y = out._op_y_
 
-		self.out = out
+		self._out = out
 
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
@@ -69,7 +69,7 @@ class output(preprocessing):
 		gc.collect()
 		return None
 
-	def make_dirctory(self, p, i=1):
+	def _make_dirctory(self, p, i=1):
 		"""
 		Recursively create directories in given path
 
@@ -90,7 +90,7 @@ class output(preprocessing):
 				os.mkdir(os.path.join(*p[0:i]))
 			except FileExistsError:
 				pass
-		return self.make_dirctory(p,i=i+1)
+		return self._make_dirctory(p,i=i+1)
 	
 	def data(self):
 		"""
@@ -104,11 +104,11 @@ class output(preprocessing):
 		--------------
 		data : list
 			if vector [drift, diff, avgdrift, avgdiff, op]
-			else, [avgdriftX, avgdriftY, avgdiffX, avgdiffY, abgdiffXY, op_x, op_y] 
+			else, [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y] 
 		"""
 		if not self.vector:
-			return self.drift, self.diff, self.avgdrift, self.avgdiff, self.op
-		return self.avgdriftX, self.avgdriftY, self.avgdiffX, self.avgdiffY, self.avgdiffXY, self.op_x, self.op_y
+			return self._data_drift, self._data_diff, self._data_avgdrift, self._data_avgdiff, self._data_op
+		return self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY, self._data_avgdiffXY, self._data_op_x, self._data_op_y
 
 	def save_data(self, file_name=None, savepath=None, savemat=True):
 		"""
@@ -129,12 +129,12 @@ class output(preprocessing):
 		"""
 		if savepath is None: savepath = 'results'
 		if file_name is None: file_name = self._res_dir
-		savepath = self.make_dirctory(os.path.join(savepath, self._res_dir))
+		savepath = self._make_dirctory(os.path.join(savepath, self._res_dir))
 		if not self.vector:
-			data_dict = {'drift':self.drift, 'diff':self.diff, 'avgdrift':self.avgdrift, 'avgdiff':self.avgdiff, 'op':self.op}
+			data_dict = {'drift':self._data_drift, 'diff':self._data_diff, 'avgdrift':self._data_avgdrift, 'avgdiff':self._data_avgdiff, 'op':self._data_op}
 		else:
-			x,y = np.meshgrid(self.op_x, self.op_y)
-			data_dict = {'avgdriftX':self.avgdriftX, 'avgdriftY':self.avgdriftY, 'avgdiffX':self.avgdiffX, 'avgdiffY':self.avgdiffY, 'avgdiffXY':self.avgdiffXY, 'op_x':self.op_x, 'op_y':self.op_y, 'x':x, 'y':y}
+			x,y = np.meshgrid(self._data_op_x, self._data_op_y)
+			data_dict = {'avgdriftX':self._data_avgdriftX, 'avgdriftY':self._data_avgdriftY, 'avgdiffX':self._data_avgdiffX, 'avgdiffY':self._data_avgdiffY, 'avgdiffXY':self._data_avgdiffXY, 'op_x':self._data_op_x, 'op_y':self._data_op_y, 'x':x, 'y':y}
 		with open(os.path.join(savepath, file_name+'.pkl'), 'wb') as file:
 			pickle.dump(data_dict, file)
 		if savemat:
@@ -188,11 +188,11 @@ class output(preprocessing):
 		"""
 		if savepath is None: savepath = "results"
 		params = dict()
-		for keys in self.out.__dict__.keys():
+		for keys in self._out.__dict__.keys():
 			if str(keys)[0] != '_':
-				params[keys] = str(self.out.__dict__[keys])
+				params[keys] = str(self._out.__dict__[keys])
 		if save:
-			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir))
+			savepath = self._make_dirctory(os.path.join(savepath, self._res_dir))
 			with open(os.path.join(savepath, file_name), 'w') as f:
 				json.dump(params, f, indent=True, separators='\n:')
 		return params
@@ -221,18 +221,18 @@ class output(preprocessing):
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			plt.suptitle("Time_Series")
-			l = int(len(self.X)/4)
+			l = int(len(self._data_X)/4)
 			try:
-				plt.plot(self.t[0:l],self.X[0:l])
+				plt.plot(self._data_t[0:l],self._data_X[0:l])
 			except:
-				plt.plot(self.X[0:l])
+				plt.plot(self._data_X[0:l])
 			self._visualize_figs.append(fig1)
 
 			#PDF
 			fig2 = fig = plt.figure(dpi=150, figsize=(5,5))
 			plt.suptitle("PDF")
-			sns.distplot(self.X)
-			plt.xlim([min(self.X),max(self.X)])
+			sns.distplot(self._data_X)
+			plt.xlim([min(self._data_X),max(self._data_X)])
 			plt.ylabel('PDF')
 			plt.xlabel('Order Parameter')
 			self._visualize_figs.append(fig2)
@@ -240,21 +240,21 @@ class output(preprocessing):
 			#Drift
 			fig3 = plt.figure(dpi=150,figsize=(5,5))
 			plt.suptitle("Average_Drift")
-			p_drift, _ = self.fit_poly(self.op, self.avgdrift, self.drift_order)
-			plt.scatter(self.op, self.avgdrift, marker='.')
-			plt.scatter(self.op, p_drift(self.op), marker='.', alpha=0.4)
+			p_drift, _ = self._fit_poly(self._data_op, self._data_avgdrift, self.drift_order)
+			plt.scatter(self._data_op, self._data_avgdrift, marker='.')
+			plt.scatter(self._data_op, p_drift(self._data_op), marker='.', alpha=0.4)
 			plt.xlabel('Order Parameter')
 			plt.ylabel("Deterministic")
-			plt.xlim([min(self.X),max(self.X)])
+			plt.xlim([min(self._data_X),max(self._data_X)])
 			self._visualize_figs.append(fig3)
 
 			#Diffusion
 			fig4 = plt.figure(dpi=150,figsize=(5,5))
 			plt.suptitle("Average_Diffusion")
-			p_diff, _ = self.fit_poly(self.op, self.avgdiff, self.diff_order)
-			plt.scatter(self.op, self.avgdiff, marker='.')
-			plt.scatter(self.op, p_diff(self.op), marker='.', alpha=0.4)
-			plt.xlim([min(self.X),max(self.X)])
+			p_diff, _ = self._fit_poly(self._data_op, self._data_avgdiff, self.diff_order)
+			plt.scatter(self._data_op, self._data_avgdiff, marker='.')
+			plt.scatter(self._data_op, p_diff(self._data_op), marker='.', alpha=0.4)
+			plt.xlim([min(self._data_X),max(self._data_X)])
 			plt.xlabel("Order Parameter")
 			plt.ylabel('Stochastic')
 			self._visualize_figs.append(fig4)
@@ -264,9 +264,9 @@ class output(preprocessing):
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
-			vel_x = self.interpolate_missing(self.vel_x)
-			vel_y = self.interpolate_missing(self.vel_y)
-			H, edges, X, Y, Z, dx, dy, dz = self.histogram3d(np.array([self.vel_x[~np.isnan(self.vel_x)], self.vel_y[~np.isnan(self.vel_y)]]))
+			vel_x = self._interpolate_missing(self._data_vel_x)
+			vel_y = self._interpolate_missing(self._data_vel_y)
+			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_vel_x[~np.isnan(self._data_vel_x)], self._data_vel_y[~np.isnan(self._data_vel_y)]]))
 			colors = plt.cm.coolwarm(dz.flatten()/float(dz.max()))
 			hist3d = ax.bar3d(X,Y,Z,dx,dy,dz, alpha=0.6, cmap=plt.cm.coolwarm, color=colors)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
@@ -284,7 +284,7 @@ class output(preprocessing):
 			ax.tick_params(axis='both', which='major', labelsize=16)
 			ax.set_xticks(np.linspace(-1,1,5))
 			ax.set_yticks(np.linspace(-1,1,5))
-			self.hist_data = (X, Y, Z, dx, dy, dz)
+			self._hist_data = (X, Y, Z, dx, dy, dz)
 			self._visualize_figs.append(fig1)
 
 			fig1_1 = plt.figure()
@@ -302,24 +302,24 @@ class output(preprocessing):
 			fig2 = plt.figure()
 			plt.suptitle("Average_Diff_Y")
 			plane = []
-			for y in self.avgdiffY:
+			for y in self._data_avgdiffY:
 				nan_idx = np.where(np.isnan(y))
 				try:
-					p,x = self.fit_poly(self.op_x, y, deg=4)
-					d = p(self.op_x)
+					p,x = self._fit_poly(self._data_op_x, y, deg=4)
+					d = p(self._data_op_x)
 				except:
 					d = np.zeros(y.shape)
 				d[nan_idx] = np.nan 
 				plane.append(d)
 			plane = np.array(plane)
 			ax = fig2.add_subplot(projection="3d")
-			#x = np.matlib.repmat(self.op_x,len(self.op_x),1)
+			#x = np.matlib.repmat(self._data_op_x,len(self._data_op_x),1)
 			#x.ravel().sort()
-			#y = np.matlib.repmat(self.op_y, len(self.op_y),1)
-			x,y = np.meshgrid(self.op_x, self.op_y)
-			self.avgdiffY[self.avgdiffY==0] = np.nan
-			z = self.avgdiffY.copy()
-			#self.plane_avgdiffY = self.fit_plane(x,y,z,order=self.out.diff_order)
+			#y = np.matlib.repmat(self._data_op_y, len(self._data_op_y),1)
+			x,y = np.meshgrid(self._data_op_x, self._data_op_y)
+			self._data_avgdiffY[self._data_avgdiffY==0] = np.nan
+			z = self._data_avgdiffY.copy()
+			#self.plane_avgdiffY = self._fit_plane(x,y,z,order=self._out.diff_order)
 			ax.scatter3D(x, y, z.ravel())
 			ax.plot_surface(x,y,plane, rstride=1, cstride=1, alpha=0.5,)
 			#ax.plot_surface(x,y,self.plane_avgdiffY(x,y), rstride=1, cstride=1, alpha=0.5)
@@ -344,7 +344,7 @@ class output(preprocessing):
 			fig2_1 = plt.figure()
 			plt.suptitle("Average_Diff_Y_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
-			ax = sns.heatmap(self.avgdiffY,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0,)
+			ax = sns.heatmap(self._data_avgdiffY,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0,)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
@@ -354,21 +354,21 @@ class output(preprocessing):
 			fig3 = plt.figure()
 			plt.suptitle("Average_Diff_X")
 			plane = []
-			for y in self.avgdiffX:
+			for y in self._data_avgdiffX:
 				nan_idx = np.where(np.isnan(y))
 				try:
-					p,x = self.fit_poly(self.op_x, y, deg=4)
-					d = p(self.op_x)
+					p,x = self._fit_poly(self._data_op_x, y, deg=4)
+					d = p(self._data_op_x)
 				except:
 					d = np.zeros(y.shape)
 				d[nan_idx] = np.nan 
 				plane.append(d)
 			plane = np.array(plane)
 			ax = fig3.add_subplot(projection="3d")
-			x,y = np.meshgrid(self.op_x, self.op_y)
-			self.avgdiffX[self.avgdiffX==0] = np.nan
-			z = self.avgdiffX.copy()
-			#self.plane_avgdiffX = self.fit_plane(x,y,z,order=self.out.diff_order)
+			x,y = np.meshgrid(self._data_op_x, self._data_op_y)
+			self._data_avgdiffX[self._data_avgdiffX==0] = np.nan
+			z = self._data_avgdiffX.copy()
+			#self.plane_avgdiffX = self._fit_plane(x,y,z,order=self._out.diff_order)
 			ax.scatter3D(x, y, z.ravel())
 			ax.plot_surface(x,y,plane, rstride=1, cstride=1, alpha=0.5,)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
@@ -392,7 +392,7 @@ class output(preprocessing):
 			fig3_1 = plt.figure()
 			plt.suptitle("Average_Diff_X_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
-			ax = sns.heatmap(self.avgdiffX,xticklabels=ticks, yticklabels=ticks[::-1],cmap=plt.cm.coolwarm, center=0,)
+			ax = sns.heatmap(self._data_avgdiffX,xticklabels=ticks, yticklabels=ticks[::-1],cmap=plt.cm.coolwarm, center=0,)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
@@ -402,8 +402,8 @@ class output(preprocessing):
 			fig4 = plt.figure()
 			plt.suptitle("Average_Drift_Y")
 			ax = fig4.add_subplot(projection="3d")
-			x,y = np.meshgrid(self.op_x, self.op_y)
-			z = self.avgdriftY.copy()
+			x,y = np.meshgrid(self._data_op_x, self._data_op_y)
+			z = self._data_avgdriftY.copy()
 			ax.scatter3D(x, y, z.ravel())
 			ax.set_xlabel('Mx',fontsize=16, labelpad=10)
 			ax.set_ylabel('My',fontsize=16, labelpad=10)
@@ -426,7 +426,7 @@ class output(preprocessing):
 			fig4_1 = plt.figure()
 			plt.suptitle("Average_Drift_Y_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
-			ax = sns.heatmap(self.avgdriftY,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0,)
+			ax = sns.heatmap(self._data_avgdriftY,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0,)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
@@ -436,9 +436,9 @@ class output(preprocessing):
 			fig5 = plt.figure()
 			plt.suptitle("Average_Drift_X")
 			ax = fig5.add_subplot(projection="3d")
-			x,y = np.meshgrid(self.op_x, self.op_y)
-			self.avgdriftX[self.avgdriftX==0] = np.nan
-			z = self.avgdriftX.copy()
+			x,y = np.meshgrid(self._data_op_x, self._data_op_y)
+			self._data_avgdriftX[self._data_avgdriftX==0] = np.nan
+			z = self._data_avgdriftX.copy()
 			ax.scatter3D(x, y, z.ravel())
 			ax.set_xlabel('Mx',fontsize=16, labelpad=10)
 			ax.set_ylabel('My',fontsize=16, labelpad=10)
@@ -461,7 +461,7 @@ class output(preprocessing):
 			fig5_1 = plt.figure()
 			plt.suptitle("Average_Drift_X_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
-			ax = sns.heatmap(self.avgdriftX,xticklabels=ticks, yticklabels=ticks[::-1],cmap=plt.cm.coolwarm, center=0,)
+			ax = sns.heatmap(self._data_avgdriftX,xticklabels=ticks, yticklabels=ticks[::-1],cmap=plt.cm.coolwarm, center=0,)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
@@ -471,7 +471,7 @@ class output(preprocessing):
 		if show: plt.show()
 		if save:
 			dpi = 150
-			savepath = self.make_dirctory(savepath)
+			savepath = self._make_dirctory(savepath)
 			for fig in self._visualize_figs : fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"), dpi=dpi)
 
 		return None
@@ -496,14 +496,14 @@ class output(preprocessing):
 		"""
 		self._diagnostics_figs = []
 		if savepath is None: savepath="results"
-		t1 = "R2" if self.out.order_metric=="R2" else "R2_adj"
+		t1 = "R2" if self._out.order_metric=="R2" else "R2_adj"
 		#ACF
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("ACF")
 		exp_fn = lambda t,a,b: a*np.exp((-1/b)*t)
-		plt.plot(self.out._autocorr_x, self.out._autocorr_y)
-		y = exp_fn(self.out._autocorr_x, self.out._a, self.out.autocorrelation_time)
-		plt.plot(self.out._autocorr_x, y)
+		plt.plot(self._out._autocorr_x, self._out._autocorr_y)
+		y = exp_fn(self._out._autocorr_x, self._out._a, self._out.autocorrelation_time)
+		plt.plot(self._out._autocorr_x, y)
 		plt.legend(('ACF', 'exp_fit'))
 		plt.xlabel('Time Lag')
 		plt.ylabel('ACF')
@@ -512,7 +512,7 @@ class output(preprocessing):
 		#R2 vs order for drift
 		fig2 = plt.figure(dpi=150)
 		plt.suptitle("{}_vs_drift_order".format(t1))
-		plt.plot(range(self.out.max_order), self.out._r2_drift)
+		plt.plot(range(self._out.max_order), self._out._r2_drift)
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		self._diagnostics_figs.append(fig2)
@@ -520,17 +520,17 @@ class output(preprocessing):
 		#R2 vs order for diff
 		fig3 = plt.figure(dpi=150)
 		plt.suptitle("{}_vs_Diff_order".format(t1))
-		plt.plot(range(self.out.max_order), self.out._r2_diff)
+		plt.plot(range(self._out.max_order), self._out._r2_diff)
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		#plt.title('{} Diff vs order'.format(t1))
 		self._diagnostics_figs.append(fig3)
 
 		#R2 vs order for drift, multiple dt
-		label = ["dt={}".format(i) for i in self.out._r2_drift_m_dt[-1]]
+		label = ["dt={}".format(i) for i in self._out._r2_drift_m_dt[-1]]
 		fig4 = plt.figure(dpi=150)
 		plt.suptitle("{}_Drift_different_dt".format(t1))
-		for i in range(len(self.out._r2_drift_m_dt) -1): plt.plot(range(self.out.max_order), self.out._r2_drift_m_dt[i], label=self.out._r2_drift_m_dt[-1][i])
+		for i in range(len(self._out._r2_drift_m_dt) -1): plt.plot(range(self._out.max_order), self._out._r2_drift_m_dt[i], label=self._out._r2_drift_m_dt[-1][i])
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		plt.legend()
@@ -539,7 +539,7 @@ class output(preprocessing):
 		#R2 vs order for diff, multiple dt
 		fig5 = plt.figure(dpi=150)
 		plt.suptitle("{}_Diff_different_dt".format(t1))
-		for i in range(len(self.out._r2_drift_m_dt) -1): plt.plot(range(self.out.max_order), self.out._r2_diff_m_dt[i], label=self.out._r2_drift_m_dt[-1][i])
+		for i in range(len(self._out._r2_drift_m_dt) -1): plt.plot(range(self._out.max_order), self._out._r2_diff_m_dt[i], label=self._out._r2_drift_m_dt[-1][i])
 		plt.xlabel('order')
 		plt.ylabel(t1)
 		plt.legend()
@@ -549,7 +549,7 @@ class output(preprocessing):
 		
 		if show: plt.show()
 		if save:
-			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir, 'diagnostic'))
+			savepath = self._make_dirctory(os.path.join(savepath, self._res_dir, 'diagnostic'))
 			for fig in self._diagnostics_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"))
 
 		return None
@@ -573,40 +573,40 @@ class output(preprocessing):
 		"""
 		self._noise_figs = []
 		if savepath is None: savepath = "results"
-		#print("Noise is gaussian") if self.out.gaussian_noise else print("Noise is not Gaussian")
+		#print("Noise is gaussian") if self._out.gaussian_noise else print("Noise is not Gaussian")
 
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("Noise_Distrubution")
-		sns.distplot(self.out._noise)
+		sns.distplot(self._out._noise)
 		self._noise_figs.append(fig1)
 
 		fig2 = plt.figure(dpi=150)
 		plt.suptitle("Test_of_hypothesis")
-		sns.distplot(self.out._kl_dist)
+		sns.distplot(self._out._kl_dist)
 		start, stop = plt.gca().get_ylim()
-		plt.plot(np.ones(len(self.out._X1))*self.out.l_lim, np.linspace(start,stop,len(self.out._X1)),'r', label='upper_cl')
-		plt.plot(np.ones(len(self.out._X1))*self.out.h_lim, np.linspace(start,stop,len(self.out._X1)),'r', label="lower_cl")
-		plt.plot(np.ones(len(self.out._X1))*self.out.k, np.linspace(start,stop,len(self.out._X1)),'g', label='Test Stat')
+		plt.plot(np.ones(len(self._out._X1))*self._out.l_lim, np.linspace(start,stop,len(self._out._X1)),'r', label='upper_cl')
+		plt.plot(np.ones(len(self._out._X1))*self._out.h_lim, np.linspace(start,stop,len(self._out._X1)),'r', label="lower_cl")
+		plt.plot(np.ones(len(self._out._X1))*self._out.k, np.linspace(start,stop,len(self._out._X1)),'g', label='Test Stat')
 		plt.legend()
 		self._noise_figs.append(fig2)
 
 		fig3 = plt.figure(dpi=150)
 		plt.suptitle("CDF")
-		plt.plot(self.out._X1[1:], self.out._f)
-		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.l_lim, self.out._f, 'r', label='lower_cl')
-		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.h_lim, self.out._f, 'r', label='upper_cl')
-		plt.plot(np.ones(len(self.out._X1[1:]))*self.out.k, self.out._f, 'g', label='Test Stat')
+		plt.plot(self._out._X1[1:], self._out._f)
+		plt.plot(np.ones(len(self._out._X1[1:]))*self._out.l_lim, self._out._f, 'r', label='lower_cl')
+		plt.plot(np.ones(len(self._out._X1[1:]))*self._out.h_lim, self._out._f, 'r', label='upper_cl')
+		plt.plot(np.ones(len(self._out._X1[1:]))*self._out.k, self._out._f, 'g', label='Test Stat')
 		plt.legend()
 		self._noise_figs.append(fig3)
 
 		fig4 = plt.figure(dpi=150)
 		plt.suptitle("Noise_ACF")
-		plt.plot(self.out._noise_correlation[0], self.out._noise_correlation[1])
+		plt.plot(self._out._noise_correlation[0], self._out._noise_correlation[1])
 		self._noise_figs.append(fig4)
 		
 		if show: plt.show()
 		if save:
-			savepath = self.make_dirctory(os.path.join(savepath, self._res_dir, 'noise_characterstics'))
+			savepath = self._make_dirctory(os.path.join(savepath, self._res_dir, 'noise_characterstics'))
 			for fig in self._noise_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"))
 
 		return None
@@ -633,11 +633,11 @@ class output(preprocessing):
 		if savepath is None: savepath="results"
 
 		if not self.vector: return None
-		x,y = np.meshgrid(self.op_x, self.op_y)
+		x,y = np.meshgrid(self._data_op_x, self._data_op_y)
 
 		fig1 = plt.figure()
 		plt.suptitle("PDF(2d_slice)")
-		sns.distplot(self.vel_x[np.where((self.vel_y>=-1*self.out.inc_y) & (self.vel_y<=self.out.inc_y))])
+		sns.distplot(self._data_vel_x[np.where((self._data_vel_y>=-1*self._out.inc_y) & (self._data_vel_y<=self._out.inc_y))])
 		plt.xlabel('Mx', fontsize=16)
 		plt.tight_layout()
 		self._slice_figs.append(fig1)
@@ -645,8 +645,8 @@ class output(preprocessing):
 		fig2 = plt.figure()
 		ax = plt.gca()
 		plt.suptitle("Average_Drift_X(2d_slice)")
-		p, _ = self.fit_poly(x[10],self.avgdriftX[10], deg=self.out.drift_order)
-		ax.scatter(x[10], self.avgdriftX[10], label='avgdriftX')
+		p, _ = self._fit_poly(x[10],self._data_avgdriftX[10], deg=self._out.drift_order)
+		ax.scatter(x[10], self._data_avgdriftX[10], label='avgdriftX')
 		ax.scatter(x[10], p(x[10]), label='poly')
 		ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 		ax.set_ylabel('Deterministic Mx', fontsize=16, labelpad=10)
@@ -659,8 +659,8 @@ class output(preprocessing):
 		fig3 = plt.figure()
 		plt.suptitle("Average_Drift_Y(2d_slice)")
 		ax = plt.gca()
-		p, _ = self.fit_poly(x[10],self.avgdriftY[10], deg=self.out.drift_order)
-		ax.scatter(x[10], self.avgdriftY[10], label='avgdriftY')
+		p, _ = self._fit_poly(x[10],self._data_avgdriftY[10], deg=self._out.drift_order)
+		ax.scatter(x[10], self._data_avgdriftY[10], label='avgdriftY')
 		ax.scatter(x[10], p(x[10]), label='poly')
 		ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 		ax.set_ylabel('Deterministic My,', fontsize=16, labelpad=10)
@@ -672,9 +672,9 @@ class output(preprocessing):
 
 		fig4 = plt.figure()
 		plt.suptitle("Average_Diffusion_X(2d_slice)")
-		p, _ = self.fit_poly(x[10],self.avgdiffX[10], deg=self.out.diff_order)
+		p, _ = self._fit_poly(x[10],self._data_avgdiffX[10], deg=self._out.diff_order)
 		ax = plt.gca()
-		ax.scatter(x[10], self.avgdiffX[10], label='avgdriftY')
+		ax.scatter(x[10], self._data_avgdiffX[10], label='avgdriftY')
 		ax.scatter(x[10], p(x[10]), label='poly')
 		ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 		ax.set_ylabel('Stochastic Mx', fontsize=16, labelpad=10)
@@ -686,9 +686,9 @@ class output(preprocessing):
 
 		fig5 = plt.figure()
 		plt.suptitle("Average_Diffusion_Y(2d_slice)")
-		p, _ = self.fit_poly(x[10],self.avgdiffY[10], deg=self.out.diff_order)
+		p, _ = self._fit_poly(x[10],self._data_avgdiffY[10], deg=self._out.diff_order)
 		ax = plt.gca()
-		ax.scatter(x[10], self.avgdiffY[10], label='avgdriftY')
+		ax.scatter(x[10], self._data_avgdiffY[10], label='avgdriftY')
 		ax.scatter(x[10], p(x[10]), label='poly')
 		ax.set_xlabel('Mx', fontsize=16, labelpad=10)
 		ax.set_ylabel('Stochanstic My', fontsize=16, labelpad=10)
@@ -700,9 +700,9 @@ class output(preprocessing):
 
 		fig5_1 = plt.figure()
 		plt.suptitle("Average_Diffusion_Y(2d_slice)_wrt_My")
-		p, _ = self.fit_poly(x[10],self.avgdiffY.T[10], deg=self.out.diff_order)
+		p, _ = self._fit_poly(x[10],self._data_avgdiffY.T[10], deg=self._out.diff_order)
 		ax = plt.gca()
-		ax.scatter(x[10], self.avgdiffY.T[10], label='avgdriftY')
+		ax.scatter(x[10], self._data_avgdiffY.T[10], label='avgdriftY')
 		ax.scatter(x[10], p(x[10]), label='poly')
 		ax.set_xlabel('My', fontsize=16, labelpad=10)
 		ax.set_ylabel('Stochanstic My', fontsize=16, labelpad=10)
@@ -714,13 +714,13 @@ class output(preprocessing):
 
 		if show: plt.show()
 		if save:
-			savepath=self.make_dirctory(os.path.join(savepath, self._res_dir, 'visualize', 'slices_2d'))
+			savepath=self._make_dirctory(os.path.join(savepath, self._res_dir, 'visualize', 'slices_2d'))
 			dpi=150
 			for fig in self._slice_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"),dpi=150, transparent=True)
 
 		return None
 
-	def histogram3d(self,x,bins = 20, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
+	def _histogram3d(self,x,bins = 20, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
 		"""
 		Plotting a 3D histogram
 
@@ -761,7 +761,7 @@ class output(preprocessing):
 		Examples
 		--------
 		>>> r = np.random.randn(1000,2)
-		>>> H, edges = np.histogram3d(r,bins=[10,15])
+		>>> H, edges = np._histogram3d(r,bins=[10,15])
 		"""
 
 		if np.size(bins) == 1:
