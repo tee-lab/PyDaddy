@@ -7,4 +7,7 @@ dist/
 __pycache__/
 *.so
 notebooks/results/
+.ipynb_checkpoints
+.ipynb_checkpoints/*.ipynb
+*/.ipynb_checkpoints/*.ipynb
 *~
