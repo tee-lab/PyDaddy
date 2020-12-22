@@ -76,19 +76,18 @@ class Main(preprocessing, gaussian_test):
 		self._t = t
 		if len(data) == 1:
 			self._X = data[0]
+			self._M_square = data[0]
 			self.vector = False
 		elif len(data) == 2:
 			self._vel_x, self._vel_y = data
-			vx = self._interpolate_missing(self._vel_x)
-			vy = self._interpolate_missing(self._vel_y)
-			#self._X = np.sqrt((np.square(vx) + np.square(vy)))
-			self._X = vx
+			self._M_square = self._vel_x**2 + self._vel_y**2
+			self._X = self._vel_x.copy()
 			self.vector = True
 		else:
 			raise InputError('Characterize(data=[x1,x2],...)', 'data input must be a list of length 1 or 2!')
 		
 		if t_int is None: self.t_int = self._timestep(t)
-		self.dt = self._optimium_timescale(self._X, t_int=self.t_int, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
+		self.dt = self._optimium_timescale(self._X, self._M_square, t_int=self.t_int, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
 		if not self.vector:
 			self._diff_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(self._X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
 			self._avgdiff_ = self._avgdiff_/self.n_trials

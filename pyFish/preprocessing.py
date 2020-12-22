@@ -26,8 +26,8 @@ class preprocessing(gaussian_test):
 			r2_diff.append(self._R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
 		return r2_drift, r2_diff
 
-	def _order(self, X, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
-		dt = self._get_dt(X)+5 if dt == 'auto' else dt
+	def _order(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
+		dt = self._get_dt(M_square)+5 if dt == 'auto' else dt
 		_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=dt, delta_t=delta_t, inc=inc)
 		self._r2_drift, self._r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
 
@@ -39,7 +39,7 @@ class preprocessing(gaussian_test):
 		#R2_adj multiple dt
 		self._r2_drift_m_dt = []
 		self._r2_diff_m_dt = []
-		max_dt = self._get_autocorr_time(X)
+		max_dt = self._get_autocorr_time(M_square)
 		N = 4
 		for n in range(1,N+1):
 			_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=int((n/N)*max_dt), delta_t=delta_t, inc=inc)
@@ -52,19 +52,19 @@ class preprocessing(gaussian_test):
 		#return
 		return self.drift_order , np.array(self._r2_drift)
 
-	def _simple_estimate(self, X,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
-		order, r2 = self._order(X, t_int, dt=dt, max_order=max_order, inc=inc)
-		autocorr_time = self._get_autocorr_time(X, t_lag=t_lag)
+	def _simple_estimate(self, X, M_square,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
+		order, r2 = self._order(X, M_square, t_int, dt=dt, max_order=max_order, inc=inc)
+		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)
 		optimum_dt = autocorr_time - 1 if order==1 else autocorr_time/10
 		return int(np.ceil(optimum_dt))
 
 
-	def _detailed_estimate(self, X, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01, t_lag=1000):
+	def _detailed_estimate(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01, t_lag=1000):
 		self._kl_min = []
 		self._kl_max = []
 		self._kl_min_index = []
-		autocorr_time = self._get_autocorr_time(X, t_lag=t_lag)
-		order,_ = self._order(X, t_int, dt='auto', max_order=max_order, inc=inc)
+		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)
+		order,_ = self._order(X, M_square, t_int, dt='auto', max_order=max_order, inc=inc)
 		for i in tqdm(range(1,autocorr_time)):
 			_,_,_, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=i, delta_t=delta_t ,inc=inc)
 			q_poly, op = self._fit_poly(x=op, y=avgDrift, deg=order)
@@ -84,12 +84,12 @@ class preprocessing(gaussian_test):
 
 
 
-	def _optimium_timescale(self, X, t_int, simple_method=True, dt='auto', max_order=10, t_lag=1000, inc=0.01):
+	def _optimium_timescale(self, X, M_square, t_int, simple_method=True, dt='auto', max_order=10, t_lag=1000, inc=0.01):
 		if dt != 'auto':
-			_ = self._order(X,t_int)
+			_ = self._order(X, M_square,t_int)
 			return dt
 		if simple_method:
-			return self._simple_estimate(X,t_int,dt=dt,max_order=max_order,t_lag=t_lag, inc=inc)
+			return self._simple_estimate(X, M_square,t_int,dt=dt,max_order=max_order,t_lag=t_lag, inc=inc)
 		else:
-			return self._detailed_estimate(X,t_int, dt=dt, max_order=max_order, t_lag=t_lag, inc=inc)
+			return self._detailed_estimate(X, M_square,t_int, dt=dt, max_order=max_order, t_lag=t_lag, inc=inc)
 			

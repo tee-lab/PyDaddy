@@ -500,9 +500,9 @@ class output(preprocessing):
 		#ACF
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("ACF")
-		exp_fn = lambda t,a,b: a*np.exp((-1/b)*t)
+		exp_fn = lambda t,a,b,c: a*np.exp((-1/b)*t)+c
 		plt.plot(self._out._autocorr_x, self._out._autocorr_y)
-		y = exp_fn(self._out._autocorr_x, self._out._a, self._out.autocorrelation_time)
+		y = exp_fn(self._out._autocorr_x, self._out._a, self._out.autocorrelation_time, self._out._c)
 		plt.plot(self._out._autocorr_x, y)
 		plt.legend(('ACF', 'exp_fit'))
 		plt.xlabel('Time Lag')
