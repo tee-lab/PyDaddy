@@ -47,8 +47,9 @@ class AutoCorrelation:
 		c.insert(0,1)
 		return x, np.array(c)
 
+	"""
 	def _autocorr(self, data, t_lag):
-		"""
+		""
 		Calculate the auto correlation  function
 
 		input params:
@@ -58,10 +59,11 @@ class AutoCorrelation:
 		returns:
 		x : array of lags
 		c : array of auto correlation factors 
-		"""
+		""
 		x, c = self._acf(data, t_lag)
 		self._autocorr_x, self._autocorr_y = x, c
 		return x, c
+	"""
 
 	def _fit_exp(self, x, y):
 		"""

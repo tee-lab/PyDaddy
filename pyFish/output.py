@@ -197,6 +197,100 @@ class output(preprocessing):
 				json.dump(params, f, indent=True, separators='\n:')
 		return params
 
+	def _thrace_pane(self, data):
+		op_x = self._data_op_x.copy()
+		op_y = self._data_op_y.copy()
+		plane1 = []
+		plane2 = []
+		for y in data:
+			nan_idx = np.where(np.isnan(y))
+			try:
+				p,x = self._fit_poly(op_x, y, deg=6)
+				d = p(op_x)
+			except Exception as e:
+				d = np.zeros(y.shape)
+			d[nan_idx] = np.nan 
+			plane1.append(d)
+		
+		for y in data.T:
+			nan_idx = np.where(np.isnan(y))
+			try:
+				p,x = self._fit_poly(op_x, y, deg=6)
+				d = p(op_x)
+			except:
+				d = np.zeros(y.shape)
+			d[nan_idx] = np.nan 
+			plane2.append(d)
+		
+		plane1 = np.array(plane1)
+		plane2 = np.array(plane2)
+		err_1 = np.nanmean(np.sqrt(np.square(plane1 - data)))
+		err_2 = np.nanmean(np.sqrt(np.square(plane2 - data.T)))
+		if err_1 < err_2:
+			return 0, plane1
+		return 1, plane2
+
+	def _plot_heatmap(self, data, title='title'):
+			fig = plt.figure()
+			plt.suptitle(title,verticalalignment='center', ha='right')
+			ticks = self._data_op_x.round(2)
+			ax = sns.heatmap(data,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0,)
+			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
+			ax.set_ylabel('My', fontsize=16, labelpad=10)
+			ax.tick_params(axis='both', which='major', labelsize=14)
+			plt.tight_layout()
+			return fig
+
+	def plot_data(self, data_in, ax=None, clear=True, plot_plane=False, title='title', z_label='z', label=None,order=3, m=False, m_th=2, dpi=150, heatmap=False):
+		if heatmap:
+			return self._plot_heatmap(data_in, title=title)
+		if ax is None:
+			fig = plt.figure(dpi=dpi)
+			ax = fig.add_subplot(projection="3d")        
+		data = data_in.copy()
+		mask = np.where(((data > m_th*np.nanstd(data))|(data < -m_th*np.nanstd(data))))
+		if m: 
+			#print(mask)
+			data[mask] = np.nan
+		if clear:
+			ax.cla()
+		op_x = self._data_op_x.copy()
+		op_y = self._data_op_y.copy()
+		plane = []
+		if plot_plane:
+			plane_id, plane = self._thrace_pane(data)
+
+		x,y = np.meshgrid(op_x, op_y)
+		z = data.copy()
+		plt.suptitle(title)
+
+		ax.scatter3D(x, y, z.ravel(), label=label)
+		if plot_plane:
+			if plane_id:
+				#print('Plane 2')
+				ax.plot_surface(y,x,plane, rstride=1, cstride=1, alpha=0.5,)
+			else:
+				#print('Plane 1')
+				ax.plot_surface(x,y,plane, rstride=1, cstride=1, alpha=0.5,)
+		ax.set_xlabel('Mx', fontsize=16,labelpad=10)
+		ax.set_ylabel('My', fontsize=16,labelpad=10)
+		ax.set_zlabel(z_label,fontsize=16,labelpad=10)
+		# make the panes transparent
+		ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+		ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+		ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+		# make the grid lines transparent
+		ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+		ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+		ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
+		#Set ticks lable and its fontsize
+		ax.tick_params(axis='both', which='major', labelsize=16)
+		ax.set_xticks(np.linspace(-1,1,5))
+		ax.set_yticks(np.linspace(-1,1,5))
+		#plt.tight_layout()
+		#plt.legend(prop={'size': 14})
+		return fig
+
 	def visualize(self, show=True, save=False, savepath=None):
 		"""
 		Plot the data
@@ -299,6 +393,7 @@ class output(preprocessing):
 			plt.tight_layout()
 			self._visualize_figs.append(fig1_1)
 
+			"""
 			fig2 = plt.figure()
 			plt.suptitle("Average_Diff_Y")
 			plane = []
@@ -340,7 +435,11 @@ class output(preprocessing):
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
 			self._visualize_figs.append(fig2)
+			"""
+			fig2 = self.plot_data(self._data_avgdiffY, plot_plane=True, title='Average_Diff_Y', z_label='Stochastic My')
+			self._visualize_figs.append(fig2)
 
+			"""
 			fig2_1 = plt.figure()
 			plt.suptitle("Average_Diff_Y_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -350,7 +449,11 @@ class output(preprocessing):
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			self._visualize_figs.append(fig2_1)
+			"""
+			fig2_1 = self.plot_data(self._data_avgdiffY,title='Average_Diff_Y_Heatmap', heatmap=True)
+			self._visualize_figs.append(fig2_1)
 
+			"""
 			fig3 = plt.figure()
 			plt.suptitle("Average_Diff_X")
 			plane = []
@@ -388,7 +491,11 @@ class output(preprocessing):
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
 			self._visualize_figs.append(fig3)
+			"""
+			fig3 = self.plot_data(self._data_avgdiffX, plot_plane=True, title='Average_Diff_X', z_label='Stochastic Mx')
+			self._visualize_figs.append(fig3)
 
+			"""
 			fig3_1 = plt.figure()
 			plt.suptitle("Average_Diff_X_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -398,7 +505,11 @@ class output(preprocessing):
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			self._visualize_figs.append(fig3_1)
+			"""
+			fig3_1 = self.plot_data(self._data_avgdiffX,title='Average_Diff_X_Heatmap', heatmap=True)
+			self._visualize_figs.append(fig3_1)
 
+			"""
 			fig4 = plt.figure()
 			plt.suptitle("Average_Drift_Y")
 			ax = fig4.add_subplot(projection="3d")
@@ -422,7 +533,11 @@ class output(preprocessing):
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
 			self._visualize_figs.append(fig4)
+			"""
+			fig4 = self.plot_data(self._data_avgdriftY, plot_plane=False, title='Average_Drift_Y', z_label='Deterministic My')
+			self._visualize_figs.append(fig4)
 
+			"""
 			fig4_1 = plt.figure()
 			plt.suptitle("Average_Drift_Y_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -432,7 +547,11 @@ class output(preprocessing):
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			self._visualize_figs.append(fig4_1)
+			"""
+			fig4_1 = self.plot_data(self._data_avgdriftY,title='Average_Drift_Y_Heatmap', heatmap=True)
+			self._visualize_figs.append(fig4_1)
 
+			"""
 			fig5 = plt.figure()
 			plt.suptitle("Average_Drift_X")
 			ax = fig5.add_subplot(projection="3d")
@@ -457,7 +576,11 @@ class output(preprocessing):
 			ax.set_yticks(np.linspace(-1,1,5))
 			#plt.tight_layout()
 			self._visualize_figs.append(fig5)
+			"""
+			fig5 = self.plot_data(self._data_avgdriftX, plot_plane=False, title='Average_Drift_X', z_label='Deterministic Mx')
+			self._visualize_figs.append(fig5)
 
+			"""
 			fig5_1 = plt.figure()
 			plt.suptitle("Average_Drift_X_Heatmap",verticalalignment='center', ha='right')
 			ticks = np.arange(-1,1,0.1).round(2)
@@ -466,6 +589,9 @@ class output(preprocessing):
 			ax.set_ylabel('My', fontsize=16, labelpad=10)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
+			self._visualize_figs.append(fig5_1)
+			"""
+			fig5_1 = self.plot_data(self._data_avgdriftX,title='Average_Drift_X_Heatmap', heatmap=True)
 			self._visualize_figs.append(fig5_1)
 		
 		if show: plt.show()
