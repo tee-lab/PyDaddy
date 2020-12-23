@@ -230,13 +230,17 @@ class output(preprocessing):
 			return 0, plane1
 		return 1, plane2
 
-	def _plot_heatmap(self, data, title='title'):
+	def _plot_heatmap(self, data, title='title', num_ticks=5):
 			fig = plt.figure()
 			plt.suptitle(title,verticalalignment='center', ha='right')
-			ticks = self._data_op_x.round(2)
-			ax = sns.heatmap(data,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0,)
-			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
-			ax.set_ylabel('My', fontsize=16, labelpad=10)
+			ticks = self._data_op_x.copy()
+			ticks_loc = np.linspace(0, len(ticks), num_ticks)
+			ticks = np.linspace(min(ticks), max(ticks), num_ticks).round(2)
+			ax = sns.heatmap(data,xticklabels=ticks[::-1], yticklabels=ticks,cmap=plt.cm.coolwarm, center=0)
+			ax.set_xlabel('$m_x$', fontsize=16, labelpad=10)
+			ax.set_ylabel('$m_y$', fontsize=16, labelpad=10)
+			ax.set_xticks(ticks_loc)
+			ax.set_yticks(ticks_loc)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			return fig
@@ -262,7 +266,7 @@ class output(preprocessing):
 
 		x,y = np.meshgrid(op_x, op_y)
 		z = data.copy()
-		plt.suptitle(title)
+		plt.suptitle(title, fontsize=16)
 
 		ax.scatter3D(x, y, z.ravel(), label=label)
 		if plot_plane:
@@ -272,9 +276,9 @@ class output(preprocessing):
 			else:
 				#print('Plane 1')
 				ax.plot_surface(x,y,plane, rstride=1, cstride=1, alpha=0.5,)
-		ax.set_xlabel('Mx', fontsize=16,labelpad=10)
-		ax.set_ylabel('My', fontsize=16,labelpad=10)
-		ax.set_zlabel(z_label,fontsize=16,labelpad=10)
+		ax.set_xlabel('$m_x$', fontsize=16,labelpad=11)
+		ax.set_ylabel('$m_y$', fontsize=16,labelpad=11)
+		ax.set_zlabel(z_label,fontsize=16,labelpad=11)
 		# make the panes transparent
 		ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 		ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
@@ -284,7 +288,7 @@ class output(preprocessing):
 		ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 		ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
 		#Set ticks lable and its fontsize
-		ax.tick_params(axis='both', which='major', labelsize=16)
+		ax.tick_params(axis='both', which='major', labelsize=14)
 		ax.set_xticks(np.linspace(-1,1,5))
 		ax.set_yticks(np.linspace(-1,1,5))
 		#plt.tight_layout()
@@ -354,6 +358,7 @@ class output(preprocessing):
 			self._visualize_figs.append(fig4)
 
 		else:
+			num_ticks=5
 			savepath = os.path.join(savepath ,self._res_dir, 'visualize','plot_3d')
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
@@ -383,35 +388,39 @@ class output(preprocessing):
 
 			fig1_1 = plt.figure()
 			plt.suptitle("PDF_heatmap",verticalalignment='center', ha='right')
-			ticks = np.arange(-1,1,0.1).round(2)
+			ticks = self._data_op_x.copy()
+			ticks_loc = np.linspace(0, len(ticks), num_ticks)
+			ticks = np.linspace(min(ticks), max(ticks), num_ticks).round(2)
 			bin_count = int(np.sqrt(len(dz)))
 			dz = dz.reshape((bin_count, bin_count))
 			ax = sns.heatmap(dz,xticklabels=ticks, yticklabels=ticks[::-1],cmap=plt.cm.coolwarm,)
-			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
-			ax.set_ylabel('My', fontsize=16, labelpad=10)
+			ax.set_xlabel('$m_x$', fontsize=16, labelpad=10)
+			ax.set_ylabel('$m_y$', fontsize=16, labelpad=10)
+			ax.set_xticks(ticks_loc)
+			ax.set_yticks(ticks_loc)
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			self._visualize_figs.append(fig1_1)
 
-			fig2 = self.plot_data(self._data_avgdiffY, plot_plane=True, title='Average_Diff_Y', z_label='Stochastic My')
+			fig2 = self.plot_data(self._data_avgdiffY, plot_plane=True, title='DiffY', z_label='$B_{22}(m)$')
 			self._visualize_figs.append(fig2)
-			fig2_1 = self.plot_data(self._data_avgdiffY,title='Average_Diff_Y_Heatmap', heatmap=True)
+			fig2_1 = self.plot_data(self._data_avgdiffY,title='DiffY_heatmap', heatmap=True)
 			self._visualize_figs.append(fig2_1)
 
 
-			fig3 = self.plot_data(self._data_avgdiffX, plot_plane=True, title='Average_Diff_X', z_label='Stochastic Mx')
+			fig3 = self.plot_data(self._data_avgdiffX, plot_plane=True, title='DiffX', z_label='$B_{11}(m)$')
 			self._visualize_figs.append(fig3)
-			fig3_1 = self.plot_data(self._data_avgdiffX,title='Average_Diff_X_Heatmap', heatmap=True)
+			fig3_1 = self.plot_data(self._data_avgdiffX,title='DiffX_heatmap', heatmap=True)
 			self._visualize_figs.append(fig3_1)
 
-			fig4 = self.plot_data(self._data_avgdriftY, plot_plane=False, title='Average_Drift_Y', z_label='Deterministic My')
+			fig4 = self.plot_data(self._data_avgdriftY, plot_plane=False, title='DriftY', z_label='$A_{2}(m)$')
 			self._visualize_figs.append(fig4)
-			fig4_1 = self.plot_data(self._data_avgdriftY,title='Average_Drift_Y_Heatmap', heatmap=True)
+			fig4_1 = self.plot_data(self._data_avgdriftY,title='DriftY_heatmap', heatmap=True)
 			self._visualize_figs.append(fig4_1)
 
-			fig5 = self.plot_data(self._data_avgdriftX, plot_plane=False, title='Average_Drift_X', z_label='Deterministic Mx')
+			fig5 = self.plot_data(self._data_avgdriftX, plot_plane=False, title='DriftX', z_label='$A_{1}(m)$')
 			self._visualize_figs.append(fig5)
-			fig5_1 = self.plot_data(self._data_avgdriftX,title='Average_Drift_X_Heatmap', heatmap=True)
+			fig5_1 = self.plot_data(self._data_avgdriftX,title='DriftX_heatmap', heatmap=True)
 			self._visualize_figs.append(fig5_1)
 		
 		if show: plt.show()
