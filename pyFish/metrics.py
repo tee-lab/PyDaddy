@@ -8,7 +8,7 @@ class metrics:
 		"""
 		self.__dict__.update(kwargs)
 
-	def rms(self,x1,x2):
+	def _rms(self,x1,x2):
 		"""
 		Calculates root mean square error
 
@@ -23,7 +23,7 @@ class metrics:
 		"""
 		return np.nanmean(np.sqrt(np.square(x2 - x1)))
 
-	def R2(self,data,op,poly,k,adj=False):
+	def _R2(self,data,op,poly,k,adj=False):
 		"""
 		R-square value between the predicted and expected values
 
@@ -45,10 +45,10 @@ class metrics:
 		R2 : float
 			R2 or R2-adjusted depending upon 'adj' value
 		"""
-		if adj: return self.R2_adj(data, op, poly, k)
+		if adj: return self._R2_adj(data, op, poly, k)
 		return 1 - (np.nanmean(np.square(data - poly(op)))/np.nanmean(np.square(data - np.nanmean(data))))
 
-	def R2_adj(self, data, op, poly, k):
+	def _R2_adj(self, data, op, poly, k):
 		"""
 		R-squared adjusted method
 		"""
@@ -56,7 +56,7 @@ class metrics:
 		n = len(op)
 		return 1-(((1-r2)*(n-1))/(n-k-1))
 
-	def fit_poly(self,x,y,deg):
+	def _fit_poly(self,x,y,deg):
 		"""
 		Fits polynomial f(x) = y
 
@@ -82,7 +82,7 @@ class metrics:
 		z = np.polyfit(x_,y_,deg)
 		return np.poly1d(z), x_
 
-	def nan_helper(self, x):
+	def _nan_helper(self, x):
 		"""
 		Helper function used to handle missing data
 
@@ -100,7 +100,7 @@ class metrics:
 		"""
 		return np.isnan(x), lambda z: z.nonzero()[0]
 
-	def interpolate_missing(self, y):
+	def _interpolate_missing(self, y):
 		"""
 		Interpolate missing data
 
@@ -114,11 +114,11 @@ class metrics:
 		y : numpy.array
 			missing values are interpolated
 		"""
-		nans, x = self.nan_helper(y)
+		nans, x = self._nan_helper(y)
 		y[nans] = np.interp(x(nans), x(~nans), y[~nans])
 		return y
 
-	def kl_divergence(self, p, q):
+	def _kl_divergence(self, p, q):
 		"""
 		Calculates KL divergence between two probablity distrubitions
 
@@ -139,7 +139,7 @@ class metrics:
 		#k[np.where(np.isnan(k))] = 0
 		return np.sum(k)
 
-	def fit_plane(self, x,y,z, order=2, inc_x=0.1, inc_y=0.1, range_x=(-1,1), range_y=(-1,1)):
+	def _fit_plane(self, x,y,z, order=2, inc_x=0.1, inc_y=0.1, range_x=(-1,1), range_y=(-1,1)):
 		"""
 		Fits first order or second order plane to the surface data points
 
@@ -188,100 +188,6 @@ class metrics:
 			C,_,_,_ = scipy.linalg.lstsq(A, data[:,2])
 			return Plane(coefficients=C, order=order)
 
-	def histogram_3d(self,x,bins = 20, normed = False, color = 'blue', alpha = 1, hold = False, plot_hist=False):
-		"""
-		Plotting a 3D histogram
-
-		Parameters
-		----------
-
-		sample : array_like.		
-		    The data to be histogrammed. It must be an (N,2) array or data 
-		    that can be converted to such. The rows of the resulting array 
-		    are the coordinates of points in a 2 dimensional polytope.
-
-		bins : sequence or int, optional, default: 10.
-		    The bin specification:
-		    
-		    * A sequence of arrays describing the bin edges along each dimension.
-		    * The number of bins for each dimension (bins =[binx,biny])
-		    * The number of bins for all dimensions (bins = bins).
-
-		normed : bool, optional, default: False.
-		    If False, returns the number of samples in each bin. 
-		    If True, returns the bin density bin_count / sample_count / bin_volume.
-
-		color: string, matplotlib color arg, default = 'blue'
-
-		alpha: float, optional, default: 1.
-		    0.0 transparent through 1.0 opaque
-
-		hold: boolean, optional, default: False
-
-		Returns   
-		--------
-		H : ndarray.
-		    The bidimensional histogram of sample x.
-
-		edges : list.
-		    A list of 2 arrays describing the bin edges for each dimension.
-
-		Examples
-		--------
-		>>> r = np.random.randn(1000,2)
-		>>> H, edges = np.histogram3d(r,bins=[10,15])
-		"""
-
-		if np.size(bins) == 1:
-		    bins = [bins,bins]
-
-		if(len(x) == 2):
-		    x = x.T;
-		    
-
-		H, edges = np.histogramdd(x, bins, normed = normed)
-
-		H = H.T
-		X = np.array(list(np.linspace(min(edges[0]),max(edges[0]),bins[0]))*bins[1])   
-		Y = np.sort(list(np.linspace(min(edges[1]),max(edges[1]),bins[1]))*bins[0])    
-
-		dz = np.array([]);
-
-		for i in range(bins[1]):
-		    for j in range(bins[0]):
-		        dz = np.append(dz, H[i][j])
-
-		Z = np.zeros(bins[0]*bins[1])
-
-		dx = X[1] - X[0]   
-		dy = Y[bins[0]] - Y[0]
-
-		if plot_hist:
-			if (not hold):
-			    fig = plt.figure(dpi = 300)
-			    ax = fig.add_subplot(111, projection='3d')
-			    colors = plt.cm.jet(dz.flatten()/float(dz.max()))
-			    ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
-			else:
-			    try:
-			        ax = plt.gca();
-			        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
-			        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
-			    except:
-			        plt.close(plt.get_fignums()[-1])
-			        fig = plt.figure()
-			        ax = fig.add_subplot(111, projection='3d')
-			        colors = plt.cm.jet(dz.flatten()/float(dz.max()))
-			        ax.bar3d(X,Y,Z,dx,dy,dz, alpha = alpha, color = colors);
-		        
-		        
-			plt.xlabel('X');
-			plt.ylabel('Y');
-		edges = [X,Y];
-		H = dz.reshape(bins[0],bins[1]);
-
-		#return H, edges;
-		return H, edges, X, Y, Z, dx, dy, dz
 
 
 class Plane:

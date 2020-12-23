@@ -76,35 +76,76 @@ class Main(preprocessing, gaussian_test):
 		self._t = t
 		if len(data) == 1:
 			self._X = data[0]
+			self._M_square = data[0]
 			self.vector = False
 		elif len(data) == 2:
 			self._vel_x, self._vel_y = data
-			vx = self.interpolate_missing(self._vel_x)
-			vy = self.interpolate_missing(self._vel_y)
-			#self._X = np.sqrt((np.square(vx) + np.square(vy)))
-			self._X = vx
+			self._M_square = self._vel_x**2 + self._vel_y**2
+			self._X = self._vel_x.copy()
 			self.vector = True
 		else:
 			raise InputError('Characterize(data=[x1,x2],...)', 'data input must be a list of length 1 or 2!')
 		
 		if t_int is None: self.t_int = self._timestep(t)
-		self.dt = self.optimium_timescale(self._X, t_int=self.t_int, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
+		self.dt = self._optimium_timescale(self._X, self._M_square, t_int=self.t_int, simple_method=self.simple_method, dt=dt, max_order=self.max_order, t_lag=self.t_lag, inc=self.inc)
 		if not self.vector:
-			self._diff, self._drift, self._avgdiff, self._avgdrift, self._op = self.drift_and_diffusion(self._X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
-			self._avgdiff = self._avgdiff/self.n_trials
-			self._avgdrift = self._avgdrift/self.n_trials
+			self._diff_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(self._X, self.t_int, dt=self.dt, delta_t=self.delta_t, inc=self.inc)
+			self._avgdiff_ = self._avgdiff_/self.n_trials
+			self._avgdrift_ = self._avgdrift_/self.n_trials
 		else:
-			self._avgdriftX, self._avgdriftY, self._avgdiffX, self._avgdiffY, self._avgdiffXY, self._op_x, self._op_y = self.vector_drift_diff(self._vel_x, self._vel_y, inc_x=self.inc_x, inc_y=self.inc_y, t_int=self.t_int, dt=self.dt, delta_t=self.delta_t)
-			self._avgdriftX = self._avgdriftX/self.n_trials
-			self._avgdriftY = self._avgdriftY/self.n_trials
-			self._avgdiffX = self._avgdiffX/self.n_trials
-			self._avgdiffY = self._avgdiffY/self.n_trials
-			self._avgdiffXY = self._avgdiffXY/self.n_trials
-		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self.noise_analysis(self._X, self.dt, self.t_int, inc=self.inc, point=0)
+			self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._op_x_, self._op_y_ = self._vector_drift_diff(self._vel_x, self._vel_y, inc_x=self.inc_x, inc_y=self.inc_y, t_int=self.t_int, dt=self.dt, delta_t=self.delta_t)
+			self._avgdriftX_ = self._avgdriftX_/self.n_trials
+			self._avgdriftY_ = self._avgdriftY_/self.n_trials
+			self._avgdiffX_ = self._avgdiffX_/self.n_trials
+			self._avgdiffY_ = self._avgdiffY_/self.n_trials
+			self._avgdiffXY_ = self._avgdiffXY_/self.n_trials
+		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(self._X, self.dt, self.t_int, inc=self.inc, point=0)
 		return output(self)
 
 
 class Characterize(object):
+	"""
+	Input params:
+	--------------
+	data : list
+		time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
+		where x, x1 and x2 are of numpy.array object type
+	t : numpy.array
+		time stamp of time series
+	t_int : float
+		time increment between consecutive observations of the time series
+	dt = 'auto' : 'auto' or int
+		time scale to run the analysis on (for determinsitic part);
+		algorithm estimates dt if 'auto' is passed, else takes the user input
+	delta_t = 1 : int
+		time scale to run the analysis on (for stochastic part)
+	inc = 0.01 : float
+		increment in order parameter for scalar data
+	inc_x = 0.1 : float
+		increment in order parameter for vector data x1
+	inc_y = 0.1 : float
+		increment in order parameter for vector data x2
+	drift_order = None : int
+		order of polynomial to be fit for calculated drift (deterministic part);
+		if None, algorithim estimates the optimium drift_order
+	diff_order = None : int
+		order of polynomial to be fit for calculated diff (stochastic part);
+		if None, algorithim estimates the optimium diff_order
+	max_order = 10 : int
+		maxmium drift_order and diff_order to consider
+	fft = True : bool
+		if true use fft method to calculate autocorrelation else, use standard method
+	t_lag = 1000 : int
+		maxmium lag to use to calculate acf
+
+	**kwargs 
+		all the parameters for pyFish.preporcessing and pyFish.noise_analysis
+
+	returns:
+	-----------
+	output : pyFish.output
+		object to access the analysed data, parameters, plots and save them.
+	"""
 	def __new__(cls, 
 			data, 
 			t, 
