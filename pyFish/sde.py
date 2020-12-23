@@ -31,7 +31,7 @@ class SDE():
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
 
-	def drift(self, X, t_int, dt):
+	def _drift(self, X, t_int, dt):
 		"""
 		Calculate Diffusion.
 
@@ -51,7 +51,7 @@ class SDE():
 		"""
 		return np.array([b-a for a,b in zip(X, X[dt:])])/(t_int*dt)
 
-	def diffusion(self, X, t_int, delta_t=1):
+	def _diffusion(self, X, t_int, delta_t=1):
 		"""
 		Calculates Drift
 
@@ -72,10 +72,10 @@ class SDE():
 		return np.square(np.array([b-a for a, b in zip(X, X[delta_t:])]))/(t_int*delta_t)
 
 
-	def diffusion_xy(self, vel_x, vel_y, t_int, delta_t):
+	def _diffusion_xy(self, vel_x, vel_y, t_int, delta_t):
 		return np.array([(b-a)*(d-c) for a,b,c,d in zip(vel_x, vel_x[delta_t:], vel_y, vel_y[delta_t:])])/(delta_t*t_int)
 
-	def drift_and_diffusion(self, X, t_int, dt,delta_t=1, inc = 0.01):
+	def _drift_and_diffusion(self, X, t_int, dt,delta_t=1, inc = 0.01):
 		"""
 		Calcualtes drift, diffusion, average drift and avarage difussion.
 
@@ -104,8 +104,8 @@ class SDE():
 		#op = np.arange(-1,1,inc)
 		op = np.arange(min(X), max(X), inc)
 		avgdiff, avgdrift = [], []
-		drift = self.drift(X, t_int, dt)
-		diff = self.diffusion(X, t_int)
+		drift = self._drift(X, t_int, dt)
+		diff = self._diffusion(X, t_int)
 		X = X[0:-dt]
 		for b in op:
 			i = np.where(np.logical_and(X<(b+inc), X>=b))[0]
@@ -113,15 +113,15 @@ class SDE():
 			avgdrift.append(drift[i].mean())
 		return diff, drift, np.array(avgdiff), np.array(avgdrift), op
 
-	def vector_drift_diff(self, vel_x, vel_y, inc_x=0.1, inc_y=0.1, t_int=0.12, dt=40, delta_t=1):
+	def _vector_drift_diff(self, vel_x, vel_y, inc_x=0.1, inc_y=0.1, t_int=0.12, dt=40, delta_t=1):
 		op_x = np.arange(-1, 1, inc_x)
 		op_y = np.arange(-1, 1, inc_y)
 
-		driftX = self.drift(vel_x, t_int, dt)
-		driftY = self.drift(vel_y, t_int, dt)
-		diffusionX = self.diffusion(vel_x, t_int, delta_t)
-		diffusionY = self.diffusion(vel_y, t_int, delta_t)
-		diffusionXY = self.diffusion_xy(vel_x, vel_y, t_int, delta_t)
+		driftX = self._drift(vel_x, t_int, dt)
+		driftY = self._drift(vel_y, t_int, dt)
+		diffusionX = self._diffusion(vel_x, t_int, delta_t)
+		diffusionY = self._diffusion(vel_y, t_int, delta_t)
+		diffusionXY = self._diffusion_xy(vel_x, vel_y, t_int, delta_t)
 
 		avgdriftX = np.zeros((len(op_x), len(op_y)))
 		avgdriftY = np.zeros((len(op_x), len(op_y)))
@@ -174,4 +174,4 @@ class SDE():
 			avaerage drift
 		"""
 		self.__dict__.update(kwargs)
-		return self.drift_and_diffusion(X, t_int, dt, inc)
+		return self._drift_and_diffusion(X, t_int, dt, inc)
