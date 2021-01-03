@@ -27,7 +27,7 @@ class preprocessing(gaussian_test):
 		return r2_drift, r2_diff
 
 	def _order(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
-		dt = self._get_dt(M_square)+5 if dt == 'auto' else dt
+		dt = self._get_dt(X)+5 if dt == 'auto' else dt
 		_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=dt, delta_t=delta_t, inc=inc)
 		self._r2_drift, self._r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
 
@@ -40,7 +40,7 @@ class preprocessing(gaussian_test):
 		self._r2_drift_m_dt = []
 		self._r2_diff_m_dt = []
 		max_dt = self._get_autocorr_time(M_square)
-		N = 4
+		N = 8
 		for n in range(1,N+1):
 			_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=int((n/N)*max_dt), delta_t=delta_t, inc=inc)
 			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
