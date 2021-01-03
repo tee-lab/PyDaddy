@@ -363,8 +363,6 @@ class output(preprocessing):
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
-			vel_x = self._interpolate_missing(self._data_vel_x)
-			vel_y = self._interpolate_missing(self._data_vel_y)
 			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_vel_x[~np.isnan(self._data_vel_x)], self._data_vel_y[~np.isnan(self._data_vel_y)]]))
 			colors = plt.cm.coolwarm(dz.flatten()/float(dz.max()))
 			hist3d = ax.bar3d(X,Y,Z,dx,dy,dz, alpha=0.6, cmap=plt.cm.coolwarm, color=colors)
