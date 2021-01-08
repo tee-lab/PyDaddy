@@ -52,6 +52,21 @@ class preprocessing(gaussian_test):
 		#return
 		return self.drift_order , np.array(self._r2_drift)
 
+	def _r2_vs_order_multi_dt(self, X, M_square, t_int, delta_t=1, max_order=10, inc=0.01):
+		self._r2_drift_m_dt_2 = []
+		self._r2_diff_m_dt_2 = []
+		max_dt = self._get_autocorr_time(M_square)
+		N = 8
+		for n in range(1,N+1):
+			_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=int((n/N)*max_dt), delta_t=delta_t, inc=inc)
+			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
+			self._r2_drift_m_dt_2.append(_r2_drift)
+			self._r2_diff_m_dt_2.append(_r2_diff)
+		self._r2_drift_m_dt_2.append([int((i/N)*max_dt) for i in range(1,N+1)])
+		self._r2_diff_m_dt_2.append([int((i/N)*max_dt) for i in range(1,N+1)])
+		return self._r2_drift_m_dt_2, self._r2_diff_m_dt_2
+
+
 	def _simple_estimate(self, X, M_square,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
 		order, r2 = self._order(X, M_square, t_int, dt=dt, max_order=max_order, inc=inc)
 		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)

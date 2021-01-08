@@ -14,7 +14,7 @@ from pyFish.output import InputError
 warnings.filterwarnings("ignore")
 
 
-class Main(preprocessing, gaussian_test):
+class Main(preprocessing, gaussian_test, AutoCorrelation):
 	"""
 	main driver class
 	"""
@@ -60,6 +60,7 @@ class Main(preprocessing, gaussian_test):
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 		gaussian_test.__init__(self)
+		AutoCorrelation.__init__(self)
 
 		if t is None and t_int is None:
 			raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
