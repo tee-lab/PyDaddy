@@ -141,10 +141,9 @@ class Characterize(object):
 	data : list
 		time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
 		where x, x1 and x2 are of numpy.array object type
-	t : numpy.array
-		time stamp of time series
-	t_int : float
-		time increment between consecutive observations of the time series
+	t : float or numpy.array
+		[float] if its time increment between observation
+		[numpy.array] if time stamp of time series
 	dt = 'auto' : 'auto' or int
 		time scale to run the analysis on (for determinsitic part);
 		algorithm estimates dt if 'auto' is passed, else takes the user input
@@ -202,10 +201,9 @@ class Characterize(object):
 		data : list
 			time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
 			where x, x1 and x2 are of numpy.array object type
-		t : numpy.array
-			time stamp of time series
-		t_int : float
-			time increment between consecutive observations of the time series
+		t : float or numpy.array
+			[float] if its time increment between observation
+			[numpy.array] if time stamp of time series
 		dt = 'auto' : 'auto' or int
 			time scale to run the analysis on (for determinsitic part);
 			algorithm estimates dt if 'auto' is passed, else takes the user input
