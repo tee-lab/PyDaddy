@@ -16,34 +16,36 @@ class AutoCorrelation:
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
 
-	def _acf(self, data, t_lag):
-		if self.fft: 
-			return self._acf_fft(data, t_lag)
-		if np.isnan(data).any():
-			return self._nan_acf(data, t_lag)
-		x = np.arange(0, t_lag)
-		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
-		c.insert(0,1)
-		return x, np.array(c)
+	def _acf_nfft(self, data, t_lag):
+		t = np.arange(len(data))
+		x = np.linspace(-0.5, 0.5, len(data))
+		x = np.delete(x, np.isnan(data))
+		t = np.delete(t, np.isnan(data))
+		data = np.delete(data, np.isnan(data))
+		if len(data) % 2 == 1:
+			data = data[:-1]
+			x = x[:-1]
+		c = np.fft.ifft(np.square(np.abs(self._nfft(x,data))))
+		c /= max(c)
+		return t[0:t_lag],c[0:t_lag]
 
 	def _acf_fft(self, data, t_lag):
 		if np.isnan(data).any():
-			print('Missing values in time series')
-			self.fft=False
-			return self._nan_acf(data, t_lag)
+			return self._acf_nfft(data, t_lag)
 		x = np.arange(0, t_lag)
 		c = np.fft.ifft(np.square(np.abs(np.fft.fft(data))))
 		c /= max(c)
 		return x,c[0:t_lag]
 
-	def _nan_acf(self, data, t_lag):
-		c = []
-		mue = np.nanmean(data)
-		c.append((np.nanmean((data-mue)*(data-mue)))/np.nanvar(data-mue))
-		for i in tqdm(range(1, t_lag)):
-			c.append((np.nanmean((data[:-i] - mue)*(data[i:] - mue)))/(np.sqrt(np.nanvar(data[:-i])*np.nanvar((data[i:])))))
-		return np.arange(t_lag), np.array(c)
-
+	def _acf(self, data, t_lag):
+		if self.fft: 
+			return self._acf_fft(data, t_lag)
+		if np.isnan(data).any():
+			return self._acf_nfft(data, t_lag)
+		x = np.arange(0, self.t_lag+1)
+		c = [np.corrcoef(data[:-i],data[i:])[0][1] for i in x[1:]]
+		c.insert(0,1)
+		return x, np.array(c)
 
 	"""
 	def _autocorr(self, data, t_lag):
@@ -98,6 +100,44 @@ class AutoCorrelation:
 		self._a, self.autocorrelation_time, self._c = a, b, c
 		return int(np.ceil(b))
 
+	def _phi(self, x, n, m, sigma):
+		b = (2 * sigma * m) / ((2 * sigma - 1) * np.pi)
+		return np.exp(-(n * x) ** 2 / b) / np.sqrt(np.pi * b)
+
+	def _phi_hat(self, k, n, m, sigma):
+		b = (2 * sigma * m) / ((2 * sigma - 1) * np.pi)
+		return np.exp(-b * (np.pi * k / n) ** 2)
+
+	def _C_phi(self, m, sigma):
+		return 4 * np.exp(-m * np.pi * (1 - 1. / (2 * sigma - 1)))
+
+	def _m_from_C_phi(self, C, sigma):
+		return np.ceil(-np.log(0.25 * C) / (np.pi * (1 - 1 / (2 * sigma - 1))))
+
+	def _nfft(self, x, f, sigma=2, tol=1E-8):
+		"""Alg 3 from https://www-user.tu-chemnitz.de/~potts/paper/nfft3.pdf"""
+		N = len(f)
+		n = N * sigma  # size of oversampled grid
+		m = self._m_from_C_phi(tol / N, sigma)
+		
+		# 1. Express f(x) in terms of basis functions phi
+		shift_to_range = lambda x: -0.5 + (x + 0.5) % 1
+		col_ind = np.floor(n * x[:, np.newaxis]).astype(int) + np.arange(-m, m)
+		vals = self._phi(shift_to_range(x[:, None] - col_ind / n), n, m, sigma)
+		col_ind = (col_ind + n // 2) % n
+		indptr = np.arange(len(x) + 1) * col_ind.shape[1]
+		mat = scipy.sparse.csr_matrix((vals.ravel(), col_ind.ravel(), indptr), shape=(len(x), n))
+		g = mat.T.dot(f)
+		
+		# 2. Compute the Fourier transform of g on the oversampled grid
+		k = -(N // 2) + np.arange(N)
+		g_k_n = np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(g)))
+		g_k = n * g_k_n[(n - N) // 2: (n + N) // 2]
+		
+		# 3. Divide by the Fourier transform of the convolution kernel
+		f_k = g_k / self._phi_hat(k, n, m, sigma)
+		
+		return np.fft.fftshift(f_k)
 
 class underlying_noise(SDE):
 	"""

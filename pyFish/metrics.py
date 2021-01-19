@@ -1,6 +1,5 @@
 import numpy as np 
 import scipy.linalg
-import os
 
 class metrics:
 	def __init__(self, **kwargs):
@@ -188,29 +187,6 @@ class metrics:
 			A = np.c_[np.ones(data.shape[0]), data[:,:2], np.prod(data[:,:2], axis=1), data[:,:2]**2]
 			C,_,_,_ = scipy.linalg.lstsq(A, data[:,2])
 			return Plane(coefficients=C, order=order)
-
-	def _make_directory(self, p, i=1):
-		"""
-		Recursively create directories in given path
-
-		Input params:
-		--------------
-		path : str
-			destination path
-
-		returns:
-		-------------
-		path : str
-		"""
-		if type(p) != list: p = p.split('/')
-		if i > len(p):
-			return os.path.join(*p)
-		else:
-			try:
-				os.mkdir(os.path.join(*p[0:i]))
-			except FileExistsError:
-				pass
-		return self._make_directory(p,i=i+1)
 
 
 
