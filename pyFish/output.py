@@ -13,6 +13,8 @@ import pickle
 import time
 import statsmodels.api as sm 
 import statsmodels.stats.diagnostic
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from pyFish.preprocessing import preprocessing
 
 class output(preprocessing):
@@ -21,7 +23,7 @@ class output(preprocessing):
 	"""
 	def __init__(self, out, **kwargs):
 		self.vector = out.vector
-		self._res_dir = str(int(time.time()))
+		self.res_dir = out.res_dir
 
 		if not self.vector:
 			self._data_X = out._X
@@ -34,8 +36,8 @@ class output(preprocessing):
 			self.drift_order = out.drift_order
 			self.diff_order = out.diff_order
 		else:
-			self._data_vel_x = out._vel_x
-			self._data_vel_y = out._vel_y
+			self._data_Mx = out._Mx
+			self._data_My = out._My
 			self._data_avgdriftX = out._avgdriftX_
 			self._data_avgdriftY = out._avgdriftY_
 			self._data_avgdiffX = out._avgdiffX_
@@ -44,10 +46,14 @@ class output(preprocessing):
 			self._data_op_x = out._op_x_
 			self._data_op_y = out._op_y_
 
+			self._data_slider = out._data_slider
+
 		self._out = out
 
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
+
+		self.slider()
 
 	def release(self):
 		"""
@@ -110,7 +116,7 @@ class output(preprocessing):
 			return self._data_drift, self._data_diff, self._data_avgdrift, self._data_avgdiff, self._data_op
 		return self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY, self._data_avgdiffXY, self._data_op_x, self._data_op_y
 
-	def save_data(self, file_name=None, savepath=None, savemat=True):
+	def save_data(self, file_name='data', savepath='results', savemat=True):
 		"""
 		Save calculated data to file
 
@@ -127,9 +133,8 @@ class output(preprocessing):
 		-------------
 			None
 		"""
-		if savepath is None: savepath = 'results'
-		if file_name is None: file_name = self._res_dir
-		savepath = self._make_dirctory(os.path.join(savepath, self._res_dir))
+		if file_name is None: file_name = self.res_dir
+		savepath = self._make_dirctory(os.path.join(savepath, self.res_dir))
 		if not self.vector:
 			data_dict = {'drift':self._data_drift, 'diff':self._data_diff, 'avgdrift':self._data_avgdrift, 'avgdiff':self._data_avgdiff, 'op':self._data_op}
 		else:
@@ -142,7 +147,7 @@ class output(preprocessing):
 
 		return None
 
-	def save_all_data(self, savepath=None ,show=False, file_name=None):
+	def save_all_data(self, savepath='results', file_name='data'):
 		"""
 		Saves all data and figures
 
@@ -159,14 +164,13 @@ class output(preprocessing):
 		-------------
 			None
 		"""
-		if savepath is None: savepath = "results"
 		self.save_data(file_name=file_name, savepath=savepath)
 		self.parameters(save=True, savepath=savepath)
-		self.visualize(show=show, save=True, savepath=savepath)
-		self.diagnostic(show=show, save=True, savepath=savepath)
-		self.noise_characterstics(show=show, save=True, savepath=savepath)
-		self.slices_2d(show=show, save=True, savepath=savepath)
-		print('Results saved in: {}'.format(os.path.join(savepath, self._res_dir)))
+		self.visualize(show=False, save=True, savepath=savepath)
+		self.diagnostic(show=False, save=True, savepath=savepath)
+		self.noise_characterstics(show=False, save=True, savepath=savepath)
+		self.slices_2d(show=False, save=True, savepath=savepath)
+		print('Results saved in: {}'.format(os.path.join(savepath, self.res_dir)))
 
 	def parameters(self, save=False, savepath=None, file_name="parameters.txt"):
 		"""
@@ -192,8 +196,8 @@ class output(preprocessing):
 			if str(keys)[0] != '_':
 				params[keys] = str(self._out.__dict__[keys])
 		if save:
-			savepath = self._make_dirctory(os.path.join(savepath, self._res_dir))
-			with open(os.path.join(savepath, file_name), 'w') as f:
+			savepath = self._make_dirctory(os.path.join(savepath, self.res_dir))
+			with open(os.path.join(savepath, file_name), 'w', encoding='utf-8') as f:
 				json.dump(params, f, indent=True, separators='\n:')
 		return params
 
@@ -295,7 +299,85 @@ class output(preprocessing):
 		#plt.legend(prop={'size': 14})
 		return fig
 
-	def visualize(self, show=True, save=False, savepath=None):
+	def slider(self):
+		fig = make_subplots(rows=2, cols=2,
+							specs=[[{'is_3d': True}, {'is_3d': True}],
+								   [{'is_3d': True}, {'is_3d': True}]],
+							print_grid=False, subplot_titles=('driftX','driftY','diffX','diffY'),
+						   horizontal_spacing=0.01,
+						   vertical_spacing=0.05,)
+		op_x, op_y = np.arange(-1,1,0.1), np.arange(-1,1,0.1)
+		x, y = np.meshgrid(op_x, op_y)
+		n = ['driftX', 'driftY', 'diffX', 'diffY']
+
+		flag = 1
+		for dt in self._data_slider:
+			data = self._data_slider[dt]
+			visible = 'legendonly'
+			if flag:
+				visible = True
+			k = 0
+			for r in range(1,3):
+				for c in range(1,3):
+					marker_colour = 'blue'
+					if k%2: marker_colour = 'red'
+					fig.append_trace(
+						go.Scatter3d(
+							x=(x.flatten()),
+							y=(y.flatten()),
+							z=(data[k].flatten()),
+							opacity=0.8,
+							mode='markers',
+							marker=dict(size=3,color=marker_colour),
+							name="{}, {}".format(n[k], dt),visible=visible),
+						row=r, col=c,)
+					k = k + 1
+			flag = 0
+
+
+		scene = dict(xaxis = dict(showbackground=True),
+						yaxis = dict(showbackground=True),
+						zaxis = dict(showbackground=True,),
+						xaxis_title='mx',
+						yaxis_title='my',
+						zaxis_title='Z',)
+
+		fig.update_layout(
+			autosize=False,
+			scene_aspectmode='cube',
+			scene1 = scene,
+			scene2 = scene,
+			scene3 = scene,
+			scene4 = scene,
+			title_text='3D subplots',
+			height=800,
+			width=800,
+		)
+
+		dt_s = list(self._data_slider.keys())
+		steps = []
+		for i in range(len(self._data_slider)):
+			step = dict(
+				method = 'update',  
+				#args = ['visible', ['legendonly'] * len(fig.data),],
+				args=[{"visible": [False] * len(fig.data)},
+					  {"title": "Slider switched to dt = " + str(dt_s[i])}],  # layout attribute
+			)
+			#step['args'][0][i*4:i*4+4] = [True for j in range(4)]
+			step['args'][0]['visible'][i*4:i*4+4] = [True for j in range(4)]
+			steps.append(step)
+
+		sliders = [dict(
+			currentvalue={"prefix": "dt: "},
+			steps = steps,
+		)]
+
+		fig.layout.sliders = sliders
+
+		fig.show()
+		return None
+
+	def visualize(self, show=True, save=False, savepath='results'):
 		"""
 		Plot the data
 
@@ -313,9 +395,8 @@ class output(preprocessing):
 			None
 		"""
 		self._visualize_figs = []
-		if savepath is None: savepath = "results"
 		if not self.vector:
-			savepath = os.path.join(savepath, self._res_dir, 'visualize')
+			savepath = os.path.join(savepath, self.res_dir, 'visualize')
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			plt.suptitle("Time_Series")
@@ -359,11 +440,11 @@ class output(preprocessing):
 
 		else:
 			num_ticks=5
-			savepath = os.path.join(savepath ,self._res_dir, 'visualize','plot_3d')
+			savepath = os.path.join(savepath ,self.res_dir, 'visualize','plot_3d')
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
-			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_vel_x[~np.isnan(self._data_vel_x)], self._data_vel_y[~np.isnan(self._data_vel_y)]]))
+			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_Mx[~np.isnan(self._data_Mx)], self._data_My[~np.isnan(self._data_My)]]))
 			colors = plt.cm.coolwarm(dz.flatten()/float(dz.max()))
 			hist3d = ax.bar3d(X,Y,Z,dx,dy,dz, alpha=0.6, cmap=plt.cm.coolwarm, color=colors)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
@@ -430,7 +511,7 @@ class output(preprocessing):
 		return None
 
 
-	def diagnostic(self, show=True, save=False, savepath=None):
+	def diagnostic(self, show=True, save=False, savepath='results'):
 		"""
 		Plot or save diagnostics data
 
@@ -448,7 +529,6 @@ class output(preprocessing):
 			None
 		"""
 		self._diagnostics_figs = []
-		if savepath is None: savepath="results"
 		t1 = "R2" if self._out.order_metric=="R2" else "R2_adj"
 		#ACF
 		fig1 = plt.figure(dpi=150)
@@ -502,12 +582,12 @@ class output(preprocessing):
 		
 		if show: plt.show()
 		if save:
-			savepath = self._make_dirctory(os.path.join(savepath, self._res_dir, 'diagnostic'))
+			savepath = self._make_dirctory(os.path.join(savepath, self.res_dir, 'diagnostic'))
 			for fig in self._diagnostics_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"))
 
 		return None
 
-	def noise_characterstics(self, show=True, save=False, savepath=None):
+	def noise_characterstics(self, show=True, save=False, savepath='results'):
 		"""
 		Plot or save noise analysis data
 
@@ -525,7 +605,6 @@ class output(preprocessing):
 			None
 		"""
 		self._noise_figs = []
-		if savepath is None: savepath = "results"
 		#print("Noise is gaussian") if self._out.gaussian_noise else print("Noise is not Gaussian")
 
 		fig1 = plt.figure(dpi=150)
@@ -559,13 +638,13 @@ class output(preprocessing):
 		
 		if show: plt.show()
 		if save:
-			savepath = self._make_dirctory(os.path.join(savepath, self._res_dir, 'noise_characterstics'))
+			savepath = self._make_dirctory(os.path.join(savepath, self.res_dir, 'noise_characterstics'))
 			for fig in self._noise_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"))
 
 		return None
 
 
-	def slices_2d(self, show=True, save=False, savepath=None):
+	def slices_2d(self, show=True, save=False, savepath='results'):
 		"""
 		Plot or save 2d slice of the vector 3d plots
 
@@ -590,7 +669,7 @@ class output(preprocessing):
 
 		fig1 = plt.figure()
 		plt.suptitle("PDF(2d_slice)")
-		sns.distplot(self._data_vel_x[np.where((self._data_vel_y>=-1*self._out.inc_y) & (self._data_vel_y<=self._out.inc_y))])
+		sns.distplot(self._data_Mx[np.where((self._data_My>=-1*self._out.inc_y) & (self._data_My<=self._out.inc_y))])
 		plt.xlabel('Mx', fontsize=16)
 		plt.tight_layout()
 		self._slice_figs.append(fig1)
@@ -667,7 +746,7 @@ class output(preprocessing):
 
 		if show: plt.show()
 		if save:
-			savepath=self._make_dirctory(os.path.join(savepath, self._res_dir, 'visualize', 'slices_2d'))
+			savepath=self._make_dirctory(os.path.join(savepath, self.res_dir, 'visualize', 'slices_2d'))
 			dpi=150
 			for fig in self._slice_figs: fig.savefig(os.path.join(savepath, fig.texts[0].get_text()+".png"),dpi=150, transparent=True)
 

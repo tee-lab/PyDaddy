@@ -67,13 +67,20 @@ class preprocessing(gaussian_test):
 		return self._r2_drift_m_dt_2, self._r2_diff_m_dt_2
 
 
-	def _simple_estimate(self, X, M_square,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
+	def _opt_dt_estimate(self, X, M_square,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
 		order, r2 = self._order(X, M_square, t_int, dt=dt, max_order=max_order, inc=inc)
 		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)
 		optimum_dt = autocorr_time - 1 if order==1 else autocorr_time/10
 		return int(np.ceil(optimum_dt))
 
 
+	def _optimium_timescale(self, X, M_square, t_int, dt='auto', max_order=10, t_lag=1000, inc=0.01):
+		if dt != 'auto':
+			_ = self._order(X, M_square,t_int)
+			return dt
+		return self._opt_dt_estimate(X, M_square,t_int,dt=dt,max_order=max_order,t_lag=t_lag, inc=inc)
+
+"""
 	def _detailed_estimate(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01, t_lag=1000):
 		self._kl_min = []
 		self._kl_max = []
@@ -96,15 +103,4 @@ class preprocessing(gaussian_test):
 			self._kl_min_index.append(kl.argmin())
 		print("Optimium dt found : {}".format(np.abs(self._kl_min).argmin()))
 		return np.abs(self._kl_min).argmin()
-
-
-
-	def _optimium_timescale(self, X, M_square, t_int, simple_method=True, dt='auto', max_order=10, t_lag=1000, inc=0.01):
-		if dt != 'auto':
-			_ = self._order(X, M_square,t_int)
-			return dt
-		if simple_method:
-			return self._simple_estimate(X, M_square,t_int,dt=dt,max_order=max_order,t_lag=t_lag, inc=inc)
-		else:
-			return self._detailed_estimate(X, M_square,t_int, dt=dt, max_order=max_order, t_lag=t_lag, inc=inc)
-			
+"""
