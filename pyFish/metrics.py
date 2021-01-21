@@ -212,6 +212,10 @@ class metrics:
 				pass
 		return self._make_directory(p,i=i+1)
 
+	def _remove_nan(self, Mx, My):
+		nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
+		return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
+
 
 
 class Plane:

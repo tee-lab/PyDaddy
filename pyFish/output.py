@@ -53,7 +53,8 @@ class output(preprocessing):
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
-		self.slider()
+		if self.vector:
+			self.slider()
 
 	def release(self):
 		"""
@@ -444,7 +445,8 @@ class output(preprocessing):
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
-			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_Mx[~np.isnan(self._data_Mx)], self._data_My[~np.isnan(self._data_My)]]))
+			#H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_Mx[~np.isnan(self._data_Mx)], self._data_My[~np.isnan(self._data_My)]]))
+			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nan(self._data_Mx, self._data_My))
 			colors = plt.cm.coolwarm(dz.flatten()/float(dz.max()))
 			hist3d = ax.bar3d(X,Y,Z,dx,dy,dz, alpha=0.6, cmap=plt.cm.coolwarm, color=colors)
 			ax.set_xlabel('Mx', fontsize=16, labelpad=10)
@@ -800,9 +802,8 @@ class output(preprocessing):
 			bins = [bins,bins]
 
 		if(len(x) == 2):
-			x = x.T;
+			x = x.T
 			
-
 		H, edges = np.histogramdd(x, bins, normed = normed)
 
 		H = H.T
