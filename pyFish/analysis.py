@@ -40,7 +40,7 @@ class AutoCorrelation:
 		c = []
 		mue = np.nanmean(data)
 		c.append((np.nanmean((data-mue)*(data-mue)))/np.nanvar(data-mue))
-		for i in tqdm(range(1, t_lag)):
+		for i in range(1, t_lag):
 			c.append((np.nanmean((data[:-i] - mue)*(data[i:] - mue)))/(np.sqrt(np.nanvar(data[:-i])*np.nanvar((data[i:])))))
 		return np.arange(t_lag), np.array(c)
 

@@ -75,7 +75,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 	def _timestep(self, t):
 		return t[-1]/len(t)
 
-	def _slider_data(self, Mx, My, save=True, savepath='results'):
+	def _slider_data(self, Mx, My, save=False, savepath='results'):
 		max_dt = np.ceil(self.autocorrelation_time)
 		data_dict = dict()
 		N = self.n_dt
@@ -85,7 +85,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			data = self._vector_drift_diff(Mx, My, inc_x=self.inc_x, inc_y=self.inc_y, t_int=self.t_int, dt=int((n/N)*max_dt), delta_t=self.delta_t)
 			data_dict[int((n/N)*max_dt)] = data
 		if save:
-			savepath = self._make_directory(os.path.join(savepath, self.res_dir))
+			savepath = self._make_directory(os.path.join(Docu	, self.res_dir))
 			with open(os.path.join(savepath, 'slider_data.pkl'), 'wb') as f:
 				pickle.dump(data_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
 		return data_dict
@@ -96,11 +96,11 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		#	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
 		self._t = t
 		if len(data) == 1:
-			self._X = data[0]
-			self._M_square = data[0]
+			self._X = np.array(data[0])
+			self._M_square = np.array(data[0])
 			self.vector = False
 		elif len(data) == 2:
-			self._Mx, self._My = data
+			self._Mx, self._My = np.array(data[0]), np.array(data[1])
 			self._M_square = self._Mx**2 + self._My**2
 			self._X = self._Mx.copy()
 			self.vector = True
