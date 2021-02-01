@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from pyFish.analysis import underlying_noise
@@ -7,78 +7,131 @@ from pyFish.analysis import gaussian_test
 from pyFish.metrics import metrics
 from pyFish.sde import SDE
 
+
 class preprocessing(gaussian_test):
-	def __init__(self,**kwargs):
+	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
 		gaussian_test.__init__(self)
 
 	def _get_dt(self, X):
-		return int(self._get_autocorr_time(X, t_lag=1000)/10)
+		return int(self._get_autocorr_time(X, t_lag=1000) / 10)
 
 	def _r2_vs_order(self, op, avgDrift, avgDiff, max_order):
-		adj = False if self.order_metric=="R2" else True
+		adj = False if self.order_metric == "R2" else True
 		r2_drift = []
 		r2_diff = []
 		for i in range(max_order):
-			p_drift,_ = self._fit_poly(x=op, y=avgDrift, deg=i)
-			p_diff,_ = self._fit_poly(x=op, y=avgDiff, deg=i)
-			r2_drift.append(self._R2(data=avgDrift,op=op, poly=p_drift, k=i, adj=adj))
-			r2_diff.append(self._R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
+			p_drift, _ = self._fit_poly(x=op, y=avgDrift, deg=i)
+			p_diff, _ = self._fit_poly(x=op, y=avgDiff, deg=i)
+			r2_drift.append(
+				self._R2(data=avgDrift, op=op, poly=p_drift, k=i, adj=adj))
+			r2_diff.append(
+				self._R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
 		return r2_drift, r2_diff
 
-	def _order(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01):
-		dt = self._get_dt(X)+5 if dt == 'auto' else dt
-		_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=dt, delta_t=delta_t, inc=inc)
-		self._r2_drift, self._r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
+	def _order(self,
+			   X,
+			   M_square,
+			   t_int,
+			   dt='auto',
+			   delta_t=1,
+			   max_order=10,
+			   inc=0.01):
+		dt = self._get_dt(X) + 5 if dt == 'auto' else dt
+		_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
+			X, t_int, dt=dt, delta_t=delta_t, inc=inc)
+		self._r2_drift, self._r2_diff = self._r2_vs_order(
+			op, avgDrift, avgDiff, max_order)
 
 		if self.drift_order is None:
-			self.drift_order = np.where(np.isclose(self._r2_drift, max(self._r2_drift), atol=0.1))[0][0]
+			self.drift_order = np.where(
+				np.isclose(self._r2_drift, max(self._r2_drift),
+						   atol=0.1))[0][0]
 		if self.diff_order is None:
-			self.diff_order = np.where(np.isclose(self._r2_diff, max(self._r2_diff), atol=0.1))[0][0]
+			self.diff_order = np.where(
+				np.isclose(self._r2_diff, max(self._r2_diff), atol=0.1))[0][0]
 
 		#R2_adj multiple dt
 		self._r2_drift_m_dt = []
 		self._r2_diff_m_dt = []
 		max_dt = self._get_autocorr_time(M_square)
 		N = 8
-		for n in range(1,N+1):
-			_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=int((n/N)*max_dt), delta_t=delta_t, inc=inc)
-			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
+		for n in range(1, N + 1):
+			_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
+				X, t_int, dt=int((n / N) * max_dt), delta_t=delta_t, inc=inc)
+			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,
+													max_order)
 			self._r2_drift_m_dt.append(_r2_drift)
 			self._r2_diff_m_dt.append(_r2_diff)
-		self._r2_drift_m_dt.append([int((i/N)*max_dt) for i in range(1,N+1)])
-		self._r2_diff_m_dt.append([int((i/N)*max_dt) for i in range(1,N+1)])
+		self._r2_drift_m_dt.append(
+			[int((i / N) * max_dt) for i in range(1, N + 1)])
+		self._r2_diff_m_dt.append(
+			[int((i / N) * max_dt) for i in range(1, N + 1)])
 
 		#return
-		return self.drift_order , np.array(self._r2_drift)
+		return self.drift_order, np.array(self._r2_drift)
 
-	def _r2_vs_order_multi_dt(self, X, M_square, t_int, delta_t=1, max_order=10, inc=0.01):
+	def _r2_vs_order_multi_dt(self,
+							  X,
+							  M_square,
+							  t_int,
+							  delta_t=1,
+							  max_order=10,
+							  inc=0.01):
 		self._r2_drift_m_dt_2 = []
 		self._r2_diff_m_dt_2 = []
 		max_dt = self._get_autocorr_time(M_square)
 		N = 8
-		for n in range(1,N+1):
-			_,_,avgDiff, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=int((n/N)*max_dt), delta_t=delta_t, inc=inc)
-			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff, max_order)
+		for n in range(1, N + 1):
+			_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
+				X, t_int, dt=int((n / N) * max_dt), delta_t=delta_t, inc=inc)
+			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,
+													max_order)
 			self._r2_drift_m_dt_2.append(_r2_drift)
 			self._r2_diff_m_dt_2.append(_r2_diff)
-		self._r2_drift_m_dt_2.append([int((i/N)*max_dt) for i in range(1,N+1)])
-		self._r2_diff_m_dt_2.append([int((i/N)*max_dt) for i in range(1,N+1)])
+		self._r2_drift_m_dt_2.append(
+			[int((i / N) * max_dt) for i in range(1, N + 1)])
+		self._r2_diff_m_dt_2.append(
+			[int((i / N) * max_dt) for i in range(1, N + 1)])
 		return self._r2_drift_m_dt_2, self._r2_diff_m_dt_2
 
-
-	def _opt_dt_estimate(self, X, M_square,t_int, dt='auto',max_order=10, inc=0.01, t_lag=1000):
-		order, r2 = self._order(X, M_square, t_int, dt=dt, max_order=max_order, inc=inc)
+	def _opt_dt_estimate(self,
+						 X,
+						 M_square,
+						 t_int,
+						 dt='auto',
+						 max_order=10,
+						 inc=0.01,
+						 t_lag=1000):
+		order, r2 = self._order(X,
+								M_square,
+								t_int,
+								dt=dt,
+								max_order=max_order,
+								inc=inc)
 		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)
-		optimum_dt = autocorr_time - 1 if order==1 else autocorr_time/10
+		optimum_dt = autocorr_time - 1 if order == 1 else autocorr_time / 10
 		return int(np.ceil(optimum_dt))
 
-
-	def _optimium_timescale(self, X, M_square, t_int, dt='auto', max_order=10, t_lag=1000, inc=0.01):
+	def _optimium_timescale(self,
+							X,
+							M_square,
+							t_int,
+							dt='auto',
+							max_order=10,
+							t_lag=1000,
+							inc=0.01):
 		if dt != 'auto':
-			_ = self._order(X, M_square,t_int)
+			_ = self._order(X, M_square, t_int)
 			return dt
-		return self._opt_dt_estimate(X, M_square,t_int,dt=dt,max_order=max_order,t_lag=t_lag, inc=inc)
+		return self._opt_dt_estimate(X,
+									 M_square,
+									 t_int,
+									 dt=dt,
+									 max_order=max_order,
+									 t_lag=t_lag,
+									 inc=inc)
+
 
 """
 	def _detailed_estimate(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01, t_lag=1000):

@@ -18,23 +18,23 @@ setup(
 	url="https://github.com/tee-lab/pyFish",
 	packages=find_packages(),
 	classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+		# How mature is this project? Common values are
+		#   3 - Alpha
+		#   4 - Beta
+		#   5 - Production/Stable
+		'Development Status :: 4 - Beta',
 
-        'Intended Audience :: Developers, Researchers',
-        'Topic :: Data Analysis :: Stochastic Timeseries',
+		'Intended Audience :: Developers, Researchers',
+		'Topic :: Data Analysis :: Stochastic Timeseries',
 
-        'License :: OSI Approved :: GNU General Public License v3.0',
+		'License :: OSI Approved :: GNU General Public License v3.0',
 
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3 :: Only',
-    ],
+		'Programming Language :: Python :: 3.5',
+		'Programming Language :: Python :: 3.6',
+		'Programming Language :: Python :: 3.7',
+		'Programming Language :: Python :: 3.8',
+		'Programming Language :: Python :: 3 :: Only',
+	],
 	include_package_data=True,
 	package_data={'': ['data/extras/*.csv', 'data/pairwise/*.csv', 'data/ternary/*.csv', 'data/vector/*.csv']},
 	install_requires=INSTALL_REQUIREMENTS, #external packages as dependencies
