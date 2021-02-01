@@ -11,3 +11,4 @@ notebooks/results/
 .ipynb_checkpoints/*.ipynb
 */.ipynb_checkpoints/*.ipynb
 *~
+syn_*
