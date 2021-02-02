@@ -167,7 +167,7 @@ class visualize(metrics):
 
         else:
             Mx = timeseries[0]
-            fig = plt.figure(dpi=dpi)
+            fig = plt.figure(dpi=dpi, figsize=(10,5))
             plt.suptitle('Histogram', fontsize=18)
 
             plt.subplot(1, 2, 1)
@@ -175,7 +175,7 @@ class visualize(metrics):
             plt.title('M', fontsize=18)
 
             plt.subplot(1, 2, 2)
-            sns.distplot(np.sqrt(M**2), kde=kde)
+            sns.distplot(np.sqrt(Mx**2), kde=kde)
             plt.title("|M|", fontsize=18)
 
         return fig
