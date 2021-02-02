@@ -9,7 +9,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
 	name='pyFish',
-	version='1.1',
+	version='1.12',
 	description='Package to analyse stochastic time series data',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
