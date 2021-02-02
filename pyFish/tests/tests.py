@@ -1,55 +1,52 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
 import pyFish
 import pkg_resources
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 def load_sample_data(data_path):
 	"""
 	Load the sample distrubuted data
 
 	data
-	├── extras
-	│   └── vegetation.csv
-	├── pairwise
-	│   ├── N100.csv
-	│   ├── N15.csv
-	│   ├── N200.csv
-	│   ├── N30.csv
-	│   └── N50.csv
-	├── ternary
-	│   ├── N100.csv
-	│   ├── N15.csv
-	│   ├── N200.csv
-	│   ├── N30.csv
-	│   └── N50.csv
-	└── vector
-	    └── vector_data.csv
+	├── fish_data
+	│   └── ectropus.csv
+	└── model_data
+		├── scalar
+		│   ├── pairwise.csv
+		│   └── ternary.csv
+		└── vector
+			├── pairwise.txt
+			└── ternary.txt
 
-    each data file in pairwise, ternary and extras have two columns;
-    first column is the timeseries data x, and the second one is the time stamp
 
-    vector_data.csv also has two columns but contains the vector data x1 and x2 with missing time stamp. Use t_int=0.12.
+	Each data file in pairwise, ternary and extras have two columns;
+	first column is the timeseries data x, and the second one is the time stamp
+
+	vector_data.csv also has two columns but contains the vector data x1 and x2 with missing time stamp. Use t_int=0.12.
 	"""
 	stream = pkg_resources.resource_stream('pyFish', data_path)
-	return np.loadtxt(stream, delimiter=',')
+	try:
+		return np.loadtxt(stream, delimiter=',')
+	except:
+		return np.loadtxt(stream)
+
 
 def scalar_test(data_path='data/pairwise/N30.csv', show=False):
 	data = load_sample_data(data_path)
-	X = data[:,0]
-	t = data[:,1]
-	t_int = t[-1]/len(t)
-
+	X = data[:, 0]
+	t = data[:, 1]
+	t_int = t[-1] / len(t)
 
 	# # Analyse
-	out = pyFish.Characterize(data=[X],t=t)
+	out = pyFish.Characterize(data=[X], t=t)
 
 	drift, diff, avgdrift, avgdiff, op = out.data()
-	len(diff), len(drift),len(avgdrift), len(avgdiff), len(op)
+	len(diff), len(drift), len(avgdrift), len(avgdiff), len(op)
 
 	# # View parameters
 	out.parameters(save=True)
@@ -67,11 +64,10 @@ def scalar_test(data_path='data/pairwise/N30.csv', show=False):
 	out.save_data()
 
 
-
 def vector_test(data_path='data/vector/vector_data.csv', show=False):
 	data = load_sample_data(data_path)
-	vel_x = data[:,0]
-	vel_y = data[:,1]
+	vel_x = data[:, 0]
+	vel_y = data[:, 1]
 	tint = 0.12
 
 	# # Initialize object with parameters
@@ -97,4 +93,3 @@ def vector_test(data_path='data/vector/vector_data.csv', show=False):
 
 	# # Save data
 	out.save_data()
-

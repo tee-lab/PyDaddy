@@ -21,7 +21,7 @@ __title__ = "pyFish"
 __author__ = "Ashwin Karichannavar, (e-mail: ashwinkk.23@gmail.com)"
 __license__ = "GNU General Public License v3.0"
 __copyright__ = "Copyright (C) 2020 Theoritical Evolution and Ecology Lab (TEE Lab), IISc, Bengaluru"
-__version__ = '1.012'
+__version__ = '1.1'
 
 from pyFish.sde import SDE
 from pyFish.analysis import underlying_noise

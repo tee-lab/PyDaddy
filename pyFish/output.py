@@ -235,8 +235,7 @@ class output(preprocessing, visualize):
 
     def summary(self):
         if not self.vector:
-            summary = s = "| Data Type : {}        | Autocorellation time : {}    | Gaussian Noise : {}    |\n\
-			| M range : {}    | M mean : {}               | |M| mean : {}          |\n".format(
+            summary = s = "| Data Type : {}        | Autocorellation time : {}    | Gaussian Noise : {}    |\n| M range : {}    | M mean : {}               | |M| mean : {}          |\n".format(
                 self.vector, self.autocorrelation_time,
                 self._ddsde.gaussian_noise,
                 (round(min(self._data_X), 2), round(max(self._data_X), 2)),
@@ -249,9 +248,7 @@ class output(preprocessing, visualize):
             ], self.vector)
             fig.show()
         else:
-            summary = "| Data Type : {}       | Autocorrelation time : {}     | Gaussian Nonse : {}   |\n\
-			| Mx range  : {}| My range : {}        | range |M| : {}  |\n\
-			| Mx mean : {}        | My mean : {}               | M mean : {}           |".format(
+            summary = "| Data Type : {}       | Autocorrelation time : {}     | Gaussian Nonse : {}   |\n| Mx range  : {}| My range : {}        | range |M| : {}  |\n| Mx mean : {}        | My mean : {}               | M mean : {}           |".format(
                 self.vector, self.autocorrelation_time,
                 self._ddsde.gaussian_noise,
                 (round(min(self._data_Mx), 2), round(max(self._data_Mx), 2)),

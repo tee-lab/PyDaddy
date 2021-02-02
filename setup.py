@@ -9,7 +9,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
 	name='pyFish',
-	version='1.0',
+	version='1.1',
 	description='Package to analyse stochastic time series data',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
@@ -36,7 +36,7 @@ setup(
 		'Programming Language :: Python :: 3 :: Only',
 	],
 	include_package_data=True,
-	package_data={'': ['data/extras/*.csv', 'data/pairwise/*.csv', 'data/ternary/*.csv', 'data/vector/*.csv']},
+	package_data={'': ['data/fish_data/*.csv', 'data/model_data/scalar/*.csv', 'data/model_data/vector/*.csv']},
 	install_requires=INSTALL_REQUIREMENTS, #external packages as dependencies
 	entry_points={'console_scripts': [
 			'pyFish=pyFish.__console__:main',
