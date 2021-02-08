@@ -25,7 +25,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 	def __init__(
 			self,
 			data,
-			t,
+			t=1,
 			dt='auto',
 			delta_t=1,
 			#t_int=None,
@@ -113,7 +113,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 	def __call__(self,
 				 data,
-				 t,
+				 t=1,
 				 dt='auto',
 				 inc=0.01,
 				 inc_x=0.1,
@@ -234,7 +234,7 @@ class Characterize(object):
 	def __new__(
 			cls,
 			data,
-			t,
+			t=1,
 			#t_int=None,
 			dt='auto',
 			delta_t=1,
