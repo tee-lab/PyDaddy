@@ -36,7 +36,7 @@ def load_sample_data(data_path):
 		return np.loadtxt(stream)
 
 
-def scalar_test(data_path='data/model_data/scalar/ternary.csv', show=False):
+def scalar_test(data_path='data/model_data/scalar/ternary.csv', show=False, save=False):
 	data = load_sample_data(data_path)
 	X = data[:, 0]
 	t = data[:, 1]
@@ -49,16 +49,16 @@ def scalar_test(data_path='data/model_data/scalar/ternary.csv', show=False):
 	len(diff), len(drift), len(avgdrift), len(avgdiff), len(op)
 
 	# # View parameters
-	out.parameters(save=True)
+	out.parameters(save=save)
 
 	# # Visualize Output
-	out.visualize(show=show, save=True)
+	out.visualize(show=show, save=save)
 
 	# # Diagnostics graphs
-	out.diagnostic(show=show, save=True)
+	out.diagnostic(show=show, save=save)
 
 	# # Noise Characterstics
-	out.noise_characterstics(show=show, save=True)
+	out.noise_characterstics(show=show, save=save)
 
 	# #Save data
 	out.save_data()
@@ -66,7 +66,7 @@ def scalar_test(data_path='data/model_data/scalar/ternary.csv', show=False):
 	return out
 
 
-def vector_test(data_path='data/model_data/vector/ternary.csv', show=False):
+def vector_test(data_path='data/model_data/vector/ternary.csv', show=False, save=False):
 	data = load_sample_data(data_path)
 	vel_x = data[:, 0]
 	vel_y = data[:, 1]
@@ -79,16 +79,16 @@ def vector_test(data_path='data/model_data/vector/ternary.csv', show=False):
 	out.data()
 
 	# # View parameters
-	out.parameters(save=True)
+	out.parameters(save=save)
 
 	# # Visualize Output
-	out.visualize(show=show, save=True)
+	out.visualize(show=show, save=save)
 
 	# # Diagnostics graphs
-	out.diagnostic(show=show, save=True)
+	out.diagnostic(show=show, save=save)
 
 	# # Noise analysis
-	out.noise_characterstics(show=show, save=True)
+	out.noise_characterstics(show=show, save=save)
 
 	# # Save data
 	out.save_data()
