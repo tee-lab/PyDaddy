@@ -120,7 +120,7 @@ class underlying_noise(SDE):
 		SDE.__init__(self)
 
 	def _noise(self, X, dt, t_int, inc=0.01, point=0):
-		op = np.arange(-1, 1, inc).round(4)
+		op = np.arange(min(X), max(X), inc).round(4)
 		avgDrift = []
 		x = X[0:-dt]
 		drift = self._drift(X, t_int, dt)
@@ -174,6 +174,8 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		self.__dict__.update(kwargs)
 		noise = self._noise(X, dt, t_int, inc, point)
 		s = noise.size
+		if s == 0:
+			print('Warning : Length of noise is 0')
 		kl_dist = []
 		#for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
 		for _ in range(10000):
@@ -183,5 +185,13 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		l_lim, h_lim = self._get_critical_values(kl_dist)
 		k = self._kl_divergence(noise, np.random.normal(size=s))
 		gaussian_noise = True if k >= l_lim and k <= h_lim else False
-		noise_correlation = self._acf(noise, t_lag=10)
+		if s:
+			t_lag = s-1 if s <= 10 else 10
+		else:
+			t_lag = 0
+		try:
+			noise_correlation = self._acf(noise, t_lag=10)
+		except ValueError as e:
+			print('Warning : ValueError ', e, 'While finding noise correlation\n')
+			noise_correlation = np.arange(0, t_lag), np.arange(0,t_lag)*np.nan
 		return gaussian_noise, noise, kl_dist, k, l_lim, h_lim, noise_correlation

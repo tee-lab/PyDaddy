@@ -56,9 +56,9 @@ class preprocessing(gaussian_test):
 		self._r2_diff_m_dt = []
 		max_dt = self._get_autocorr_time(M_square, t_lag=self.t_lag)
 		N = 8
-		for n in range(1, N + 1):
+		for time_scale in set(map(int, np.linspace(1, max_dt, N))):
 			_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
-				X, t_int, dt=int((n / N) * max_dt), delta_t=delta_t, inc=inc)
+				X, t_int, dt=time_scale, delta_t=delta_t, inc=inc)
 			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,
 													max_order)
 			self._r2_drift_m_dt.append(_r2_drift)
@@ -109,7 +109,7 @@ class preprocessing(gaussian_test):
 								dt=dt,
 								max_order=max_order,
 								inc=inc)
-		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)
+		autocorr_time = self._get_autocorr_time(M_square, t_lag=self.t_lag)
 		optimum_dt = autocorr_time - 1 if order == 1 else autocorr_time / 10
 		return int(np.ceil(optimum_dt))
 
