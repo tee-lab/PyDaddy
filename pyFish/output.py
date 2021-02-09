@@ -242,11 +242,7 @@ class output(preprocessing, visualize):
 				round(np.mean(self._data_X), 2),
 				round(np.mean(np.sqrt(self._data_X**2)), 2))
 			print(summary)
-			fig = self._plot_summary([
-				self._data_X, self._data_avgdrift, self._data_avgdiff,
-				self.drift_order, self.diff_order
-			], self.vector)
-			fig.show()
+			data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self.drift_order, self.diff_order]
 		else:
 			summary = "| Data Type : {}       | Autocorrelation time : {}     | Gaussian Nonse : {}   |\n| Mx range  : {}| My range : {}        | range |M| : {}  |\n| Mx mean : {}        | My mean : {}               | M mean : {}           |".format(
 				self.vector, self.autocorrelation_time,
@@ -259,11 +255,11 @@ class output(preprocessing, visualize):
 				round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),
 					  2))
 			print(summary)
-			fig = self._plot_summary([
-				self._data_Mx, self._data_My, self._data_avgdriftX,
-				self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY
-			], self.vector)
-			fig.show()
+			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
+
+		fig = self._plot_summary(data, self.vector)
+		plt.show()
+		return None
 
 	def timeseries(self):
 		if self.vector:
@@ -421,42 +417,42 @@ class output(preprocessing, visualize):
 			plt.tight_layout()
 			self._visualize_figs.append(fig1_1)
 
-			fig2, _ = self._plot_data(self._data_avgdiffY,
+			fig2, _ = self.plot_data(self._data_avgdiffY,
 									  plot_plane=True,
 									  title='DiffY',
 									  z_label='$B_{22}(m)$')
 			self._visualize_figs.append(fig2)
-			fig2_1, _ = self._plot_data(self._data_avgdiffY,
+			fig2_1, _ = self.plot_data(self._data_avgdiffY,
 										title='DiffY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig2_1)
 
-			fig3, _ = self._plot_data(self._data_avgdiffX,
+			fig3, _ = self.plot_data(self._data_avgdiffX,
 									  plot_plane=True,
 									  title='DiffX',
 									  z_label='$B_{11}(m)$')
 			self._visualize_figs.append(fig3)
-			fig3_1, _ = self._plot_data(self._data_avgdiffX,
+			fig3_1, _ = self.plot_data(self._data_avgdiffX,
 										title='DiffX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig3_1)
 
-			fig4, _ = self._plot_data(self._data_avgdriftY,
+			fig4, _ = self.plot_data(self._data_avgdriftY,
 									  plot_plane=False,
 									  title='DriftY',
 									  z_label='$A_{2}(m)$')
 			self._visualize_figs.append(fig4)
-			fig4_1, _ = self._plot_data(self._data_avgdriftY,
+			fig4_1, _ = self.plot_data(self._data_avgdriftY,
 										title='DriftY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig4_1)
 
-			fig5, _ = self._plot_data(self._data_avgdriftX,
+			fig5, _ = self.plot_data(self._data_avgdriftX,
 									  plot_plane=False,
 									  title='DriftX',
 									  z_label='$A_{1}(m)$')
 			self._visualize_figs.append(fig5)
-			fig5_1, _ = self._plot_data(self._data_avgdriftX,
+			fig5_1, _ = self.plot_data(self._data_avgdriftX,
 										title='DriftX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig5_1)
