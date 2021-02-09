@@ -14,7 +14,7 @@ class preprocessing(gaussian_test):
 		gaussian_test.__init__(self)
 
 	def _get_dt(self, X):
-		return int(self._get_autocorr_time(X, t_lag=1000) / 10)
+		return int(self._get_autocorr_time(X, t_lag=self.t_lag) / 10)
 
 	def _r2_vs_order(self, op, avgDrift, avgDiff, max_order):
 		adj = False if self.order_metric == "R2" else True
@@ -54,7 +54,7 @@ class preprocessing(gaussian_test):
 		#R2_adj multiple dt
 		self._r2_drift_m_dt = []
 		self._r2_diff_m_dt = []
-		max_dt = self._get_autocorr_time(M_square)
+		max_dt = self._get_autocorr_time(M_square, t_lag=self.t_lag)
 		N = 8
 		for n in range(1, N + 1):
 			_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(

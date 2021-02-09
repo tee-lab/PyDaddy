@@ -242,6 +242,8 @@ class output(preprocessing, visualize):
 				round(np.mean(self._data_X), 2),
 				round(np.mean(np.sqrt(self._data_X**2)), 2))
 			print(summary)
+			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
+			
 			fig = self._plot_summary([
 				self._data_X, self._data_avgdrift, self._data_avgdiff,
 				self.drift_order, self.diff_order
@@ -259,6 +261,8 @@ class output(preprocessing, visualize):
 				round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),
 					  2))
 			print(summary)
+			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
+
 			fig = self._plot_summary([
 				self._data_Mx, self._data_My, self._data_avgdriftX,
 				self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY

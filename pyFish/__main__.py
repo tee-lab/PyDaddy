@@ -61,6 +61,11 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.n_trials = n_trials
 		self.n_dt = n_dt
 
+		# When t_lag is greater than timeseries length, reassign its value as length of data
+		if self.t_lag > len(data[0]):
+			print('Warning : t_lag is greater that the length of data; setting t_lag as {}\n'.format(len(data[0])))
+			self.t_lag = len(data[0])
+
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 		gaussian_test.__init__(self)
