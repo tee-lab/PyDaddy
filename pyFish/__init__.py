@@ -32,3 +32,22 @@ from pyFish.metrics import metrics
 from pyFish.output import output
 from pyFish.visualize import visualize
 from pyFish.__main__ import Characterize
+
+def isnotebook():
+	try:
+		shell = get_ipython().__class__.__name__
+		print(shell)
+		if shell == 'ZMQInteractiveShell':
+			return True   # Jupyter notebook or qtconsole
+		elif shell == 'TerminalInteractiveShell':
+			return False  # Terminal running IPython
+		else:
+			return False  # Other type (?)
+	except NameError:
+		return False      # Probably standard Python interpreter
+
+if not isnotebook():
+	import matplotlib
+	matplotlib.use('Qt5Agg')
+	matplotlib.rcParams['font.size'] = 18
+	#matplotlib.style.use('seaborn')
