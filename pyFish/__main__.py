@@ -28,7 +28,6 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			t=1,
 			dt='auto',
 			delta_t=1,
-			#t_int=None,
 			t_lag=1000,
 			inc=0.01,
 			inc_x=0.1,
@@ -61,6 +60,8 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.n_trials = n_trials
 		self.n_dt = n_dt
 
+		self.slider_max_dt = None
+
 		# When t_lag is greater than timeseries length, reassign its value as length of data
 		if self.t_lag > len(data[0]):
 			print('Warning : t_lag is greater that the length of data; setting t_lag as {}\n'.format(len(data[0]) - 1))
@@ -80,35 +81,47 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		return t[-1] / len(t)
 
 	def _slider_data(self, Mx, My, save=False, savepath='results'):
-		max_dt = np.ceil(self.autocorrelation_time) * 2
+		if self.slider_max_dt == None:
+			self.slider_max_dt = np.ceil(self.autocorrelation_time)*2
 		drift_data_dict = dict()
 		diff_data_dict = dict()
-		for time_scale in tqdm.tqdm(np.linspace(1, max_dt, self.n_dt),
+		for time_scale in tqdm.tqdm(sorted(set(map(int, np.linspace(1, self.slider_max_dt, self.n_dt)))),
 									desc='Generating Slider data'):
-			if time_scale < 1:
-				continue
+			if self.vector:
+				avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, dt=time_scale, delta_t=time_scale)
+				"""
+				drift_data = self._vector_drift(Mx,
+												My,
+												inc_x=self.inc_x,
+												inc_y=self.inc_y,
+												t_int=self.t_int,
+												dt=time_scale)
+				diff_data = self._vector_diff(Mx,
+											  My,
+											  inc_x=self.inc_x,
+											  inc_y=self.inc_y,
+											  t_int=self.t_int,
+											  delta_t=time_scale)
+				
+				for i in range(2):
+					drift_data[i] = drift_data[i] / self.n_trials
+					diff_data[i] = diff_data[i] / self.n_trials
+				"""
+				drift_data = [avgdriftX/self.n_trials, avgdriftY/self.n_trials, op_x, op_y]
+				diff_data = [avgdiffX/self.n_trials, avgdiffY/self.n_trials, op_x, op_y]
 
-			drift_data = self._vector_drift(Mx,
-											My,
-											inc_x=self.inc_x,
-											inc_y=self.inc_y,
-											t_int=self.t_int,
-											dt=int(time_scale))
-			diff_data = self._vector_diff(Mx,
-										  My,
-										  inc_x=self.inc_x,
-										  inc_y=self.inc_y,
-										  t_int=self.t_int,
-										  delta_t=int(time_scale))
 
-			for i in range(2):
-				drift_data[i] = drift_data[i] / self.n_trials
-				diff_data[i] = diff_data[i] / self.n_trials
-			drift_data_dict[int(time_scale)] = drift_data
-			diff_data_dict[int(time_scale)] = diff_data
+
+			else:
+				_, _, avgdiff, avgdrift, op = self._drift_and_diffusion(Mx, t_int=self.t_int, dt=time_scale, delta_t=time_scale, inc=self.inc)
+				drift_data = [avgdrift/self.n_trials, op]
+				diff_data = [avgdiff/self.n_trials, op]
+
+			drift_data_dict[time_scale] = drift_data
+			diff_data_dict[time_scale] = diff_data
 
 		if save:
-			savepath = self._make_directory(os.path.join(Docu, self.res_dir))
+			savepath = self._make_directory(os.path.join(savepath, self.res_dir))
 			with open(os.path.join(savepath, 'slider_data.pkl'), 'wb') as f:
 				pickle.dump([drift_data_dict, diff_data_dict],
 							f,
@@ -125,7 +138,6 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				 inc_y=0.1,
 				 t_lag=1000,
 				 max_order=10,
-				 simple_method=True,
 				 **kwargs):
 		self.__dict__.update(kwargs)
 		#if t is None and t_int is None:
@@ -171,6 +183,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				inc=self.inc)
 			self._avgdiff_ = self._avgdiff_ / self.n_trials
 			self._avgdrift_ = self._avgdrift_ / self.n_trials
+			self._drift_slider, self._diff_slider = self._slider_data(self._X, None)
 		else:
 			#print('drift diff')
 			self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._op_x_, self._op_y_ = self._vector_drift_diff(

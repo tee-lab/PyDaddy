@@ -40,7 +40,7 @@ class output(preprocessing, visualize):
 			self.diff_order = ddsde.diff_order
 
 			visualize.__init__(self, None, None, self._data_op,
-							   self._ddsde.autocorrelation_time)
+							   self._ddsde.autocorrelation_time, drift_order=self.drift_order, diff_order=self.diff_order)
 		else:
 			self._data_Mx = ddsde._Mx
 			self._data_My = ddsde._My
@@ -53,12 +53,14 @@ class output(preprocessing, visualize):
 			self._data_op_x = ddsde._op_x_
 			self._data_op_y = ddsde._op_y_
 
-			self._drift_slider = ddsde._drift_slider
-			self._diff_slider = ddsde._diff_slider
+			#self._drift_slider = ddsde._drift_slider
+			#self._diff_slider = ddsde._diff_slider
 
 			visualize.__init__(self, self._data_op_x, self._data_op_y, None,
 							   self._ddsde.autocorrelation_time)
 
+		self._drift_slider = ddsde._drift_slider
+		self._diff_slider = ddsde._diff_slider
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
@@ -282,12 +284,20 @@ class output(preprocessing, visualize):
 		return None
 
 	def drift(self):
-		fig = self._slider(self._drift_slider, prefix='Dt')
+		dt_s = list(self._drift_slider.keys())
+		init_pos = np.abs(np.array(dt_s) - self._ddsde.dt).argmin()
+		if self.vector:
+			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos)
+		else:
+			fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos)
 		fig.show()
 		return None
 
 	def diffusion(self):
-		fig = self._slider(self._diff_slider, prefix='dt')
+		if self.vector:
+			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0)
+		else:
+			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0)
 		fig.show()
 		return None
 

@@ -13,12 +13,14 @@ class visualize(metrics):
 	plots
 	"""
 	def __init__(self, op_x, op_y, op, autocorrelation_time, **kwargs):
-		self.__dict__.update(kwargs)
 		self.op_x = op_x
 		self.op_y = op_y
 		self.op = op
 		self.autocorrelation_time = int(autocorrelation_time)
+		self.__dict__.update(kwargs)
 		metrics.__init__(self)
+
+		return None
 
 
 	def stylize_axes(self,
@@ -52,16 +54,13 @@ class visualize(metrics):
 					  label_pad=12,
 					  timeseries_start=0,
 					  timeseries_end=1000):
-		#plt.style.use('classic')
-		#plt.style.use('seaborn-notebook')
-		#plt.style.use('seaborn-white')
-		print(mpl.rcParams['backend'])
-		print(mpl.rcParams['font.size'])
 		if vector:
 			Mx, My, driftX, driftY, diffX, diffY = data
 			M = np.sqrt(Mx**2 + My**2)
 			fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 8))
 			#TimeSeries
+			if timeseries_end > len(Mx):
+				timeseries_end = len(Mx)
 			ax[0][0].plot(range(timeseries_start, timeseries_end),
 						  M[timeseries_start:timeseries_end])
 			ax[0][0].set_ylim(0, 1)
@@ -146,7 +145,9 @@ class visualize(metrics):
 		else:
 			#Time Series
 			M, drift, diff, drift_order, diff_order = data
-			fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
+			if timeseries_end > len(M):
+				timeseries_end = len(M)
+			fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
 			ax[0][0].plot(range(timeseries_start, timeseries_end),
 						  M[timeseries_start:timeseries_end])
 			ax[0][0].set_ylim(min(M), max(M))
@@ -272,7 +273,9 @@ class visualize(metrics):
 
 		return fig
 
-	def _slider(self, slider_data, init_pos=14, prefix='dt'):
+	def _slider_3d(self, slider_data, init_pos=0, prefix='dt'):
+		dt_s = list(slider_data.keys())
+		opt_step = dt_s[init_pos]
 		if prefix == 'Dt':
 			t = 'Drift'
 			t_tex = "\Delta t"
@@ -332,11 +335,10 @@ class visualize(metrics):
 
 		x, y = np.meshgrid(self.op_x, self.op_y)
 		n = list(sub_titles)
-		flag = 1
 		for dt in slider_data:
 			data = slider_data[dt]
 			visible = 'legendonly'
-			if flag:
+			if dt == opt_step:
 				visible = True
 			k = 0
 			for r in range(1, nrows + 1):
@@ -356,7 +358,6 @@ class visualize(metrics):
 						col=c,
 					)
 					k = k + 1
-			flag = 0
 
 		fig.update_layout(
 			autosize=True,
@@ -367,7 +368,7 @@ class visualize(metrics):
 			#scene4 = scene,
 			title_text=title_template.format(t, self.autocorrelation_time,
 											 t_tex,
-											 list(slider_data.keys())[0]),
+											 dt_s[init_pos]),
 			height=600,
 			width=900,
 			updatemenus=[
@@ -401,7 +402,6 @@ class visualize(metrics):
 					yanchor="top"),
 			])
 
-		dt_s = list(slider_data.keys())
 		steps = []
 		for i in range(len(slider_data)):
 			step = dict(
@@ -423,9 +423,87 @@ class visualize(metrics):
 		sliders = [
 			dict(
 				currentvalue={"prefix": "{} : ".format(prefix)},
+				active = init_pos,
 				steps=steps,
 			)
 		]
+
+		fig.layout.sliders = sliders
+		fig.layout.template = 'plotly_white'
+
+		return fig
+
+	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt'):
+		data = slider_data
+		title_template = r"$\text{{ {0} |  Auto correlation time : {1} }} | \text{{ Slider switched to }}{2}= {3}$"
+		if prefix == 'Dt':
+			t = 'Drift'
+			t_tex = "\Delta t"
+			order = self.drift_order
+		else:
+			t = 'Diff'
+			t_tex = "\delta t"
+			order = self.diff_order
+			
+		# Create figure
+		fig = go.Figure()
+		# Add traces, one for each slider step
+		dt_s = list(data.keys())
+		opt_step = dt_s[init_pos]
+		for step in sorted(data.keys()):
+			visible = 'legendonly'
+			if step == opt_step:
+				visible = True
+			poly, op = self._fit_poly(data[step][-1], data[step][0], order)
+			fig.add_trace(
+				go.Scatter(
+					visible=visible,
+					mode='markers',
+					line=dict(color="red", width=6),
+					name="{} = {}".format(prefix, str(step)),
+					x=data[step][-1],
+					y=data[step][0]))
+			fig.add_trace(
+				go.Scatter(
+					visible=visible,
+					mode='markers',
+					line=dict(color="blue", width=6),
+					name="poly_fit = " + str(step),
+					x=op,
+					y=poly(op)))
+
+		fig.update_layout(
+			autosize=True,
+			scene_aspectmode='cube',
+			title_text=title_template.format(t, self.autocorrelation_time,
+											 t_tex,
+											 dt_s[init_pos]),
+			height=850,
+			width=850,
+			)
+
+		# Create and add slider
+		steps = []
+		for i in range(len(dt_s)):
+			step = dict(
+				method="update",
+				args=[{"visible": ['legendonly'] * len(fig.data)},
+					  {"title": title_template.format(t, self.autocorrelation_time, t_tex,  str(dt_s[i]))}],  # layout attribute
+				label='{} {}'.format(prefix,
+						 list(data.keys())[i]))
+			
+			#step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
+			step['args'][0]['visible'][i * 2:i * 2 + 2] = [True for j in range(2)]
+			steps.append(step)
+
+		sliders = [dict(
+			active=init_pos,
+			currentvalue={"prefix": "{}: ".format(prefix)},
+			#pad={"t": 50},
+			steps=steps
+		)]
+
+
 
 		fig.layout.sliders = sliders
 		fig.layout.template = 'plotly_white'
