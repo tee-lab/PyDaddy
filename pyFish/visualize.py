@@ -19,7 +19,6 @@ class visualize(metrics):
 		self.op = op
 		self.autocorrelation_time = int(autocorrelation_time)
 		metrics.__init__(self)
-		plt.style.use('seaborn-white')
 
 
 	def stylize_axes(self,
