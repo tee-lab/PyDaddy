@@ -61,6 +61,9 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.n_dt = n_dt
 
 		self.slider_max_dt = None
+		self.op_range = None
+		self.op_x_range = None
+		self.op_y_range = None
 
 		# When t_lag is greater than timeseries length, reassign its value as length of data
 		if self.t_lag > len(data[0]):
@@ -71,6 +74,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		preprocessing.__init__(self)
 		gaussian_test.__init__(self)
 		AutoCorrelation.__init__(self)
+		#SDE.__init__(self)
 
 		#if t is None and t_int is None:
 		#	raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
@@ -78,7 +82,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		return None
 
 	def _timestep(self, t):
-		return t[-1] / len(t)
+		return (t[0]-t[-1]) / (len(t)-1)
 
 	def _slider_data(self, Mx, My, save=False, savepath='results'):
 		if self.slider_max_dt == None:
@@ -253,7 +257,6 @@ class Characterize(object):
 			cls,
 			data,
 			t=1,
-			#t_int=None,
 			dt='auto',
 			delta_t=1,
 			t_lag=1000,
@@ -314,7 +317,6 @@ class Characterize(object):
 			t=t,
 			dt=dt,
 			delta_t=delta_t,
-			#t_int=t_int,
 			t_lag=t_lag,
 			inc=inc,
 			inc_x=inc_x,

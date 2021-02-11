@@ -77,6 +77,17 @@ class SDE():
 			vel_x, vel_x[delta_t:], vel_y, vel_y[delta_t:])
 						 ]) / (delta_t * t_int)
 
+	def _isValidRange(self,range):
+		return isinstance(range, (list, tuple)) and len(range) == 2
+
+	def _order_parameter(self, X, inc, r):
+		if r is None: 
+			r = (min(X), max(X))
+		if not self._isValidRange(r):
+			print('Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data')
+			r = (min(X), max(X))
+		return np.arange(r[0], r[-1], inc), r
+
 	def _drift_and_diffusion(self, X, t_int, dt, delta_t=1, inc=0.01):
 		"""
 		Calcualtes drift, diffusion, average drift and avarage difussion.
@@ -103,8 +114,8 @@ class SDE():
 		avgdrift : numpy.ndarray
 			average drift
 		"""
-		#op = np.arange(-1,1,inc)
-		op = np.arange(min(X), max(X), inc)
+		op, self.op_range = self._order_parameter(X, inc, self.op_range)
+		#op = np.arange(min(X), max(X), inc)
 		avgdiff, avgdrift = [], []
 		drift = self._drift(X, t_int, dt)
 		diff = self._diffusion(X, t_int, delta_t=delta_t)
@@ -115,27 +126,6 @@ class SDE():
 			avgdrift.append(drift[i].mean())
 		return diff, drift, np.array(avgdiff), np.array(avgdrift), op
 
-	"""
-	def _scalar_drift(self, X, t_int, dt, inc=0.01):
-		op = np.arange(min(X), max(X), inc)
-		avgdrift = []
-		drift = self._drift(X, t_int, dt)
-		X = X[0:-dt]
-		for b in op:
-			i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
-			avgdrift.append(drift[i].mean())
-		return [avgdrift, op]
-
-	def _scalar_diff(self, X, t_int, delta_t, inc=0.01):
-		op = np.arange(min(X), max(X), inc)
-		avgdiff = []
-		diff = self._diffusion(X, t_int, delta_t=delta_t)
-		X = X[0:-delta_t]
-		for b in op:
-			i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
-			avgdiff.append(diff[i].mean())
-		return [avgdiff, op]
-	"""
 
 	def _vector_drift_diff(self,
 						   vel_x,
@@ -145,11 +135,10 @@ class SDE():
 						   t_int=0.12,
 						   dt=40,
 						   delta_t=1):
-		op_x = np.arange(min(min(vel_x), min(vel_y)), max(max(vel_x), max(vel_y)), inc_x)
-		op_y = np.arange(min(min(vel_x), min(vel_y)), max(max(vel_x), max(vel_y)), inc_y)
-		#op_x = np.arange(-1, 1, inc_x)
-		#op_y = np.arange(-1, 1, inc_y)
-
+		op_x, self.op_x_range = self._order_parameter(vel_x, inc_x, self.op_x_range)
+		op_y, self.op_y_range = self._order_parameter(vel_y, inc_y, self.op_y_range)
+		#op_x = np.arange(min(min(vel_x), min(vel_y)), max(max(vel_x), max(vel_y)), inc_x)
+		#op_y = np.arange(min(min(vel_x), min(vel_y)), max(max(vel_x), max(vel_y)), inc_y)
 		driftX = self._drift(vel_x, t_int, dt)
 		driftY = self._drift(vel_y, t_int, dt)
 		diffusionX = self._diffusion(vel_x, t_int, delta_t)
@@ -182,73 +171,6 @@ class SDE():
 			m = m + 1
 		return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y
 
-	"""
-	def _vector_drift(self,
-					  vel_x,
-					  vel_y,
-					  inc_x=0.1,
-					  inc_y=0.1,
-					  t_int=0.12,
-					  dt=40):
-		op_x = np.arange(-1, 1, inc_x)
-		op_y = np.arange(-1, 1, inc_y)
-
-		driftX = self._drift(vel_x, t_int, dt)
-		driftY = self._drift(vel_y, t_int, dt)
-
-		avgdriftX = np.zeros((len(op_x), len(op_y)))
-		avgdriftY = np.zeros((len(op_x), len(op_y)))
-
-		m = 0
-		vel_x_, vel_y_ = vel_x[0:-dt], vel_y[0:-dt]
-		for bin_x in op_x:
-			n = 0
-			for bin_y in op_y:
-				i = np.where(
-					np.logical_and(
-						np.logical_and(vel_x_ < (bin_x + inc_x),
-									   vel_x_ >= bin_x),
-						np.logical_and(vel_y_ < (bin_y + inc_y),
-									   vel_y_ >= bin_y)))[0]
-				avgdriftX[n, m] = np.nanmean(driftX[i])
-				avgdriftY[n, m] = np.nanmean(driftY[i])
-				n = n + 1
-			m = m + 1
-		return [avgdriftX, avgdriftY, op_x, op_y]
-
-	def _vector_diff(self,
-					 vel_x,
-					 vel_y,
-					 inc_x=0.1,
-					 inc_y=0.1,
-					 t_int=0.12,
-					 delta_t=1):
-		op_x = np.arange(-1, 1, inc_x)
-		op_y = np.arange(-1, 1, inc_y)
-
-		diffusionX = self._diffusion(vel_x, t_int, delta_t)
-		diffusionY = self._diffusion(vel_y, t_int, delta_t)
-
-		avgdiffX = np.zeros((len(op_x), len(op_y)))
-		avgdiffY = np.zeros((len(op_x), len(op_y)))
-
-		m = 0
-		vel_x_, vel_y_ = vel_x[0:-delta_t], vel_y[0:-delta_t]
-		for bin_x in op_x:
-			n = 0
-			for bin_y in op_y:
-				i = np.where(
-					np.logical_and(
-						np.logical_and(vel_x_ < (bin_x + inc_x),
-									   vel_x_ >= bin_x),
-						np.logical_and(vel_y_ < (bin_y + inc_y),
-									   vel_y_ >= bin_y)))[0]
-				avgdiffX[n, m] = np.nanmean(diffusionX[i])
-				avgdiffY[n, m] = np.nanmean(diffusionY[i])
-				n = n + 1
-			m = m + 1
-		return [avgdiffX, avgdiffY, op_x, op_y]
-	"""
 
 	def __call__(self, X, t_int, dt, delta_t=1, inc=0.01, **kwargs):
 		"""
