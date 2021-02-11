@@ -82,7 +82,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		return None
 
 	def _timestep(self, t):
-		return (t[0]-t[-1]) / (len(t)-1)
+		return (t[-1]-t[0]) / (len(t)-1)
 
 	def _slider_data(self, Mx, My, save=False, savepath='results'):
 		if self.slider_max_dt == None:
