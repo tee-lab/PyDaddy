@@ -576,10 +576,8 @@ class visualize(metrics):
 			data[mask] = np.nan
 		if clear:
 			ax.cla()
-		#op_x = self.op_x.copy()
-		#op_y = self.op_y.copy()
-		op_x = np.arange(-1, 1, 0.1)
-		op_y = np.arange(-1, 1, 0.1)
+		op_x = self.op_x.copy()
+		op_y = self.op_y.copy()
 
 		plane = []
 		if plot_plane:
@@ -624,8 +622,10 @@ class visualize(metrics):
 		ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		#Set ticks lable and its fontsize
 		ax.tick_params(axis='both', which='major', labelsize=label_size)
-		ax.set_xticks(np.linspace(-1, 1, 5))
-		ax.set_yticks(np.linspace(-1, 1, 5))
+		ax.set_xlim3d(op_x[0], op_x[-1])
+		ax.set_ylim3d(op_x[0], op_x[-1])
+		ax.set_xticks(np.linspace(op_x[0], op_x[-1], 5))
+		ax.set_yticks(np.linspace(op_y[0], op_y[-1], 5))
 		#plt.tight_layout()
 		#plt.legend(prop={'size': 14})
 		return fig, ax

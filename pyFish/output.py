@@ -287,6 +287,8 @@ class output(preprocessing, visualize):
 
 	def drift(self):
 		dt_s = list(self._drift_slider.keys())
+		if not len(dt_s): # empty slider
+			return None
 		init_pos = np.abs(np.array(dt_s) - self._ddsde.dt).argmin()
 		if self.vector:
 			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos)
@@ -296,6 +298,9 @@ class output(preprocessing, visualize):
 		return None
 
 	def diffusion(self):
+		dt_s = list(self._diff_slider.keys())
+		if not len(dt_s): # empty slider
+			return None
 		if self.vector:
 			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0)
 		else:
