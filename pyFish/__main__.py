@@ -339,3 +339,7 @@ class Characterize(object):
 			t_lag=t_lag,
 			max_order=max_order,
 		)
+
+def editFigure(figure):
+	import pylustrator
+	return pylustrator.load_fig(figure)

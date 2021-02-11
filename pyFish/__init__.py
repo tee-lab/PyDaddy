@@ -32,6 +32,7 @@ from pyFish.metrics import metrics
 from pyFish.output import output
 from pyFish.visualize import visualize
 from pyFish.__main__ import Characterize
+from pyFish.__main__ import editFigure
 
 def isnotebook():
 	try:

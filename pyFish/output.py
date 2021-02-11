@@ -64,7 +64,7 @@ class output(preprocessing, visualize):
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
-		return self.summary()
+		return self.summary(r=False)
 
 	def release(self):
 		"""
@@ -235,7 +235,7 @@ class output(preprocessing, visualize):
 				json.dump(params, f, indent=True, separators='\n:')
 		return params
 
-	def summary(self):
+	def summary(self, r=True):
 		if not self.vector:
 			summary = s = "| Data Type (vector) : {}      | Autocorellation time : {}       | Gaussian Noise : {}    |\n| M range : {}    | M mean : {}               | |M| mean : {}       |\n".format(
 				self.vector, self.autocorrelation_time,
@@ -263,6 +263,8 @@ class output(preprocessing, visualize):
 
 		fig = self._plot_summary(data, self.vector)
 		plt.show()
+		if r:
+			return fig
 		return None
 
 	def timeseries(self):
@@ -272,7 +274,7 @@ class output(preprocessing, visualize):
 		else:
 			fig = self._plot_timeseries([self._data_X], self.vector)
 		fig.show()
-		return None
+		return fig
 
 	def histogram(self):
 		if self.vector:
@@ -281,7 +283,7 @@ class output(preprocessing, visualize):
 		else:
 			fig = self._plot_histograms([self._data_X], self.vector)
 		fig.show()
-		return None
+		return fig
 
 	def drift(self):
 		dt_s = list(self._drift_slider.keys())

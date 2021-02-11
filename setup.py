@@ -5,7 +5,7 @@ with open("README.md", 'r') as f:
 
 with open('requirements.txt', 'r') as f:
 	INSTALL_REQUIREMENTS = f.read().split()
-	
+INSTALL_REQUIREMENTS.append('pylustrator@git+https://github.com/ashwinkk23/pylustrator@load_matplotlib_figure#egg=pylustrator-1.0.0')
 
 setup(
 	name='pyFish',
