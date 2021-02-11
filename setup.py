@@ -5,11 +5,11 @@ with open("README.md", 'r') as f:
 
 with open('requirements.txt', 'r') as f:
 	INSTALL_REQUIREMENTS = f.read().split()
-#INSTALL_REQUIREMENTS.append('pylustrator@git+https://github.com/ashwinkk23/pylustrator@load_matplotlib_figure#egg=pylustrator-1.0.0')
+INSTALL_REQUIREMENTS.append('pylustrator@git+https://github.com/ashwinkk23/pylustrator@load_matplotlib_figure#egg=pylustrator-1.0.0')
 
 setup(
 	name='pyFish',
-	version='1.19',
+	version='1.20',
 	description='Package to analyse stochastic time series data',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
