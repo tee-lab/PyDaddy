@@ -223,26 +223,30 @@ class visualize(metrics):
 						 label_pad=0):
 		if vector:
 			Mx, My = timeseries
+			if stop > len(Mx):
+				stop = len(Mx)
 			fig, ax = plt.subplots(nrows=3, ncols=1, dpi=150, figsize=(8,6))
-			ax[0].plot(Mx[start:stop], linewidth=1)
+			ax[0].plot(range(start, stop),Mx[start:stop], linewidth=1)
 			self.stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', label_size=label_size, title_size=title_size, tick_size=tick_size)
 			ax[0].set_xticks([])
 			ax[0].set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
 
-			ax[1].plot(My[start:stop], linewidth=1)
+			ax[1].plot(range(start, stop),My[start:stop], linewidth=1)
 			self.stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',label_size=label_size, tick_size=tick_size)
 			ax[1].set_xticks([])
 			ax[1].set_yticks(np.linspace(min(My), max(My), n_yticks).round(2))
 
 			M = np.sqrt(Mx**2 + My**2)
-			ax[2].plot(M[start:stop], linewidth=1)
+			ax[2].plot(range(start, stop),M[start:stop], linewidth=1)
 			self.stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', label_size=label_size, tick_size=tick_size)
 			ax[2].set_yticks(np.linspace(min(M), max(M), n_yticks).round(2))
 
 		else:
 			Mx = timeseries[0]
+			if stop > len(Mx):
+				stop = len(Mx)
 			fig, ax = plt.subplots(dpi=150, figsize=(6,3))
-			ax.plot(Mx[start:stop], linewidth=1)
+			ax.plot(range(start, stop),Mx[start:stop], linewidth=1)
 			self.stylize_axes(ax,x_label='Time Scale', y_label='$M$', title='Time Series',tick_size=tick_size, label_size=label_size, title_size=title_size)
 			ax.set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
 
