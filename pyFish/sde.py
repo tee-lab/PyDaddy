@@ -77,8 +77,8 @@ class SDE():
 			vel_x, vel_x[delta_t:], vel_y, vel_y[delta_t:])
 						 ]) / (delta_t * t_int)
 
-	def _isValidRange(self,range):
-		return isinstance(range, (list, tuple)) and len(range) == 2
+	def _isValidRange(self,r):
+		return isinstance(r, (list, tuple)) and len(r) == 2
 
 	def _order_parameter(self, X, inc, r):
 		if r is None: 

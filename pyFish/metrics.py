@@ -228,6 +228,14 @@ class metrics:
 		nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
 		return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
 
+	def _isValidSliderRange(self, r):
+		if r is None:
+			return False
+		if isinstance(r, (list, tuple)) and len(r) == 3 and (np.array(r) >= 1).all():
+			return True
+		print('\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n')
+		return False
+
 
 class Plane:
 	def __init__(self, coefficients, order):
