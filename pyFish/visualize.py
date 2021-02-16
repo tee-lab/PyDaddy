@@ -624,8 +624,8 @@ class visualize(metrics):
 		ax.tick_params(axis='both', which='major', labelsize=label_size)
 		ax.set_xlim3d(op_x[0], op_x[-1])
 		ax.set_ylim3d(op_x[0], op_x[-1])
-		ax.set_xticks(np.linspace(op_x[0], op_x[-1], 5))
-		ax.set_yticks(np.linspace(op_y[0], op_y[-1], 5))
+		ax.set_xticks(np.linspace(op_x[0], op_x[-1], 3))
+		ax.set_yticks(np.linspace(op_y[0], op_y[-1], 3))
 		#plt.tight_layout()
 		#plt.legend(prop={'size': 14})
 		return fig, ax
