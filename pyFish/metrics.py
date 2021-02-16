@@ -236,6 +236,29 @@ class metrics:
 		print('\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n')
 		return False
 
+	def _isValidSliderTimesSaleList(self, slider_list):
+		if slider_list is None:
+			return False
+		if isinstance(slider_list, (list, tuple)) and (np.array(slider_list) >=1).all():
+			return True
+		print('\n[Warning] : Given slider timescale list is not valid\nUsing default range')
+		return False
+
+	def _get_slider_timescales(self, slider_range, slider_scale_list):
+		if self._isValidSliderTimesSaleList(slider_scale_list):
+			self.slider_range = None
+			return sorted(list(slider_scale_list))
+
+		if self._isValidSliderRange(slider_range):
+			slider_start, slider_stop, n_step = slider_range
+		else:
+			slider_start = 1
+			slider_stop = np.ceil(self.autocorrelation_time)*2
+			n_step = 8
+		self.slider_range = (slider_start, slider_stop, n_step)
+		return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
+
+
 
 class Plane:
 	def __init__(self, coefficients, order):
