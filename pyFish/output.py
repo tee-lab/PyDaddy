@@ -61,6 +61,7 @@ class output(preprocessing, visualize):
 
 		self._drift_slider = ddsde._drift_slider
 		self._diff_slider = ddsde._diff_slider
+		self._time_scale_list = list(self._drift_slider.keys())
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
@@ -308,7 +309,7 @@ class output(preprocessing, visualize):
 		fig.show()
 		return None
 
-	def visualize(self, show=True, save=False, savepath='results'):
+	def visualize(self, time_scale=None, show=True, save=False, savepath='results'):
 		"""
 		Plot the data
 
@@ -327,6 +328,7 @@ class output(preprocessing, visualize):
 		"""
 		self._visualize_figs = []
 		if not self.vector:
+			drift, diff = self._get_data_from_slider(time_scale)
 			savepath = os.path.join(savepath, self.res_dir, 'visualize')
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
@@ -350,9 +352,9 @@ class output(preprocessing, visualize):
 			#Drift
 			fig3 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("Average_Drift")
-			p_drift, _ = self._fit_poly(self._data_op, self._data_avgdrift,
+			p_drift, _ = self._fit_poly(self._data_op, drift,
 										self.drift_order)
-			plt.scatter(self._data_op, self._data_avgdrift, marker='.')
+			plt.scatter(self._data_op, drift, marker='.')
 			plt.scatter(self._data_op,
 						p_drift(self._data_op),
 						marker='.',
@@ -365,9 +367,9 @@ class output(preprocessing, visualize):
 			#Diffusion
 			fig4 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("Average_Diffusion")
-			p_diff, _ = self._fit_poly(self._data_op, self._data_avgdiff,
+			p_diff, _ = self._fit_poly(self._data_op, diff,
 									   self.diff_order)
-			plt.scatter(self._data_op, self._data_avgdiff, marker='.')
+			plt.scatter(self._data_op, diff, marker='.')
 			plt.scatter(self._data_op,
 						p_diff(self._data_op),
 						marker='.',
@@ -378,13 +380,16 @@ class output(preprocessing, visualize):
 			self._visualize_figs.append(fig4)
 
 		else:
+			savepath = os.path.join(savepath, self.res_dir, 'visualize','plot_3d')
+			driftX, driftY, diffX, diffY = self._get_data_from_slider(time_scale)
+			fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF',xlabel="$M_{x}$", tick_size=12, label_size=12, title_size=12, r_fig=True)
+			self._visualize_figs.append(fig1)
+
+			"""
 			num_ticks = 5
-			savepath = os.path.join(savepath, self.res_dir, 'visualize',
-									'plot_3d')
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
-			#H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_Mx[~np.isnan(self._data_Mx)], self._data_My[~np.isnan(self._data_My)]]))
 			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(
 				self._remove_nan(self._data_Mx, self._data_My))
 			colors = plt.cm.coolwarm(dz.flatten() / float(dz.max()))
@@ -412,10 +417,11 @@ class output(preprocessing, visualize):
 			ax.tick_params(axis='both', which='major', labelsize=16)
 			ax.set_xticks(np.linspace(-1, 1, 5))
 			ax.set_yticks(np.linspace(-1, 1, 5))
-			self._hist_data = (X, Y, Z, dx, dy, dz)
-			self._visualize_figs.append(fig1)
-
-			fig1_1 = plt.figure()
+			"""
+			#H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nan(self._data_Mx, self._data_My))
+			#self._hist_data = (X, Y, Z, dx, dy, dz)
+			"""
+			fig1_1, ax  = plt.subplots()
 			plt.suptitle("PDF_heatmap", verticalalignment='center', ha='right')
 			ticks = self._data_op_x.copy()
 			ticks_loc = np.linspace(0, len(ticks), num_ticks)
@@ -435,46 +441,67 @@ class output(preprocessing, visualize):
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			self._visualize_figs.append(fig1_1)
+			"""
 
-			fig2, _ = self.plot_data(self._data_avgdiffY,
-									  plot_plane=True,
+			fig2, _ = self.plot_data(diffY,
+									  plot_plane=False,
 									  title='DiffY',
-									  z_label='$B_{22}(m)$')
+									  z_label='$B_{22}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig2)
+			"""
 			fig2_1, _ = self.plot_data(self._data_avgdiffY,
 										title='DiffY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig2_1)
+			"""
 
-			fig3, _ = self.plot_data(self._data_avgdiffX,
-									  plot_plane=True,
+			fig3, _ = self.plot_data(diffX,
+									  plot_plane=False,
 									  title='DiffX',
-									  z_label='$B_{11}(m)$')
+									  z_label='$B_{11}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig3)
+			"""
 			fig3_1, _ = self.plot_data(self._data_avgdiffX,
 										title='DiffX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig3_1)
+			"""
 
-			fig4, _ = self.plot_data(self._data_avgdriftY,
+			fig4, _ = self.plot_data(driftY,
 									  plot_plane=False,
 									  title='DriftY',
-									  z_label='$A_{2}(m)$')
+									  z_label='$A_{2}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig4)
+			"""
 			fig4_1, _ = self.plot_data(self._data_avgdriftY,
 										title='DriftY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig4_1)
+			"""
 
-			fig5, _ = self.plot_data(self._data_avgdriftX,
+			fig5, _ = self.plot_data(driftX,
 									  plot_plane=False,
 									  title='DriftX',
-									  z_label='$A_{1}(m)$')
+									  z_label='$A_{1}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig5)
+			"""
 			fig5_1, _ = self.plot_data(self._data_avgdriftX,
 										title='DriftX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig5_1)
+			"""
 
 		if show: plt.show()
 		if save:

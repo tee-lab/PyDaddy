@@ -28,19 +28,20 @@ class visualize(metrics):
 					 x_label=None,
 					 y_label=None,
 					 title=None,
-					 font_size=18,
-					 title_font_size=20,
+					 tick_size=20,
+					 title_size=20,
 					 label_size=20,
 					 label_pad=12):
 		# Hide the top and right spines of the axis
 		ax.spines['top'].set_visible(False)
 		ax.spines['right'].set_visible(False)
 
-		ax.set_title(title, fontsize=title_font_size)
+		ax.set_title(title, fontsize=title_size)
 
 		ax.set_xlabel(x_label, fontsize=label_size, labelpad=label_pad)
 		ax.set_ylabel(y_label, fontsize=label_size, labelpad=label_pad)
-		ax.tick_params(axis='both', which='major', labelsize=label_size)
+		ax.tick_params(axis='both', which='major', labelsize=tick_size)
+
 
 		return None
 
@@ -48,8 +49,8 @@ class visualize(metrics):
 					  data,
 					  vector=True,
 					  kde=False,
-					  font_size=18,
-					  title_font_size=20,
+					  tick_size=20,
+					  title_size=20,
 					  label_size=20,
 					  label_pad=12,
 					  timeseries_start=0,
@@ -68,8 +69,8 @@ class visualize(metrics):
 							  x_label='Time Index',
 							  y_label='|M|',
 							  title='Time Series',
-							  font_size=10,
-							  title_font_size=title_font_size,
+							  tick_size=tick_size,
+							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
 
@@ -79,8 +80,8 @@ class visualize(metrics):
 							  x_label='op',
 							  y_label='freq',
 							  title='Dist |M|',
-							  font_size=font_size,
-							  title_font_size=title_font_size,
+							  tick_size=tick_size,
+							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
 
@@ -93,8 +94,8 @@ class visualize(metrics):
 										 x_label='$m_{x}$',
 										 y_label='$m_{y}$',
 										 z_label='$A_{1}$',
-										 font_size=font_size,
-										 title_font_size=title_font_size,
+										 tick_size=tick_size,
+										 title_size=title_size,
 										 label_size=label_size,
 										 label_pad=label_pad)
 
@@ -107,8 +108,8 @@ class visualize(metrics):
 										 x_label='$m_{x}$',
 										 y_label='$m_{y}$',
 										 z_label='$A_{2}$',
-										 font_size=font_size,
-										 title_font_size=title_font_size,
+										 tick_size=tick_size,
+										 title_size=title_size,
 										 label_size=label_size,
 										 label_pad=label_pad)
 
@@ -121,8 +122,8 @@ class visualize(metrics):
 										 x_label='$m_{x}$',
 										 y_label='$m_{y}$',
 										 z_label='$B_{11}$',
-										 font_size=font_size,
-										 title_font_size=title_font_size,
+										 tick_size=tick_size,
+										 title_size=title_size,
 										 label_size=label_size,
 										 label_pad=label_pad)
 
@@ -135,8 +136,8 @@ class visualize(metrics):
 										 x_label='$m_{x}$',
 										 y_label='$m_{y}$',
 										 z_label='$B_{22}$',
-										 font_size=font_size,
-										 title_font_size=title_font_size,
+										 tick_size=tick_size,
+										 title_size=title_size,
 										 label_size=label_size,
 										 label_pad=label_pad)
 
@@ -155,19 +156,19 @@ class visualize(metrics):
 							  x_label='Time Index',
 							  y_label='|M|',
 							  title='Time Series',
-							  font_size=font_size,
-							  title_font_size=title_font_size,
+							  tick_size=tick_size,
+							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
 
 			#Dist |M|
 			sns.distplot(M, kde=kde, ax=ax[1][0])
 			self.stylize_axes(ax[1][0],
-							  x_label='op',
-							  y_label='freq',
+							  x_label='Order Parameter',
+							  y_label='Frequency',
 							  title='Dist |M|',
-							  font_size=font_size,
-							  title_font_size=title_font_size,
+							  tick_size=tick_size,
+							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
 
@@ -183,11 +184,11 @@ class visualize(metrics):
 							  x_label='op',
 							  y_label='$A_{1}$',
 							  title='Drift',
-							  font_size=font_size,
-							  title_font_size=title_font_size,
+							  tick_size=tick_size,
+							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
-			ax[0][1].legend(frameon=False, fontsize=font_size)
+			ax[0][1].legend(frameon=False, fontsize=tick_size)
 			#Diffusion
 			p_diff, _ = self._fit_poly(self.op, diff, diff_order)
 			ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
@@ -200,11 +201,11 @@ class visualize(metrics):
 							  x_label='op',
 							  y_label='$B_{1}$',
 							  title='Diffusion',
-							  font_size=font_size,
-							  title_font_size=title_font_size,
+							  tick_size=tick_size,
+							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
-			ax[1][1].legend(frameon=False, fontsize=font_size)
+			ax[1][1].legend(frameon=False, fontsize=tick_size)
 
 			plt.tight_layout()
 		return fig
@@ -215,72 +216,118 @@ class visualize(metrics):
 						 start=0,
 						 stop=1000,
 						 n_yticks=3,
-						 dpi=150):
+						 dpi=150,
+						 tick_size=12,
+						 title_size=14,
+						 label_size=14,
+						 label_pad=0):
 		if vector:
 			Mx, My = timeseries
-			fig, ax = plt.subplots(nrows=3, ncols=1, dpi=150)
-			ax[0].plot(Mx[start:stop])
-			self.stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', font_size=12,label_size=12, title_font_size=14)
+			fig, ax = plt.subplots(nrows=3, ncols=1, dpi=150, figsize=(8,6))
+			ax[0].plot(Mx[start:stop], linewidth=1)
+			self.stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', label_size=label_size, title_size=title_size, tick_size=tick_size)
 			ax[0].set_xticks([])
 			ax[0].set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
 
-			ax[1].plot(My[start:stop])
-			self.stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',font_size=12,label_size=12)
+			ax[1].plot(My[start:stop], linewidth=1)
+			self.stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',label_size=label_size, tick_size=tick_size)
 			ax[1].set_xticks([])
 			ax[1].set_yticks(np.linspace(min(My), max(My), n_yticks).round(2))
 
 			M = np.sqrt(Mx**2 + My**2)
-			ax[2].plot(M[start:stop])
-			self.stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', font_size=12,label_size=12)
+			ax[2].plot(M[start:stop], linewidth=1)
+			self.stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', label_size=label_size, tick_size=tick_size)
 			ax[2].set_yticks(np.linspace(min(M), max(M), n_yticks).round(2))
 
 		else:
 			Mx = timeseries[0]
-			fig = plt.figure(dpi=dpi)
-			plt.plot(Mx[start:stop])
-			plt.title('Timeseries')
-			plt.ylabel('M')
+			fig, ax = plt.subplots(dpi=150, figsize=(6,3))
+			ax.plot(Mx[start:stop], linewidth=1)
+			self.stylize_axes(ax,x_label='Time Scale', y_label='$M$', title='Time Series',tick_size=tick_size, label_size=label_size, title_size=title_size)
+			ax.set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
 
+		plt.tight_layout()
 		return fig
 
 	def _plot_histograms(self,
 						 timeseries,
 						 vector,
-						 size=(20, 5),
 						 dpi=150,
-						 kde=False):
+						 kde=False,
+						 title_size=14,
+						 label_size=15,
+						 tick_size=12,
+						 label_pad=5):
 		if vector:
 			Mx, My = timeseries
 			M = np.sqrt(Mx**2 + My**2)
-			fig = plt.figure(dpi=dpi, figsize=size)
-			fig.suptitle('Histograms', fontsize=18)
+			fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(8,8))
+			ax[0][0] = sns.distplot(Mx, kde=kde, ax=ax[0][0])
+			ticks = [str(i)+"K" for i in (np.array(ax[0][0].get_yticks())/1000).round(1)]
+			ax[0][0].set_yticklabels(ticks)
+			self.stylize_axes(ax[0][0],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
-			plt.subplot(1, 3, 1)
-			sns.distplot(Mx, kde=kde)
-			plt.title('$M_{x}$', fontsize=18)
+			ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1])
+			ticks = [str(i)+"K" for i in (np.array(ax[0][1].get_yticks())/1000).round(1)]
+			ax[0][1].set_yticklabels(ticks)
+			self.stylize_axes(ax[0][1],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
-			plt.subplot(1, 3, 2)
-			sns.distplot(My, kde=kde)
-			plt.title('$M_{y}$', fontsize=18)
+			ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0])
+			ticks = [str(i)+"K" for i in (np.array(ax[1][0].get_yticks())/1000).round(1)]
+			ax[1][0].set_yticklabels(ticks)
+			self.stylize_axes(ax[1][0],	x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
-			plt.subplot(1, 3, 3)
-			sns.distplot(M, kde=kde)
-			plt.title('|M|', fontsize=18)
+			ax[1][1].remove()
+			ax[1][1] = fig.add_subplot(2,2,4, projection='3d')
+			ax[1][1].set_title('3d Histogram')
+			ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title='Mx,My distrubition')
 
 		else:
-			Mx = timeseries[0]
-			fig = plt.figure(dpi=dpi, figsize=(10, 5))
-			plt.suptitle('Histogram', fontsize=18)
+			M = timeseries[0]
+			fig, ax = plt.subplots(nrows=1, ncols=2, dpi=150, figsize=(8,4))
+			ax[0] = sns.distplot(M, kde=kde, ax=ax[0])
+			self.stylize_axes(ax[0], x_label='Order Parameter', y_label='Frequency', title="M",tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			ticks = [str(i)+"K" for i in (np.array(ax[0].get_yticks())/1000).round(1)]
+			ax[0].set_yticklabels(ticks)
 
-			plt.subplot(1, 2, 1)
-			sns.distplot(Mx, kde=kde)
-			plt.title('M', fontsize=18)
+			ax[1] = sns.distplot(np.sqrt(M**2), kde=kde, ax=ax[1])
+			self.stylize_axes(ax[1], x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			ticks = [str(i)+"K" for i in (np.array(ax[1].get_yticks())/1000).round(1)]
+			ax[1].set_yticklabels(ticks)
 
-			plt.subplot(1, 2, 2)
-			sns.distplot(np.sqrt(Mx**2), kde=kde)
-			plt.title("|M|", fontsize=18)
-
+		plt.tight_layout()
 		return fig
+
+	def _remove_nans(self, Mx, My):
+		nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
+		return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
+
+	def _plot_3d_hisogram(self, Mx, My, ax=None, title="PDF",xlabel="$M_{x}$", ylabel="$M_{y}$",zlabel="Frequency", tick_size=12, title_size=14, label_size=10, label_pad=12, r_fig=False, dpi=150):
+		if ax is None:
+			fig = plt.figure(dpi=dpi)
+			ax = fig.add_subplot(projection="3d")
+		H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(Mx, My))
+		colors = plt.cm.coolwarm(dz.flatten() / float(dz.max()))
+		hist3d = ax.bar3d(X,Y,Z,dx,dy,dz,alpha=0.6,cmap=plt.cm.coolwarm,color=colors)
+		ax.set_xlabel(xlabel, fontsize=label_size, labelpad=label_pad)
+		ax.set_ylabel(ylabel, fontsize=label_size, labelpad=label_pad)
+		ax.set_zlabel(zlabel, fontsize=label_size, labelpad=label_pad)
+		# make the panes transparent
+		ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+		ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+		ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+		# make the grid lines transparent
+		ax.xaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+		ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+		ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+		#Set ticks lable and its fontsize
+		ax.set_xticks(np.linspace(-1, 1, 3))
+		ax.set_yticks(np.linspace(-1, 1, 3))
+		ax.set_title(title, fontsize=title_size)
+		ax.tick_params(axis='both', which='major', labelsize=tick_size)
+		if r_fig:
+			return fig, ax
+		return ax
 
 	def _slider_3d(self, slider_data, init_pos=0, prefix='dt'):
 		dt_s = list(slider_data.keys())
@@ -380,36 +427,37 @@ class visualize(metrics):
 											 dt_s[init_pos]),
 			height=600,
 			width=900,
-			updatemenus=[
-				dict(
-					type="buttons",
-					direction="left",
-					buttons=list([
-						dict(
-							args=[{
-								"type": ["scatter3d", "scatter3d"]
-							}],
-							#{'traces': [0, 1]}],
-							label="3D",
-							method="restyle"),
-						dict(
-							args=[{
-								"type": ["heatmap", "heatmap"]
-							}],
-							#{'traces': [0, 1]}],
-							label="Heatmap",
-							method="restyle")
-					]),
-					pad={
-						"r": 10,
-						"t": 10
-					},
-					showactive=True,
-					x=0.11,
-					xanchor="left",
-					y=1.1,
-					yanchor="top"),
-			])
+			#updatemenus=[
+			#	dict(
+			#		type="buttons",
+			#		direction="left",
+			#		buttons=list([
+			#			dict(
+			#				args=[{
+			#					"type": ["scatter3d", "scatter3d"]
+			#				}],
+			#				#{'traces': [0, 1]}],
+			#				label="3D",
+			#				method="restyle"),
+			#			dict(
+			#				args=[{
+			#					"type": ["heatmap", "heatmap"]
+			#				}],
+			#				#{'traces': [0, 1]}],
+			#				label="Heatmap",
+			#				method="restyle")
+			#		]),
+			#		pad={
+			#			"r": 10,
+			#			"t": 10
+			#		},
+			#		showactive=True,
+			#		x=0.11,
+			#		xanchor="left",
+			#		y=1.1,
+			#		yanchor="top"),
+			#]
+			)
 
 		steps = []
 		for i in range(len(slider_data)):
@@ -561,8 +609,8 @@ class visualize(metrics):
 				  ax=None,
 				  clear=True,
 				  plot_plane=False,
-				  font_size=18,
-				  title_font_size=20,
+				  tick_size=18,
+				  title_size=20,
 				  label_size=20,
 				  label_pad=12,
 				  label=None,
@@ -594,7 +642,7 @@ class visualize(metrics):
 
 		x, y = np.meshgrid(op_x, op_y)
 		z = data.copy()
-		ax.set_title(title, fontsize=title_font_size)
+		ax.set_title(title, fontsize=title_size)
 
 		ax.scatter3D(x, y, z.ravel(), label=label)
 		if plot_plane:
@@ -630,11 +678,11 @@ class visualize(metrics):
 		ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		#Set ticks lable and its fontsize
-		ax.tick_params(axis='both', which='major', labelsize=label_size)
 		ax.set_xlim3d(op_x[0], op_x[-1])
 		ax.set_ylim3d(op_x[0], op_x[-1])
 		ax.set_xticks(np.linspace(op_x[0], op_x[-1], 3))
 		ax.set_yticks(np.linspace(op_y[0], op_y[-1], 3))
+		ax.tick_params(axis='both', which='major', labelsize=tick_size)
 		#plt.tight_layout()
 		#plt.legend(prop={'size': 14})
 		return fig, ax
@@ -752,8 +800,8 @@ class visualize(metrics):
 					colors = plt.cm.jet(dz.flatten() / float(dz.max()))
 					ax.bar3d(X, Y, Z, dx, dy, dz, alpha=alpha, color=colors)
 
-		plt.xlabel('X')
-		plt.ylabel('Y')
+			plt.xlabel('X')
+			plt.ylabel('Y')
 		edges = [X, Y]
 		H = dz.reshape(bins[0], bins[1])
 

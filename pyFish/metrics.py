@@ -258,6 +258,28 @@ class metrics:
 		self.slider_range = (slider_start, slider_stop, n_step)
 		return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
 
+	def _closest_time_scale(self, time_scale):
+		i = np.abs(np.array(self._time_scale_list) - time_scale).argmin()
+		return self._time_scale_list[i]
+
+	def _get_data_from_slider(self, time_scale=None):
+		if self.vector:
+			if time_scale is None:
+				return self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY
+			if time_scale not in self._time_scale_list:
+				print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
+				time_scale = self._closest_time_scale(time_scale)
+				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(time_scale))
+			return self._drift_slider[time_scale][0],self._drift_slider[time_scale][1], self._diff_slider[time_scale][0], self._diff_slider[time_scale][1]
+		else:
+			if time_scale is None:
+				return self._data_avgdrift, self._data_avgdiff
+			if time_scale not in self._time_scale_list:
+				print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
+				time_scale = self._closest_time_scale(time_scale)
+				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(time_scale))
+			return self._drift_slider[time_scale][0], self._diff_slider[time_scale][0]
+
 
 
 class Plane:
