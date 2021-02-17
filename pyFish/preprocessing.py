@@ -37,38 +37,56 @@ class preprocessing(gaussian_test):
 			   delta_t=1,
 			   max_order=10,
 			   inc=0.01):
+		
+		"""
 		dt = self._get_dt(X) + 5 if dt == 'auto' else dt
 		_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
 			X, t_int, dt=dt, delta_t=delta_t, inc=inc)
 		self._r2_drift, self._r2_diff = self._r2_vs_order(
 			op, avgDrift, avgDiff, max_order)
-
-		if self.drift_order is None:
-			self.drift_order = np.where(
-				np.isclose(self._r2_drift, max(self._r2_drift),
-						   atol=0.1))[0][0]
-		if self.diff_order is None:
-			self.diff_order = np.where(
-				np.isclose(self._r2_diff, max(self._r2_diff), atol=0.1))[0][0]
+		"""
 
 		#R2_adj multiple dt
-		self._r2_drift_m_dt = []
-		self._r2_diff_m_dt = []
-		max_dt = self._get_autocorr_time(M_square, t_lag=self.t_lag)
-		N = 8
-		for time_scale in set(map(int, np.linspace(1, max_dt, N))):
-			_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
-				X, t_int, dt=time_scale, delta_t=delta_t, inc=inc)
-			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,
-													max_order)
-			self._r2_drift_m_dt.append(_r2_drift)
-			self._r2_diff_m_dt.append(_r2_diff)
-		self._r2_drift_m_dt.append(
-			[int((i / N) * max_dt) for i in range(1, N + 1)])
-		self._r2_diff_m_dt.append(
-			[int((i / N) * max_dt) for i in range(1, N + 1)])
+		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(X, M_square, t_int=t_int ,inc=inc, delta_t=delta_t, max_order=max_order)
 
-		#return
+		try:
+			drift_degree_list = []
+			diff_degree_list = []
+			for i in range(len(self._r2_drift_m_dt)-1):
+				r2_drift = np.array(self._r2_drift_m_dt[i])
+				r2_diff = np.array(self._r2_diff_m_dt[i])
+
+				d_drift1 = np.diff(r2_drift, 1)
+				d_diff1 = np.diff(r2_diff, 1)
+
+				d_drift2 = np.diff(r2_drift, 2)
+				d_diff2 = np.diff(r2_diff, 2)
+
+				r_drift = np.where(np.logical_and(d_drift1[:-1] >= 0, d_drift2 <= 0))[0]
+				r_diff = np.where(np.logical_and(d_diff1[:-1] >= 0, d_diff2 <= 0))[0]
+
+				drift_degree_list.append(r_drift[np.nonzero(r_drift)][0] + 1) 
+				diff_degree_list.append(r_diff[np.nonzero(r_diff)][0] + 1) 
+			if self.drift_order is None:
+				drift_degrees, drift_count = np.unique(drift_degree_list, return_counts=True)
+				self.drift_order = drift_degrees[drift_count.argmax()]
+			if self.diff_order is None:
+				diff_degrees, diff_count = np.unique(diff_degree_list, return_counts=True)
+				self.diff_order = diff_degrees[diff_count.argmax()]
+
+			self._r2_drift = self._r2_drift_m_dt[np.where(np.array(drift_degree_list) == self.drift_order)[0][0]]
+			self._r2_diff = self._r2_diff_m_dt[np.where(np.array(diff_degree_list) == self.diff_order)[0][0]]
+		except:
+			self._r2_drift = self._r2_drift_m_dt[0]
+			self._r2_diff = self._r2_diff_m_dt[0]
+
+			if self.drift_order is None:
+				self.drift_order = np.where(np.isclose(self._r2_drift, max(self._r2_drift), atol=0.1))[0][0]
+			
+			if self.diff_order is None:
+				self.diff_order = np.where(np.isclose(self._r2_diff, max(self._r2_diff), atol=0.1))[0][0]
+
+
 		return self.drift_order, np.array(self._r2_drift)
 
 	def _r2_vs_order_multi_dt(self,
@@ -78,22 +96,22 @@ class preprocessing(gaussian_test):
 							  delta_t=1,
 							  max_order=10,
 							  inc=0.01):
-		self._r2_drift_m_dt_2 = []
-		self._r2_diff_m_dt_2 = []
-		max_dt = self._get_autocorr_time(M_square)
+		r2_drift_m_dt = []
+		r2_diff_m_dt = []
+		max_dt = self._get_autocorr_time(M_square, t_lag=self.t_lag)
 		N = 8
-		for n in range(1, N + 1):
-			_, _, avgDiff, avgDrift, op = self._drift_and_diffusion(
-				X, t_int, dt=int((n / N) * max_dt), delta_t=delta_t, inc=inc)
-			_r2_drift, _r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,
-													max_order)
-			self._r2_drift_m_dt_2.append(_r2_drift)
-			self._r2_diff_m_dt_2.append(_r2_diff)
-		self._r2_drift_m_dt_2.append(
-			[int((i / N) * max_dt) for i in range(1, N + 1)])
-		self._r2_diff_m_dt_2.append(
-			[int((i / N) * max_dt) for i in range(1, N + 1)])
-		return self._r2_drift_m_dt_2, self._r2_diff_m_dt_2
+		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))))
+		for time_scale in time_scale_list:
+			drift, diff, avgDiff, avgDrift, op = self._drift_and_diffusion(
+				X, t_int, dt=time_scale, delta_t=time_scale, inc=inc)
+			r2_drift, r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,max_order)
+			r2_drift_m_dt.append(r2_drift)
+			r2_diff_m_dt.append(r2_diff)
+
+		r2_drift_m_dt.append(time_scale_list)
+		r2_diff_m_dt.append(time_scale_list)
+
+		return r2_drift_m_dt, r2_diff_m_dt
 
 	def _opt_dt_estimate(self,
 						 X,
