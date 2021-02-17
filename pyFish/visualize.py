@@ -330,7 +330,7 @@ class visualize(metrics):
 							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
-			ax[0][1].legend(frameon=False, fontsize=tick_size)
+			ax[0][1].legend(loc=1, frameon=False, fontsize=tick_size)
 			#Diffusion
 			p_diff, _ = self._fit_poly(self.op, diff, diff_order)
 			ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
@@ -347,7 +347,7 @@ class visualize(metrics):
 							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
-			ax[1][1].legend(frameon=False, fontsize=tick_size)
+			ax[1][1].legend(loc=1, frameon=False, fontsize=tick_size)
 
 		plt.tight_layout()
 		return fig
@@ -447,6 +447,75 @@ class visualize(metrics):
 
 		plt.tight_layout()
 		return fig
+
+	def _plot_noise_characterstics(self, 
+									data, 
+									dpi=150, 
+									kde=True, 
+									title_size=14, 
+									tick_size=15, 
+									label_size=15,
+									label_pad=8):
+		noise, kl_dist, X1, h_lim, k, l_lim, f, noise_correlation = data
+
+		fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(10,8))
+
+		ax[0][0] = sns.distplot(noise, kde=kde, ax=ax[0][0])
+		self.stylize_axes(ax[0][0],	
+						x_label='', 
+						y_label='Density', 
+						title="Noise Distrubution", 
+						tick_size=tick_size, 
+						label_size=label_size, 
+						title_size=title_size, 
+						label_pad=label_pad)
+
+		ax[0][1].plot(noise_correlation[0], noise_correlation[1])
+		self.stylize_axes(ax[0][1],	
+						x_label='', 
+						y_label='Correlation coeff', 
+						title="Noise Correlation", 
+						tick_size=tick_size, 
+						label_size=label_size, 
+						title_size=title_size, 
+						label_pad=label_pad)
+
+		ax[1][0] = sns.distplot(kl_dist, kde=kde, ax=ax[1][0])
+		start, stop = ax[1][0].get_ylim()
+		ax[1][0].plot(np.ones(len(X1)) * l_lim,
+		 np.linspace(start, stop, len(X1)), 'r', label='lower_cl')
+		ax[1][0].plot(np.ones(len(X1)) * k,
+		 np.linspace(start, stop, len(X1)), 'g', label='Test Statistics')
+		ax[1][0].plot(np.ones(len(X1)) * h_lim,
+		 np.linspace(start, stop, len(X1)), 'r', label='upper_cl')
+		self.stylize_axes(ax[1][0],	
+				x_label='', 
+				y_label='', 
+				title="Null hypothesis", 
+				tick_size=tick_size, 
+				label_size=label_size, 
+				title_size=title_size, 
+				label_pad=label_pad)
+		ax[1][0].legend(prop={'size':6})
+
+		
+		ax[1][1].plot(X1[1:], f)
+		ax[1][1].plot(np.ones(len(X1[1:])) * l_lim, f, 'r', label='lower_cl')
+		ax[1][1].plot(np.ones(len(X1[1:])) * h_lim, f, 'r', label='upper_cl')
+		ax[1][1].plot(np.ones(len(X1[1:])) * k, f, 'g', label='Test Stat')
+		self.stylize_axes(ax[1][1],	
+				x_label='', 
+				y_label='', 
+				title="CDF", 
+				tick_size=tick_size, 
+				label_size=label_size, 
+				title_size=title_size, 
+				label_pad=label_pad)
+		ax[1][1].legend(loc=1, prop={'size':6})
+
+		plt.tight_layout()
+		return fig
+
 
 	def _remove_nans(self, Mx, My):
 		nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))

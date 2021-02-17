@@ -617,7 +617,9 @@ class output(preprocessing, visualize):
 		"""
 		self._noise_figs = []
 		#print("Noise is gaussian") if self._ddsde.gaussian_noise else print("Noise is not Gaussian")
-
+		data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.h_lim, self._ddsde.k, self._ddsde.l_lim,self._ddsde._f, self._ddsde._noise_correlation]
+		fig = self._plot_noise_characterstics(data)
+		"""
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("Noise_Distrubution")
 		sns.distplot(self._ddsde._noise)
@@ -665,7 +667,7 @@ class output(preprocessing, visualize):
 		plt.plot(self._ddsde._noise_correlation[0],
 				 self._ddsde._noise_correlation[1])
 		self._noise_figs.append(fig4)
-
+		"""
 		if show: plt.show()
 		if save:
 			savepath = self._make_dirctory(
