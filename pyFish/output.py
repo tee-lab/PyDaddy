@@ -87,7 +87,7 @@ class output(preprocessing, visualize):
 		gc.collect()
 		return None
 
-	def _make_dirctory(self, p, i=1):
+	def _make_directory(self, p, i=1):
 		"""
 		Recursively create directories in given path
 
@@ -103,12 +103,34 @@ class output(preprocessing, visualize):
 		if type(p) != list: p = p.split('/')
 		if i > len(p):
 			return os.path.join(*p)
-		else:
-			try:
-				os.mkdir(os.path.join(*p[0:i]))
-			except FileExistsError:
-				pass
-		return self._make_dirctory(p, i=i + 1)
+		try:
+			os.mkdir(os.path.join(*p[0:i]))
+		except FileExistsError:
+			pass
+		return self._make_directory(p, i=i + 1)
+
+	def export_data(self, dir_path=None, include_mat=True, zip=False):
+		if dir_path is None:
+			self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
+			dir_path = self._make_directory(os.path.join('results', self.res_dir))
+			self.res_dir = dir_path
+
+		if not os.path.exists(dir_path):
+			raise PathNotFound(dir_path, "Entered directory path does not exists.")
+
+		data_dict = self._get_stacked_data()
+		for key in data_dict:
+			self._save_csv(dir_path=dir_path, file_name=key, data=data_dict[key], fmt='%.4f', add_headers=True)
+
+		if include_mat:
+			savedict = self._combined_data_dict()
+			scipy.io.savemat(os.path.join(dir_path, 'drift_diff_data.mat'), savedict)
+
+		if zip:
+			self._zip_dir(dir_path)
+
+		return "Exported to {}".format(self.res_dir)
+
 
 	def data(self):
 		"""
@@ -146,7 +168,7 @@ class output(preprocessing, visualize):
 			None
 		"""
 		if file_name is None: file_name = self.res_dir
-		savepath = self._make_dirctory(os.path.join(savepath, self.res_dir))
+		savepath = self._make_directory(os.path.join(savepath, self.res_dir))
 		if not self.vector:
 			data_dict = {
 				'drift': self._data_drift,
@@ -229,7 +251,7 @@ class output(preprocessing, visualize):
 			if str(keys)[0] != '_':
 				params[keys] = str(self._ddsde.__dict__[keys])
 		if save:
-			savepath = self._make_dirctory(os.path.join(
+			savepath = self._make_directory(os.path.join(
 				savepath, self.res_dir))
 			with open(os.path.join(savepath, file_name), 'w',
 					  encoding='utf-8') as f:
@@ -506,7 +528,7 @@ class output(preprocessing, visualize):
 		if show: plt.show()
 		if save:
 			dpi = 150
-			savepath = self._make_dirctory(savepath)
+			savepath = self._make_directory(savepath)
 			for fig in self._visualize_figs:
 				fig.savefig(os.path.join(savepath,
 										 fig.texts[0].get_text() + ".png"),
@@ -590,7 +612,7 @@ class output(preprocessing, visualize):
 
 		if show: plt.show()
 		if save:
-			savepath = self._make_dirctory(
+			savepath = self._make_directory(
 				os.path.join(savepath, self.res_dir, 'diagnostic'))
 			for fig in self._diagnostics_figs:
 				fig.savefig(
@@ -670,7 +692,7 @@ class output(preprocessing, visualize):
 		"""
 		if show: plt.show()
 		if save:
-			savepath = self._make_dirctory(
+			savepath = self._make_directory(
 				os.path.join(savepath, self.res_dir, 'noise_characterstics'))
 			for fig in self._noise_figs:
 				fig.savefig(
@@ -694,3 +716,14 @@ class InputError(Error):
 	def __init__(self, expression, message):
 		self.expression = expression
 		self.message = message
+
+	def __str__(self):
+		return self.message
+
+class PathNotFound(Error):
+	def __init__(self, full_path, message):
+		self.full_path = full_path
+		self.message = message
+
+	def __str__(self):
+		return self.message

@@ -45,7 +45,6 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self._data = data
 		self._t = t
 		self.dt_ = dt
-		self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
 
 		self.t_lag = t_lag
 		self.max_order = max_order
