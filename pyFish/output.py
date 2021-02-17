@@ -25,7 +25,6 @@ class output(preprocessing, visualize):
 	"""
 	def __init__(self, ddsde, **kwargs):
 		self.vector = ddsde.vector
-		self.res_dir = ddsde.res_dir
 		self._ddsde = ddsde
 
 		if not self.vector:
@@ -52,6 +51,8 @@ class output(preprocessing, visualize):
 			self._data_avgdiffXY = ddsde._avgdiffXY_
 			self._data_op_x = ddsde._op_x_
 			self._data_op_y = ddsde._op_y_
+
+			self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
 
 			#self._drift_slider = ddsde._drift_slider
 			#self._diff_slider = ddsde._diff_slider
