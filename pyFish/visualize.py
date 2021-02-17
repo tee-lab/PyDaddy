@@ -94,7 +94,7 @@ class visualize(metrics):
 				  label_size=label_size,
 				  label_pad=label_pad)
 			My_axis.minorticks_on()
-			My_axis.grid("0n")
+			My_axis.grid("on")
 
 			driftX_axis = fig.add_subplot(gs[2,0], projection='3d')
 			_, driftX_axis = self.plot_data(driftX,

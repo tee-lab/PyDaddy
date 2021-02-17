@@ -331,7 +331,7 @@ class metrics:
 			data_dict['diffusion_x'] = self._stack_slider_data(data.copy(), self._diff_slider, index=0)
 			data_dict['diffusion_y'] = self._stack_slider_data(data.copy(), self._diff_slider, index=1)
 		else:
-			data = ch._data_op
+			data = self._data_op
 			data_dict['drift'] = self._stack_slider_data(data.copy(), self._drift_slider, index=0)
 			data_dict['diffusion'] = self._stack_slider_data(data.copy(), self._diff_slider, index=0)
 		return data_dict
@@ -377,8 +377,7 @@ class metrics:
 		Make ZIP file of the exported result.
 		"""
 		file_name = os.path.dirname(dir_path)
-		shutil.make_archive(dir_path, 'zip', dir_path)
-		return None
+		return shutil.make_archive(dir_path, 'zip', dir_path)
 
 
 
