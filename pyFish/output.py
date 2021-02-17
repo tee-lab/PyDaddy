@@ -52,7 +52,6 @@ class output(preprocessing, visualize):
 			self._data_op_x = ddsde._op_x_
 			self._data_op_y = ddsde._op_y_
 
-			self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
 
 			#self._drift_slider = ddsde._drift_slider
 			#self._diff_slider = ddsde._diff_slider
@@ -63,6 +62,10 @@ class output(preprocessing, visualize):
 		self._drift_slider = ddsde._drift_slider
 		self._diff_slider = ddsde._diff_slider
 		self._time_scale_list = list(self._drift_slider.keys())
+
+		self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
+
+
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
