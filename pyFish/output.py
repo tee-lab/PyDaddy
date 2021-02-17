@@ -238,27 +238,27 @@ class output(preprocessing, visualize):
 
 	def summary(self, r=True):
 		if not self.vector:
-			summary = s = "| Data Type (vector) : {}      | Autocorellation time : {}       | Gaussian Noise : {}    |\n| M range : {}    | M mean : {}               | |M| mean : {}       |\n".format(
-				self.vector, self.autocorrelation_time,
-				self._ddsde.gaussian_noise,
-				(round(min(self._data_X), 2), round(max(self._data_X), 2)),
-				round(np.mean(self._data_X), 2),
-				round(np.mean(np.sqrt(self._data_X**2)), 2))
-			print(summary)
+			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'M range', 'M mean', '|M| mean']
+			values = [self.vector, self.autocorrelation_time,self._ddsde.gaussian_noise,(round(min(self._data_X), 2), round(max(self._data_X), 2)),	round(np.mean(self._data_X), 2),round(np.mean(np.sqrt(self._data_X**2)), 2)]
+			values = list(map(str, values))
+			summary = []
+			for i in range(len(feilds)):
+				summary.append(feilds[i])
+				summary.append(values[i])
+			summary_format = ("| {:<20} : {:^15}"*3 +"|\n")*int(len(feilds)/3)
+			print(summary_format.format(*summary))
 			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
 			data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self.drift_order, self.diff_order]
 		else:
-			summary = "| Data Type : {}       | Autocorrelation time : {}     | Gaussian Nonse : {}   |\n| Mx range  : {}| My range : {}        | range |M| : {}  |\n| Mx mean : {}        | My mean : {}               | M mean : {}           |".format(
-				self.vector, self.autocorrelation_time,
-				self._ddsde.gaussian_noise,
-				(round(min(self._data_Mx), 2), round(max(self._data_Mx), 2)),
-				(round(min(self._data_My), 2), round(max(self._data_My), 2)),
-				(round(min(self._data_M), 2), round(max(self._data_M), 2)),
-				round(np.mean(self._data_Mx), 2),
-				round(np.mean(self._data_My), 2),
-				round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),
-					  2))
-			print(summary)
+			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'Mx range', 'My range', 'range |M|', 'Mx mean', 'My mean', 'M mean']
+			values = [self.vector, self.autocorrelation_time, self._ddsde.gaussian_noise, (round(min(self._data_Mx), 2), round(max(self._data_Mx), 2)),	(round(min(self._data_My), 2), round(max(self._data_My), 2)), (round(min(self._data_M), 2), round(max(self._data_M), 2)), round(np.mean(self._data_Mx), 2), round(np.mean(self._data_My), 2), round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),2)]
+			values = list(map(str, values))
+			summary = []
+			for i in range(len(feilds)):
+				summary.append(feilds[i])
+				summary.append(values[i])
+			summary_format = ("| {:<20} : {:^15}"*3 +"|\n")*int(len(feilds)/3)
+			print(summary_format.format(*summary))
 			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
 			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
 
