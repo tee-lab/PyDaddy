@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.linalg
+import shutil
 import os
 
 class metrics:
@@ -225,8 +226,160 @@ class metrics:
 		return self._make_directory(p, i=i + 1)
 
 	def _remove_nan(self, Mx, My):
+		"""
+		Removes NaN's from data
+		"""
 		nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
 		return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
+
+	def _isValidSliderRange(self, r):
+		"""
+		Checks if the given range for slider is a valid range
+		"""
+		if r is None:
+			return False
+		if isinstance(r, (list, tuple)) and len(r) == 3 and (np.array(r) >= 1).all():
+			return True
+		print('\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n')
+		return False
+
+	def _isValidSliderTimesSaleList(self, slider_list):
+		"""
+		Checks if the given slider timescale lists contains valid entries
+		"""
+		if slider_list is None:
+			return False
+		if isinstance(slider_list, (list, tuple)) and (np.array(slider_list) >=1).all():
+			return True
+		print('\n[Warning] : Given slider timescale list is not valid\nUsing default range')
+		return False
+
+	def _get_slider_timescales(self, slider_range, slider_scale_list):
+		"""
+		Times scales to generate the drift and diffusion plot slider
+		"""
+		if self._isValidSliderTimesSaleList(slider_scale_list):
+			self.slider_range = None
+			return sorted(list(slider_scale_list))
+
+		if self._isValidSliderRange(slider_range):
+			slider_start, slider_stop, n_step = slider_range
+		else:
+			slider_start = 1
+			slider_stop = np.ceil(self.autocorrelation_time)*2
+			n_step = 8
+		self.slider_range = (slider_start, slider_stop, n_step)
+		return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
+
+	def _closest_time_scale(self, time_scale):
+		"""
+		Gives closest matching time scale avaiable from the timescale list.
+		"""
+		i = np.abs(np.array(self._time_scale_list) - time_scale).argmin()
+		return self._time_scale_list[i]
+
+	def _get_data_from_slider(self, time_scale=None):
+		"""
+		Get drift and diffusion data from slider data dictionary, if key not valid, returns the data corresponding to closest matching one.
+		"""
+		if self.vector:
+			if time_scale is None:
+				return self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY
+			if time_scale not in self._time_scale_list:
+				print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
+				time_scale = self._closest_time_scale(time_scale)
+				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(time_scale))
+			return self._drift_slider[time_scale][0],self._drift_slider[time_scale][1], self._diff_slider[time_scale][0], self._diff_slider[time_scale][1]
+		else:
+			if time_scale is None:
+				return self._data_avgdrift, self._data_avgdiff
+			if time_scale not in self._time_scale_list:
+				print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
+				time_scale = self._closest_time_scale(time_scale)
+				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(time_scale))
+			return self._drift_slider[time_scale][0], self._diff_slider[time_scale][0]
+
+	def _stack_slider_data(self, d, slider_data, index):
+		"""
+		Stack data from slider dictionary, corresponding to the given index, into columns of numpy array.
+		"""
+		for i in slider_data:
+			d = np.column_stack((d, slider_data[i][index].flatten()))
+		return d
+
+	def _csv_header(self, prefix):
+		"""
+		Generate headers for CSV file.
+		"""
+		headers = "x,"
+		if self.vector:
+			headers = "x,y,"
+		for i in self._drift_slider:
+			headers = headers + "{} {},".format(prefix, i)
+		return headers
+
+	def _get_stacked_data(self):
+		"""
+		Get a dictionary of all (op_x, op_y, driftX, driftY, diffX, diffY) slider data stacked into numpy arrays.
+		"""
+		data_dict = dict()
+		if self.vector:
+			x, y = np.meshgrid(self._data_op_x, self._data_op_y)
+			data = np.vstack((x.flatten(), y.flatten())).T
+			data_dict['drift_x'] = self._stack_slider_data(data.copy(), self._drift_slider, index=0)
+			data_dict['drift_y'] = self._stack_slider_data(data.copy(), self._drift_slider, index=1)
+			data_dict['diffusion_x'] = self._stack_slider_data(data.copy(), self._diff_slider, index=0)
+			data_dict['diffusion_y'] = self._stack_slider_data(data.copy(), self._diff_slider, index=1)
+		else:
+			data = self._data_op
+			data_dict['drift'] = self._stack_slider_data(data.copy(), self._drift_slider, index=0)
+			data_dict['diffusion'] = self._stack_slider_data(data.copy(), self._diff_slider, index=0)
+		return data_dict
+
+	def _save_csv(self, dir_path, file_name, data, fmt='%.4f', add_headers=True):
+		"""
+		Save data to CSV file.
+		"""
+		if not file_name.endswith('.csv'):
+			file_name = file_name + '.csv'
+		savepath = os.path.join(dir_path, file_name)
+		prefix = 'Dt' if 'drift' in file_name else 'dt'
+		headers = self._csv_header(prefix) if add_headers else ''
+		np.savetxt(savepath, data, fmt=fmt, header=headers, delimiter=',', comments="")
+		return None
+
+	def _combined_data_dict(self):
+		"""
+		Get all drift and diffusion data in dictionary format.
+		"""
+		combined_data = dict()
+		if self.vector:
+			k = ['x', 'y']
+			combined_data['x'] = self._data_op_x
+			combined_data['y'] = self._data_op_y
+			for i in self._drift_slider:
+				for j in range(2):
+					drift_key = 'drift_{}_{}'.format(k[j], i)
+					diff_key = 'diffusion_{}_{}'.format(k[j], i)
+					combined_data[drift_key] = self._drift_slider[i][j]
+					combined_data[diff_key] = self._diff_slider[i][j]
+		else:
+			combined_data['x'] = self._data_op
+			for i in self._drift_slider:
+				drift_key = 'drift_{}'.format(i)
+				diff_key = 'diffusion_{}'.format(i)
+				combined_data[drift_key] = self._drift_slider[i][0]
+				combined_data[diff_key] = self._diff_slider[i][0]
+		return combined_data
+
+	def _zip_dir(self, dir_path):
+		"""
+		Make ZIP file of the exported result.
+		"""
+		file_name = os.path.dirname(dir_path)
+		return shutil.make_archive(dir_path, 'zip', dir_path)
+
+
 
 
 class Plane:

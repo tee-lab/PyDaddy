@@ -36,17 +36,16 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			fft=True,
 			drift_order=None,
 			diff_order=None,
+			slider_range=None,
+			slider_timescales = None,
 			order_metric="R2_adj",
 			n_trials=1,
-			n_dt=8,
 			**kwargs):
 
 		self._data = data
 		self._t = t
 		self.dt_ = dt
-		self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
 
-		#self.t_int = t_int
 		self.t_lag = t_lag
 		self.max_order = max_order
 		self.inc = inc
@@ -58,12 +57,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.drift_order = drift_order
 		self.diff_order = drift_order
 		self.n_trials = n_trials
-		self.n_dt = n_dt
 
-		self.slider_max_dt = None
 		self.op_range = None
 		self.op_x_range = None
 		self.op_y_range = None
+		self.slider_range = slider_range
+		self.slider_timescales = slider_timescales
 
 		# When t_lag is greater than timeseries length, reassign its value as length of data
 		if self.t_lag > len(data[0]):
@@ -85,37 +84,14 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		return (t[-1]-t[0]) / (len(t)-1)
 
 	def _slider_data(self, Mx, My, save=False, savepath='results'):
-		if self.slider_max_dt == None:
-			self.slider_max_dt = np.ceil(self.autocorrelation_time)*2
+		time_scale_list = self._get_slider_timescales(self.slider_range, self.slider_timescales)
 		drift_data_dict = dict()
 		diff_data_dict = dict()
-		for time_scale in tqdm.tqdm(sorted(set(map(int, np.linspace(1, self.slider_max_dt, self.n_dt)))),
-									desc='Generating Slider data'):
+		for time_scale in tqdm.tqdm(time_scale_list, desc='Generating Slider data'):
 			if self.vector:
 				avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, dt=time_scale, delta_t=time_scale)
-				"""
-				drift_data = self._vector_drift(Mx,
-												My,
-												inc_x=self.inc_x,
-												inc_y=self.inc_y,
-												t_int=self.t_int,
-												dt=time_scale)
-				diff_data = self._vector_diff(Mx,
-											  My,
-											  inc_x=self.inc_x,
-											  inc_y=self.inc_y,
-											  t_int=self.t_int,
-											  delta_t=time_scale)
-				
-				for i in range(2):
-					drift_data[i] = drift_data[i] / self.n_trials
-					diff_data[i] = diff_data[i] / self.n_trials
-				"""
 				drift_data = [avgdriftX/self.n_trials, avgdriftY/self.n_trials, op_x, op_y]
 				diff_data = [avgdiffX/self.n_trials, avgdiffY/self.n_trials, op_x, op_y]
-
-
-
 			else:
 				_, _, avgdiff, avgdrift, op = self._drift_and_diffusion(Mx, t_int=self.t_int, dt=time_scale, delta_t=time_scale, inc=self.inc)
 				drift_data = [avgdrift/self.n_trials, op]
@@ -267,9 +243,10 @@ class Characterize(object):
 			fft=True,
 			drift_order=None,
 			diff_order=None,
+			slider_range=None,
+			slider_timescales=None,
 			order_metric="R2_adj",
 			n_trials=1,
-			n_dt=8,
 			**kwargs):
 		"""
 		Input params:
@@ -325,9 +302,10 @@ class Characterize(object):
 			fft=fft,
 			drift_order=drift_order,
 			diff_order=diff_order,
+			slider_range=slider_range,
+			slider_timescales=slider_timescales,
 			order_metric=order_metric,
 			n_trials=n_trials,
-			n_dt=n_dt,
 			**kwargs)
 
 		return sde(

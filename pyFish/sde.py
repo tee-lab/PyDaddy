@@ -49,7 +49,8 @@ class SDE():
 		diff : numpy.ndarray
 			Diffusion in time series
 		"""
-		return np.array([b - a for a, b in zip(X, X[dt:])]) / (t_int * dt)
+		#return np.array([b - a for a, b in zip(X, X[dt:])]) / (t_int * dt)
+		return (X[dt:]-X[:-dt])/(t_int * dt)
 
 	def _diffusion(self, X, t_int, delta_t=1):
 		"""
@@ -69,16 +70,16 @@ class SDE():
 		drift : numpy.ndarray
 			Drift in time series
 		"""
-		return np.square(np.array([b - a for a, b in zip(X, X[delta_t:])
-								   ])) / (t_int * delta_t)
+		#return np.square(np.array([b - a for a, b in zip(X, X[delta_t:])])) / (t_int * delta_t)
+		return np.square(X[delta_t:] - X[:-delta_t]) / (t_int * delta_t)
 
 	def _diffusion_xy(self, vel_x, vel_y, t_int, delta_t):
 		return np.array([(b - a) * (d - c) for a, b, c, d in zip(
 			vel_x, vel_x[delta_t:], vel_y, vel_y[delta_t:])
 						 ]) / (delta_t * t_int)
 
-	def _isValidRange(self,range):
-		return isinstance(range, (list, tuple)) and len(range) == 2
+	def _isValidRange(self,r):
+		return isinstance(r, (list, tuple)) and len(r) == 2
 
 	def _order_parameter(self, X, inc, r):
 		if r is None: 

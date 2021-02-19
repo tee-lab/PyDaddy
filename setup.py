@@ -9,7 +9,7 @@ INSTALL_REQUIREMENTS.append('pylustrator@git+https://github.com/ashwinkk23/pylus
 
 setup(
 	name='pyFish',
-	version='1.20',
+	version='1.25',
 	description='Package to analyse stochastic time series data',
 	long_description=long_description,
 	long_description_content_type='text/markdown',

@@ -21,7 +21,7 @@ __title__ = "pyFish"
 __author__ = "Ashwin Karichannavar, (e-mail: ashwinkk.23@gmail.com)"
 __license__ = "GNU General Public License v3.0"
 __copyright__ = "Copyright (C) 2020 Theoritical Evolution and Ecology Lab (TEE Lab), IISc, Bengaluru"
-__version__ = '1.20'
+__version__ = '1.25'
 
 from pyFish.sde import SDE
 from pyFish.analysis import underlying_noise
@@ -49,6 +49,7 @@ def isnotebook():
 
 if not isnotebook():
 	import matplotlib
-	matplotlib.use('Qt5Agg')
+	#matplotlib.use('Qt5Agg')
+	matplotlib.use('TkAgg')
 	matplotlib.rcParams['font.size'] = 18
 	#matplotlib.style.use('seaborn')

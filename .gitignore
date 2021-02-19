@@ -139,3 +139,4 @@ cython_debug/
 # general things to ignore
 notebooks/results/
 syn_*
+conda_build

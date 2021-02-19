@@ -129,7 +129,7 @@ class underlying_noise(SDE):
 			avgDrift.append(drift[i].mean())
 		avgDrift = np.array(avgDrift)
 		j = np.where(op == point)[0]
-		_avgDrift = 0 if j > len(avgDrift) else avgDrift[j]
+		_avgDrift = 0 if j >= len(avgDrift) else avgDrift[j]
 		try:
 			noise = ((x[i + 1] - x[i]) -
 					 (t_int * dt) * _avgDrift) / np.sqrt(t_int)

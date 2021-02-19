@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import os
 import gc
 import json
@@ -25,7 +26,6 @@ class output(preprocessing, visualize):
 	"""
 	def __init__(self, ddsde, **kwargs):
 		self.vector = ddsde.vector
-		self.res_dir = ddsde.res_dir
 		self._ddsde = ddsde
 
 		if not self.vector:
@@ -53,6 +53,7 @@ class output(preprocessing, visualize):
 			self._data_op_x = ddsde._op_x_
 			self._data_op_y = ddsde._op_y_
 
+
 			#self._drift_slider = ddsde._drift_slider
 			#self._diff_slider = ddsde._diff_slider
 
@@ -61,6 +62,11 @@ class output(preprocessing, visualize):
 
 		self._drift_slider = ddsde._drift_slider
 		self._diff_slider = ddsde._diff_slider
+		self._time_scale_list = list(self._drift_slider.keys())
+
+		self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
+
+
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
@@ -86,7 +92,7 @@ class output(preprocessing, visualize):
 		gc.collect()
 		return None
 
-	def _make_dirctory(self, p, i=1):
+	def _make_directory(self, p, i=1):
 		"""
 		Recursively create directories in given path
 
@@ -102,12 +108,34 @@ class output(preprocessing, visualize):
 		if type(p) != list: p = p.split('/')
 		if i > len(p):
 			return os.path.join(*p)
-		else:
-			try:
-				os.mkdir(os.path.join(*p[0:i]))
-			except FileExistsError:
-				pass
-		return self._make_dirctory(p, i=i + 1)
+		try:
+			os.mkdir(os.path.join(*p[0:i]))
+		except FileExistsError:
+			pass
+		return self._make_directory(p, i=i + 1)
+
+	def export_data(self, dir_path=None, include_mat=True, zip=False):
+		if dir_path is None:
+			self.res_dir = time.strftime("%Y-%m-%d %H-%M-%S", time.gmtime())
+			dir_path = self._make_directory(os.path.join('results', self.res_dir))
+			self.res_dir = dir_path
+
+		if not os.path.exists(dir_path):
+			raise PathNotFound(dir_path, "Entered directory path does not exists.")
+
+		data_dict = self._get_stacked_data()
+		for key in data_dict:
+			self._save_csv(dir_path=dir_path, file_name=key, data=data_dict[key], fmt='%.4f', add_headers=True)
+
+		if include_mat:
+			savedict = self._combined_data_dict()
+			scipy.io.savemat(os.path.join(dir_path, 'drift_diff_data.mat'), savedict)
+
+		if zip:
+			self._zip_dir(dir_path)
+
+		return "Exported to {}".format(self.res_dir)
+
 
 	def data(self):
 		"""
@@ -145,7 +173,7 @@ class output(preprocessing, visualize):
 			None
 		"""
 		if file_name is None: file_name = self.res_dir
-		savepath = self._make_dirctory(os.path.join(savepath, self.res_dir))
+		savepath = self._make_directory(os.path.join(savepath, self.res_dir))
 		if not self.vector:
 			data_dict = {
 				'drift': self._data_drift,
@@ -228,7 +256,7 @@ class output(preprocessing, visualize):
 			if str(keys)[0] != '_':
 				params[keys] = str(self._ddsde.__dict__[keys])
 		if save:
-			savepath = self._make_dirctory(os.path.join(
+			savepath = self._make_directory(os.path.join(
 				savepath, self.res_dir))
 			with open(os.path.join(savepath, file_name), 'w',
 					  encoding='utf-8') as f:
@@ -237,30 +265,31 @@ class output(preprocessing, visualize):
 
 	def summary(self, r=True):
 		if not self.vector:
-			summary = s = "| Data Type (vector) : {}      | Autocorellation time : {}       | Gaussian Noise : {}    |\n| M range : {}    | M mean : {}               | |M| mean : {}       |\n".format(
-				self.vector, self.autocorrelation_time,
-				self._ddsde.gaussian_noise,
-				(round(min(self._data_X), 2), round(max(self._data_X), 2)),
-				round(np.mean(self._data_X), 2),
-				round(np.mean(np.sqrt(self._data_X**2)), 2))
-			print(summary)
+			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'M range', 'M mean', '|M| mean']
+			values = [self.vector, self.autocorrelation_time,self._ddsde.gaussian_noise,(round(min(self._data_X), 2), round(max(self._data_X), 2)),	round(np.mean(self._data_X), 2),round(np.mean(np.sqrt(self._data_X**2)), 2)]
+			values = list(map(str, values))
+			summary = []
+			for i in range(len(feilds)):
+				summary.append(feilds[i])
+				summary.append(values[i])
+			summary_format = ("| {:<20} : {:^15}"*3 +"|\n")*int(len(feilds)/3)
+			print(summary_format.format(*summary))
 			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
 			data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self.drift_order, self.diff_order]
 		else:
-			summary = "| Data Type : {}       | Autocorrelation time : {}     | Gaussian Nonse : {}   |\n| Mx range  : {}| My range : {}        | range |M| : {}  |\n| Mx mean : {}        | My mean : {}               | M mean : {}           |".format(
-				self.vector, self.autocorrelation_time,
-				self._ddsde.gaussian_noise,
-				(round(min(self._data_Mx), 2), round(max(self._data_Mx), 2)),
-				(round(min(self._data_My), 2), round(max(self._data_My), 2)),
-				(round(min(self._data_M), 2), round(max(self._data_M), 2)),
-				round(np.mean(self._data_Mx), 2),
-				round(np.mean(self._data_My), 2),
-				round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),
-					  2))
-			print(summary)
+			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'Mx range', 'My range', 'range |M|', 'Mx mean', 'My mean', 'M mean']
+			values = [self.vector, self.autocorrelation_time, self._ddsde.gaussian_noise, (round(min(self._data_Mx), 2), round(max(self._data_Mx), 2)),	(round(min(self._data_My), 2), round(max(self._data_My), 2)), (round(min(self._data_M), 2), round(max(self._data_M), 2)), round(np.mean(self._data_Mx), 2), round(np.mean(self._data_My), 2), round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),2)]
+			values = list(map(str, values))
+			summary = []
+			for i in range(len(feilds)):
+				summary.append(feilds[i])
+				summary.append(values[i])
+			summary_format = ("| {:<20} : {:^15}"*3 +"|\n")*int(len(feilds)/3)
+			print(summary_format.format(*summary))
 			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
 			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
 
+		sys.stdout.flush()
 		fig = self._plot_summary(data, self.vector)
 		plt.show()
 		if r:
@@ -273,7 +302,7 @@ class output(preprocessing, visualize):
 										self.vector)
 		else:
 			fig = self._plot_timeseries([self._data_X], self.vector)
-		fig.show()
+		plt.show()
 		return fig
 
 	def histogram(self):
@@ -282,7 +311,7 @@ class output(preprocessing, visualize):
 										self.vector)
 		else:
 			fig = self._plot_histograms([self._data_X], self.vector)
-		fig.show()
+		plt.show()
 		return fig
 
 	def drift(self):
@@ -308,7 +337,7 @@ class output(preprocessing, visualize):
 		fig.show()
 		return None
 
-	def visualize(self, show=True, save=False, savepath='results'):
+	def visualize(self, time_scale=None, show=True, save=False, savepath='results'):
 		"""
 		Plot the data
 
@@ -327,6 +356,7 @@ class output(preprocessing, visualize):
 		"""
 		self._visualize_figs = []
 		if not self.vector:
+			drift, diff = self._get_data_from_slider(time_scale)
 			savepath = os.path.join(savepath, self.res_dir, 'visualize')
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
@@ -350,9 +380,9 @@ class output(preprocessing, visualize):
 			#Drift
 			fig3 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("Average_Drift")
-			p_drift, _ = self._fit_poly(self._data_op, self._data_avgdrift,
+			p_drift, _ = self._fit_poly(self._data_op, drift,
 										self.drift_order)
-			plt.scatter(self._data_op, self._data_avgdrift, marker='.')
+			plt.scatter(self._data_op, drift, marker='.')
 			plt.scatter(self._data_op,
 						p_drift(self._data_op),
 						marker='.',
@@ -365,9 +395,9 @@ class output(preprocessing, visualize):
 			#Diffusion
 			fig4 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("Average_Diffusion")
-			p_diff, _ = self._fit_poly(self._data_op, self._data_avgdiff,
+			p_diff, _ = self._fit_poly(self._data_op, diff,
 									   self.diff_order)
-			plt.scatter(self._data_op, self._data_avgdiff, marker='.')
+			plt.scatter(self._data_op, diff, marker='.')
 			plt.scatter(self._data_op,
 						p_diff(self._data_op),
 						marker='.',
@@ -378,13 +408,16 @@ class output(preprocessing, visualize):
 			self._visualize_figs.append(fig4)
 
 		else:
+			savepath = os.path.join(savepath, self.res_dir, 'visualize','plot_3d')
+			driftX, driftY, diffX, diffY = self._get_data_from_slider(time_scale)
+			fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF',xlabel="$M_{x}$", tick_size=12, label_size=12, title_size=12, r_fig=True)
+			self._visualize_figs.append(fig1)
+
+			"""
 			num_ticks = 5
-			savepath = os.path.join(savepath, self.res_dir, 'visualize',
-									'plot_3d')
 			fig1 = plt.figure()
 			plt.suptitle("PDF")
 			ax = fig1.add_subplot(projection="3d")
-			#H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(np.array([self._data_Mx[~np.isnan(self._data_Mx)], self._data_My[~np.isnan(self._data_My)]]))
 			H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(
 				self._remove_nan(self._data_Mx, self._data_My))
 			colors = plt.cm.coolwarm(dz.flatten() / float(dz.max()))
@@ -412,10 +445,11 @@ class output(preprocessing, visualize):
 			ax.tick_params(axis='both', which='major', labelsize=16)
 			ax.set_xticks(np.linspace(-1, 1, 5))
 			ax.set_yticks(np.linspace(-1, 1, 5))
-			self._hist_data = (X, Y, Z, dx, dy, dz)
-			self._visualize_figs.append(fig1)
-
-			fig1_1 = plt.figure()
+			"""
+			#H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nan(self._data_Mx, self._data_My))
+			#self._hist_data = (X, Y, Z, dx, dy, dz)
+			"""
+			fig1_1, ax  = plt.subplots()
 			plt.suptitle("PDF_heatmap", verticalalignment='center', ha='right')
 			ticks = self._data_op_x.copy()
 			ticks_loc = np.linspace(0, len(ticks), num_ticks)
@@ -435,51 +469,72 @@ class output(preprocessing, visualize):
 			ax.tick_params(axis='both', which='major', labelsize=14)
 			plt.tight_layout()
 			self._visualize_figs.append(fig1_1)
+			"""
 
-			fig2, _ = self.plot_data(self._data_avgdiffY,
-									  plot_plane=True,
+			fig2, _ = self.plot_data(diffY,
+									  plot_plane=False,
 									  title='DiffY',
-									  z_label='$B_{22}(m)$')
+									  z_label='$B_{22}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig2)
+			"""
 			fig2_1, _ = self.plot_data(self._data_avgdiffY,
 										title='DiffY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig2_1)
+			"""
 
-			fig3, _ = self.plot_data(self._data_avgdiffX,
-									  plot_plane=True,
+			fig3, _ = self.plot_data(diffX,
+									  plot_plane=False,
 									  title='DiffX',
-									  z_label='$B_{11}(m)$')
+									  z_label='$B_{11}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig3)
+			"""
 			fig3_1, _ = self.plot_data(self._data_avgdiffX,
 										title='DiffX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig3_1)
+			"""
 
-			fig4, _ = self.plot_data(self._data_avgdriftY,
+			fig4, _ = self.plot_data(driftY,
 									  plot_plane=False,
 									  title='DriftY',
-									  z_label='$A_{2}(m)$')
+									  z_label='$A_{2}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig4)
+			"""
 			fig4_1, _ = self.plot_data(self._data_avgdriftY,
 										title='DriftY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig4_1)
+			"""
 
-			fig5, _ = self.plot_data(self._data_avgdriftX,
+			fig5, _ = self.plot_data(driftX,
 									  plot_plane=False,
 									  title='DriftX',
-									  z_label='$A_{1}(m)$')
+									  z_label='$A_{1}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 			self._visualize_figs.append(fig5)
+			"""
 			fig5_1, _ = self.plot_data(self._data_avgdriftX,
 										title='DriftX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig5_1)
+			"""
 
 		if show: plt.show()
 		if save:
 			dpi = 150
-			savepath = self._make_dirctory(savepath)
+			savepath = self._make_directory(savepath)
 			for fig in self._visualize_figs:
 				fig.savefig(os.path.join(savepath,
 										 fig.texts[0].get_text() + ".png"),
@@ -563,7 +618,7 @@ class output(preprocessing, visualize):
 
 		if show: plt.show()
 		if save:
-			savepath = self._make_dirctory(
+			savepath = self._make_directory(
 				os.path.join(savepath, self.res_dir, 'diagnostic'))
 			for fig in self._diagnostics_figs:
 				fig.savefig(
@@ -590,7 +645,9 @@ class output(preprocessing, visualize):
 		"""
 		self._noise_figs = []
 		#print("Noise is gaussian") if self._ddsde.gaussian_noise else print("Noise is not Gaussian")
-
+		data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.h_lim, self._ddsde.k, self._ddsde.l_lim,self._ddsde._f, self._ddsde._noise_correlation]
+		fig = self._plot_noise_characterstics(data)
+		"""
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("Noise_Distrubution")
 		sns.distplot(self._ddsde._noise)
@@ -638,10 +695,10 @@ class output(preprocessing, visualize):
 		plt.plot(self._ddsde._noise_correlation[0],
 				 self._ddsde._noise_correlation[1])
 		self._noise_figs.append(fig4)
-
+		"""
 		if show: plt.show()
 		if save:
-			savepath = self._make_dirctory(
+			savepath = self._make_directory(
 				os.path.join(savepath, self.res_dir, 'noise_characterstics'))
 			for fig in self._noise_figs:
 				fig.savefig(
@@ -665,3 +722,14 @@ class InputError(Error):
 	def __init__(self, expression, message):
 		self.expression = expression
 		self.message = message
+
+	def __str__(self):
+		return self.message
+
+class PathNotFound(Error):
+	def __init__(self, full_path, message):
+		self.full_path = full_path
+		self.message = message
+
+	def __str__(self):
+		return self.message
