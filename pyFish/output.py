@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import os
 import gc
 import json
@@ -288,6 +289,7 @@ class output(preprocessing, visualize):
 			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
 			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
 
+		sys.stdout.flush()
 		fig = self._plot_summary(data, self.vector)
 		plt.show()
 		if r:
@@ -300,7 +302,7 @@ class output(preprocessing, visualize):
 										self.vector)
 		else:
 			fig = self._plot_timeseries([self._data_X], self.vector)
-		fig.show()
+		plt.show()
 		return fig
 
 	def histogram(self):
@@ -309,7 +311,7 @@ class output(preprocessing, visualize):
 										self.vector)
 		else:
 			fig = self._plot_histograms([self._data_X], self.vector)
-		fig.show()
+		plt.show()
 		return fig
 
 	def drift(self):
