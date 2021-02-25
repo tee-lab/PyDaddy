@@ -1,4 +1,4 @@
-name: pyFish
+name: pyddsde
 channels:
   - defaults
 dependencies:
