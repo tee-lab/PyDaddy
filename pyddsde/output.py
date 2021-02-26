@@ -16,9 +16,11 @@ import statsmodels.api as sm
 import statsmodels.stats.diagnostic
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
 from pyddsde.preprocessing import preprocessing
 from pyddsde.visualize import visualize
 
+__all__ = ['output']
 
 class output(preprocessing, visualize):
 	"""
@@ -708,7 +710,11 @@ class output(preprocessing, visualize):
 
 
 class Error(Exception):
-	"""Base class for exceptions in this module."""
+	"""
+	Base class for exceptions in this module.
+	
+    :meta private:
+	"""
 	pass
 
 
@@ -718,6 +724,8 @@ class InputError(Error):
 	Attributes:
 		expression -- input expression in which the error occurred
 		message -- explanation of the error
+
+    :meta private:
 	"""
 	def __init__(self, expression, message):
 		self.expression = expression
@@ -727,6 +735,11 @@ class InputError(Error):
 		return self.message
 
 class PathNotFound(Error):
+	"""
+	pass
+
+    :meta private:
+	"""
 	def __init__(self, full_path, message):
 		self.full_path = full_path
 		self.message = message

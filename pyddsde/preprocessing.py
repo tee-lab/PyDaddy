@@ -9,6 +9,11 @@ from pyddsde.sde import SDE
 
 
 class preprocessing(gaussian_test):
+	"""
+	pass
+
+    :meta private:
+	"""
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
 		gaussian_test.__init__(self)
@@ -151,27 +156,3 @@ class preprocessing(gaussian_test):
 									 inc=inc)
 
 
-"""
-	def _detailed_estimate(self, X, M_square, t_int, dt='auto', delta_t=1, max_order=10, inc=0.01, t_lag=1000):
-		self._kl_min = []
-		self._kl_max = []
-		self._kl_min_index = []
-		autocorr_time = self._get_autocorr_time(M_square, t_lag=t_lag)
-		order,_ = self._order(X, M_square, t_int, dt='auto', max_order=max_order, inc=inc)
-		for i in tqdm(range(1,autocorr_time)):
-			_,_,_, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=i, delta_t=delta_t ,inc=inc)
-			q_poly, op = self._fit_poly(x=op, y=avgDrift, deg=order)
-			q = q_poly(op)
-			kl = []
-			for _dt in range(1,autocorr_time):
-				_,_,_, avgDrift, op = self._drift_and_diffusion(X, t_int, dt=_dt, delta_t=delta_t ,inc=inc)
-				p_poly, op = self._fit_poly(x=op, y=avgDrift, deg=order)
-				p = p_poly(op)
-				kl.append(self._kl_divergence(p,q))
-			kl = np.array(kl)
-			self._kl_min.append(kl.min())
-			self._kl_max.append(kl.max())
-			self._kl_min_index.append(kl.argmin())
-		print("Optimium dt found : {}".format(np.abs(self._kl_min).argmin()))
-		return np.abs(self._kl_min).argmin()
-"""

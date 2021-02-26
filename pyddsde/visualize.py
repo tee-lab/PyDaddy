@@ -10,7 +10,9 @@ from pyddsde.metrics import metrics
 
 class visualize(metrics):
 	"""
-	plots
+	Module to visualize and plot analysed data
+
+    :meta private:
 	"""
 	def __init__(self, op_x, op_y, op, autocorrelation_time, **kwargs):
 		self.op_x = op_x
@@ -23,7 +25,7 @@ class visualize(metrics):
 		return None
 
 
-	def stylize_axes(self,
+	def _stylize_axes(self,
 					 ax,
 					 x_label=None,
 					 y_label=None,
@@ -32,6 +34,10 @@ class visualize(metrics):
 					 title_size=20,
 					 label_size=20,
 					 label_pad=12):
+		"""
+		Beautify the plot axis
+		"""
+
 		# Hide the top and right spines of the axis
 		ax.spines['top'].set_visible(False)
 		ax.spines['right'].set_visible(False)
@@ -41,7 +47,6 @@ class visualize(metrics):
 		ax.set_xlabel(x_label, fontsize=label_size, labelpad=label_pad)
 		ax.set_ylabel(y_label, fontsize=label_size, labelpad=label_pad)
 		ax.tick_params(axis='both', which='major', labelsize=tick_size)
-
 
 		return None
 
@@ -56,6 +61,9 @@ class visualize(metrics):
 					  n_yticks=3,
 					  timeseries_start=0,
 					  timeseries_end=1000):
+		"""
+		Plots the summary chart
+		"""
 		if vector:
 			Mx, My, driftX, driftY, diffX, diffY = data
 			M = np.sqrt(Mx**2 + My**2)
@@ -71,7 +79,7 @@ class visualize(metrics):
 			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end])
 			#Mx_axis.set_xticks([])
 			Mx_axis.set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
-			self.stylize_axes(Mx_axis,
+			self._stylize_axes(Mx_axis,
 				  x_label='',
 				  y_label='$M_{x}$',
 				  title='Time Series',
@@ -85,7 +93,7 @@ class visualize(metrics):
 			My_axis = fig.add_subplot(gs[1,0:2])
 			My_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end])
 			My_axis.set_yticks(np.linspace(min(My), max(My), n_yticks).round(2))
-			self.stylize_axes(My_axis,
+			self._stylize_axes(My_axis,
 				  x_label='Time Index',
 				  y_label='$M_{y}$',
 				  title='',
@@ -155,7 +163,7 @@ class visualize(metrics):
 			distMx_axis = sns.distplot(Mx, kde=kde, ax=distMx_axis)
 			ticks = [str(i)+"K" for i in (np.array(distMx_axis.get_yticks())/1000).round(1)]
 			distMx_axis.set_yticklabels(ticks)
-			self.stylize_axes(distMx_axis,
+			self._stylize_axes(distMx_axis,
 							  x_label='Order Parameter',
 							  y_label='Frequency',
 							  title='Dist Mx',
@@ -168,7 +176,7 @@ class visualize(metrics):
 			distMy_axis = sns.distplot(My, kde=kde, ax=distMy_axis)
 			ticks = [str(i)+"K" for i in (np.array(distMy_axis.get_yticks())/1000).round(1)]
 			distMy_axis.set_yticklabels(ticks)
-			self.stylize_axes(distMy_axis,
+			self._stylize_axes(distMy_axis,
 							  x_label='Order Parameter',
 							  y_label='Frequency',
 							  title='Dist My',
@@ -182,7 +190,7 @@ class visualize(metrics):
 			distM_axis = sns.distplot(np.sqrt(Mx**2 + My**2), kde=kde, ax=distM_axis)
 			ticks = [str(i)+"K" for i in (np.array(distM_axis.get_yticks())/1000).round(1)]
 			distM_axis.set_yticklabels(ticks)
-			self.stylize_axes(distM_axis,
+			self._stylize_axes(distM_axis,
 							  x_label='Order Parameter',
 							  y_label='Frequency',
 							  title='Dist |M|',
@@ -204,7 +212,7 @@ class visualize(metrics):
 			ax[0][0].plot(range(timeseries_start, timeseries_end),
 						  M[timeseries_start:timeseries_end])
 			ax[0][0].set_ylim(0, 1)
-			self.stylize_axes(ax[0][0],
+			self._stylize_axes(ax[0][0],
 							  x_label='Time Index',
 							  y_label='|M|',
 							  title='Time Series',
@@ -219,7 +227,7 @@ class visualize(metrics):
 			ax[1][0] = self._plot_3d_hisogram(Mx, My, ax=ax[1][0], title='Mx,My distrubition', title_size=title_size, tick_size=tick_size,label_size=label_size, label_pad=label_pad)
 
 			#sns.distplot(M, kde=kde, ax=ax[1][0])
-			#self.stylize_axes(ax[1][0],
+			#self._stylize_axes(ax[1][0],
 			#				  x_label='op',
 			#				  y_label='freq',
 			#				  title='Dist |M|',
@@ -294,7 +302,7 @@ class visualize(metrics):
 			ax[0][0].plot(range(timeseries_start, timeseries_end),
 						  M[timeseries_start:timeseries_end])
 			ax[0][0].set_ylim(min(M), max(M))
-			self.stylize_axes(ax[0][0],
+			self._stylize_axes(ax[0][0],
 							  x_label='Time Index',
 							  y_label='|M|',
 							  title='Time Series',
@@ -305,7 +313,7 @@ class visualize(metrics):
 
 			#Dist |M|
 			sns.distplot(M, kde=kde, ax=ax[1][0])
-			self.stylize_axes(ax[1][0],
+			self._stylize_axes(ax[1][0],
 							  x_label='Order Parameter',
 							  y_label='Frequency',
 							  title='Dist |M|',
@@ -322,7 +330,7 @@ class visualize(metrics):
 							 marker='.',
 							 alpha=0.4,
 							 label='poly_fit')
-			self.stylize_axes(ax[0][1],
+			self._stylize_axes(ax[0][1],
 							  x_label='op',
 							  y_label='$A_{1}$',
 							  title='Drift',
@@ -339,7 +347,7 @@ class visualize(metrics):
 							 marker='.',
 							 alpha=0.4,
 							 label='poly_fit')
-			self.stylize_axes(ax[1][1],
+			self._stylize_axes(ax[1][1],
 							  x_label='op',
 							  y_label='$B_{1}$',
 							  title='Diffusion',
@@ -363,6 +371,10 @@ class visualize(metrics):
 						 title_size=14,
 						 label_size=14,
 						 label_pad=0):
+		"""
+		Plots timeseries figure
+		"""
+
 		if vector:
 			Mx, My = timeseries
 			if stop > len(Mx):
@@ -371,19 +383,19 @@ class visualize(metrics):
 			ax[0].plot(range(start, stop),Mx[start:stop], linewidth=1)
 			ax[0].set_xticks([])
 			ax[0].set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
-			self.stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', label_size=label_size, title_size=title_size, tick_size=tick_size)
+			self._stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', label_size=label_size, title_size=title_size, tick_size=tick_size)
 
 
 			ax[1].plot(range(start, stop),My[start:stop], linewidth=1)
 			ax[1].set_xticks([])
 			ax[1].set_yticks(np.linspace(min(My), max(My), n_yticks).round(2))
-			self.stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',label_size=label_size, tick_size=tick_size)
+			self._stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',label_size=label_size, tick_size=tick_size)
 
 
 			M = np.sqrt(Mx**2 + My**2)
 			ax[2].plot(range(start, stop),M[start:stop], linewidth=1)
 			ax[2].set_yticks(np.linspace(min(M), max(M), n_yticks).round(2))
-			self.stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', label_size=label_size, tick_size=tick_size)
+			self._stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', label_size=label_size, tick_size=tick_size)
 
 
 		else:
@@ -392,7 +404,7 @@ class visualize(metrics):
 				stop = len(Mx)
 			fig, ax = plt.subplots(dpi=150, figsize=(6,3))
 			ax.plot(range(start, stop),Mx[start:stop], linewidth=1)
-			self.stylize_axes(ax,x_label='Time Scale', y_label='$M$', title='Time Series',tick_size=tick_size, label_size=label_size, title_size=title_size)
+			self._stylize_axes(ax,x_label='Time Scale', y_label='$M$', title='Time Series',tick_size=tick_size, label_size=label_size, title_size=title_size)
 			ax.set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
 
 		plt.tight_layout()
@@ -407,6 +419,10 @@ class visualize(metrics):
 						 label_size=15,
 						 tick_size=12,
 						 label_pad=8):
+		"""
+		Plot histogram figures
+		"""
+
 		if vector:
 			Mx, My = timeseries
 			M = np.sqrt(Mx**2 + My**2)
@@ -415,17 +431,17 @@ class visualize(metrics):
 			ax[0][0] = sns.distplot(Mx, kde=kde, ax=ax[0][0])
 			ticks = [str(i)+"K" for i in (np.array(ax[0][0].get_yticks())/1000).round(1)]
 			ax[0][0].set_yticklabels(ticks)
-			self.stylize_axes(ax[0][0],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0][0],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1])
 			ticks = [str(i)+"K" for i in (np.array(ax[0][1].get_yticks())/1000).round(1)]
 			ax[0][1].set_yticklabels(ticks)
-			self.stylize_axes(ax[0][1],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0][1],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0])
 			ticks = [str(i)+"K" for i in (np.array(ax[1][0].get_yticks())/1000).round(1)]
 			ax[1][0].set_yticklabels(ticks)
-			self.stylize_axes(ax[1][0],	x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[1][0],	x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][1].remove()
 			ax[1][1] = fig.add_subplot(2,2,4, projection='3d')
@@ -436,12 +452,12 @@ class visualize(metrics):
 			M = timeseries[0]
 			fig, ax = plt.subplots(nrows=1, ncols=2, dpi=150, figsize=(8,4))
 			ax[0] = sns.distplot(M, kde=kde, ax=ax[0])
-			self.stylize_axes(ax[0], x_label='Order Parameter', y_label='Frequency', title="M",tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0], x_label='Order Parameter', y_label='Frequency', title="M",tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 			ticks = [str(i)+"K" for i in (np.array(ax[0].get_yticks())/1000).round(1)]
 			ax[0].set_yticklabels(ticks)
 
 			ax[1] = sns.distplot(np.sqrt(M**2), kde=kde, ax=ax[1])
-			self.stylize_axes(ax[1], x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[1], x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 			ticks = [str(i)+"K" for i in (np.array(ax[1].get_yticks())/1000).round(1)]
 			ax[1].set_yticklabels(ticks)
 
@@ -456,12 +472,16 @@ class visualize(metrics):
 									tick_size=15, 
 									label_size=15,
 									label_pad=8):
+		"""
+		Plot noise charactersitic figure
+		"""
+
 		noise, kl_dist, X1, h_lim, k, l_lim, f, noise_correlation = data
 
 		fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(10,8))
 
 		ax[0][0] = sns.distplot(noise, kde=kde, ax=ax[0][0])
-		self.stylize_axes(ax[0][0],	
+		self._stylize_axes(ax[0][0],	
 						x_label='', 
 						y_label='Density', 
 						title="Noise Distrubution", 
@@ -471,7 +491,7 @@ class visualize(metrics):
 						label_pad=label_pad)
 
 		ax[0][1].plot(noise_correlation[0], noise_correlation[1])
-		self.stylize_axes(ax[0][1],	
+		self._stylize_axes(ax[0][1],	
 						x_label='', 
 						y_label='Correlation coeff', 
 						title="Noise Correlation", 
@@ -488,7 +508,7 @@ class visualize(metrics):
 		 np.linspace(start, stop, len(X1)), 'g', label='Test Statistics')
 		ax[1][0].plot(np.ones(len(X1)) * h_lim,
 		 np.linspace(start, stop, len(X1)), 'r', label='upper_cl')
-		self.stylize_axes(ax[1][0],	
+		self._stylize_axes(ax[1][0],	
 				x_label='', 
 				y_label='', 
 				title="Null hypothesis", 
@@ -503,7 +523,7 @@ class visualize(metrics):
 		ax[1][1].plot(np.ones(len(X1[1:])) * l_lim, f, 'r', label='lower_cl')
 		ax[1][1].plot(np.ones(len(X1[1:])) * h_lim, f, 'r', label='upper_cl')
 		ax[1][1].plot(np.ones(len(X1[1:])) * k, f, 'g', label='Test Stat')
-		self.stylize_axes(ax[1][1],	
+		self._stylize_axes(ax[1][1],	
 				x_label='', 
 				y_label='', 
 				title="CDF", 
@@ -518,10 +538,16 @@ class visualize(metrics):
 
 
 	def _remove_nans(self, Mx, My):
+		"""
+		Remove nan's from data
+		"""
 		nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
 		return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
 
 	def _plot_3d_hisogram(self, Mx, My, ax=None, title="PDF",xlabel="$M_{x}$", ylabel="$M_{y}$",zlabel="Frequency", tick_size=12, title_size=14, label_size=10, label_pad=12, r_fig=False, dpi=150):
+		"""
+		Plot 3d bar plot
+		"""
 		if ax is None:
 			fig = plt.figure(dpi=dpi)
 			ax = fig.add_subplot(projection="3d")
@@ -551,6 +577,10 @@ class visualize(metrics):
 		return ax
 
 	def _slider_3d(self, slider_data, init_pos=0, prefix='dt'):
+		"""
+		Get slider for analysed vector data.
+		"""
+
 		dt_s = list(slider_data.keys())
 		opt_step = dt_s[init_pos]
 		if prefix == 'Dt':
@@ -712,6 +742,10 @@ class visualize(metrics):
 		return fig
 
 	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt'):
+		"""
+		Get slider for analysed scalar data
+		"""
+
 		data = slider_data
 		title_template = r"$\text{{ {0} |  Auto correlation time : {1} }} | \text{{ Slider switched to }}{2}= {3}$"
 		if prefix == 'Dt':
@@ -789,6 +823,13 @@ class visualize(metrics):
 		return fig
 
 	def _thrace_pane(self, data):
+		"""
+		Thrace an arbetery surface that covers the data points.
+
+		Notes
+		-----
+		To be used only to get a better visual of the shape of the surface.
+		"""
 		op_x = self.op_x.copy()
 		op_y = self.op_y.copy()
 		plane1 = []
@@ -840,6 +881,10 @@ class visualize(metrics):
 				  m_th=2,
 				  dpi=150,
 				  heatmap=False):
+		"""
+		Plot data on a 3d axis
+		"""
+
 		fig = None
 		if heatmap:
 			return self._plot_heatmap(data_in, title=title)
@@ -912,6 +957,9 @@ class visualize(metrics):
 		return fig, ax
 
 	def _plot_heatmap(self, data, title='title', num_ticks=5):
+		"""
+		Plots heatmap of data
+		"""
 		fig = plt.figure()
 		plt.suptitle(title, verticalalignment='center', ha='right')
 		ticks = self.op_x.copy()
@@ -928,7 +976,7 @@ class visualize(metrics):
 		ax.set_yticks(ticks_loc)
 		ax.tick_params(axis='both', which='major', labelsize=14)
 		plt.tight_layout()
-		return fig, None
+		return fig, ax
 
 	def _histogram3d(self,
 					 x,
