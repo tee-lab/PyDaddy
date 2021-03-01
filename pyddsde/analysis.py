@@ -16,9 +16,10 @@ class AutoCorrelation:
 
 	Parameters:
 	fft : bool
-		If True, use fft method (wiener khinchin theorem) to calculate acf 
+	If True, use fft method (wiener khinchin theorem) to calculate acf.
 
-    :meta private:
+	:meta private:
+
 	"""
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)

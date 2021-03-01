@@ -58,6 +58,10 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.order_metric = order_metric
 		self.fft = fft
 		self.n_trials = n_trials
+		self._show_summary = show_summary
+
+		self.drift_order = None
+		self.diff_order = None
 
 		self.drift_order = None
 		self.diff_order = None

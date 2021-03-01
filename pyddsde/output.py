@@ -73,14 +73,16 @@ class output(preprocessing, visualize):
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
 
-		return self.summary(ret_fig=False)
+		if ddsde._show_summary:
+			return self.summary(ret_fig=False)
+		return None
 
 	def release(self):
 		"""
 		Clears the memory, recommended to be used while analysing multiple
 		data files in loop.
 
-		returns
+		Returns
 		-------
 			None
 		"""
@@ -91,30 +93,6 @@ class output(preprocessing, visualize):
 		gc.collect()
 		return None
 
-	"""
-	def _make_directory(self, p, i=1):
-		""
-		Recursively create directories in given path
-
-		Args
-		----
-		p : str
-			destination path
-
-		returns
-		-------
-		path : str
-			same as input p
-		""
-		if type(p) != list: p = p.split('/')
-		if i > len(p):
-			return os.path.join(*p)
-		try:
-			os.mkdir(os.path.join(*p[0:i]))
-		except FileExistsError:
-			pass
-		return self._make_directory(p, i=i + 1)
-	"""
 
 	def export_data(self, dir_path=None, save_mat=True, zip=False):
 		"""
@@ -129,9 +107,9 @@ class output(preprocessing, visualize):
 		zip : bool, optional(default=False)
 			If True, creates zip files of exported data
 
-		returns
+		Returns
 		-------
-		str
+		path : str
 			path where data is exported
 		"""
 		if dir_path is None:
@@ -165,7 +143,7 @@ class output(preprocessing, visualize):
 		time_scale : int, optional(default=None)
 			time_scale corresponding to the data, if None, returns data for analysed given dt
 
-		returns
+		Returns
 		-------
 		list
 			- if vector, [avgdriftX, avgdriftY, avgdiffX, avgdiffY, op_x, op_y] 
@@ -178,83 +156,84 @@ class output(preprocessing, visualize):
 		driftX, driftY, diffX, diffY = self._get_data_from_slider(time_scale)
 		return driftX, driftY, diffX, diffY, self._data_op_x, self._data_op_y
 
+	def plot_data(self,
+					data_in,
+					ax=None,
+					clear=False,
+					title=None,
+					x_label='x',
+					y_label='y',
+					z_label='z',
+					tick_size=12,
+					title_size=16,
+					label_size=14,
+					label_pad=12,
+					legend_label=None,
+					legend=False,
+					dpi=150):
 		"""
-	def save_data(self, file_name='data', savepath='results', savemat=True):
-		""
-		Save calculated data to file
+		Plot and visualize vector drift or diffusion data of a 3d axis
 
-		Input params:
-		--------------
-		file_name : str
-			name of the file, if None, file name will be the time a which the data was analysed
-		savepath : str
-			destination path to save data, if None, files will me saved in current/working/directory/results
-		savemat : bool
-			if True also saves the data in matlab compatable (.mat) format.
+		Can be used plot multiple data on the same figure and compare by passing the axis of 
+		figure.
 
-		returns:
-		-------------
-			None
-		""
-		if file_name is None: file_name = self.res_dir
-		savepath = self._make_directory(os.path.join(savepath, self.res_dir))
-		if not self.vector:
-			data_dict = {
-				'drift': self._data_drift,
-				'diff': self._data_diff,
-				'avgdrift': self._data_avgdrift,
-				'avgdiff': self._data_avgdiff,
-				'op': self._data_op
-			}
-		else:
-			x, y = np.meshgrid(self._data_op_x, self._data_op_y)
-			data_dict = {
-				'avgdriftX': self._data_avgdriftX,
-				'avgdriftY': self._data_avgdriftY,
-				'avgdiffX': self._data_avgdiffX,
-				'avgdiffY': self._data_avgdiffY,
-				'avgdiffXY': self._data_avgdiffXY,
-				'op_x': self._data_op_x,
-				'op_y': self._data_op_y,
-				'x': x,
-				'y': y
-			}
-		with open(os.path.join(savepath, file_name + '.pkl'), 'wb') as file:
-			pickle.dump(data_dict, file)
-		if savemat:
-			scipy.io.savemat(os.path.join(savepath, file_name + '.mat'),
-							 mdict=data_dict)
+		Args
+		----
+		data_in : numpy.array
+			vector drift or diffusion data to plot
+		ax : figure axis, (default=None)
+			Ia ax is None, a new axis will be created and data will be plotted on it.
+		clear : bool, (default=False)
+			if True, clear the figure.
+		title : str, (default=None)
+			title of the figure
+		x_label : str, (default='x')
+			x-axis label
+		y_label : str, (default='y')
+			y-axis label
+		z_label : str, (default='z')
+			z-axis label
+		tick_size : int, (default=12)
+			axis ticks font size
+		title_size : int, (default=16)
+			title font size
+		label_size : int, (default=14)
+			axis label font size
+		label_pad : int, (default=12)
+			axis label padding
+		legend_label : str, (default=None)
+			data legend label
+		dpi : int, (default=150)
+			figure resolution
 
-		return None
-		"""
+		Returns
+		-------
+		ax : 3d figure axis
+			axis of the 3d figure.
+		fig : matplotlib figure
+			returns figure only if the input ax is None.
 
 		"""
-	def save_all_data(self, savepath='results', file_name='data'):
-		""
-		Saves all data and figures
+		fig, ax = self._plot_data(data_in,
+									ax=ax,
+									title=title,
+									x_label=x_label,
+									y_label=y_label,
+									z_label=z_label,
+									clear=clear,
+									legend=legend,
+									tick_size=tick_size,
+									title_size=title_size,
+									label_size=label_size,
+									label_pad=label_pad,
+									label=legend_label,
+									dpi=dpi)
 
-		Input params:
-		--------------
-		show : bool
-			if True, shows the figure
-		file_name : str
-			name of the files, if None, time at which data was analysed is consideres as file name
-		savepath : str
-			save destination path, if None, data is saved in current/working/directory/results
+		if fig is None:
+			return ax
+		return ax, fig
 
-		returns:
-		-------------
-			None
-		""
-		self.save_data(file_name=file_name, savepath=savepath)
-		self.parameters(save=True, savepath=savepath)
-		self.visualize(show=False, save=True, savepath=savepath)
-		self.diagnostic(show=False, save=True, savepath=savepath)
-		self.noise_characterstics(show=False, save=True, savepath=savepath)
-		self.slices_2d(show=False, save=True, savepath=savepath)
-		print('Results saved in: {}'.format(
-			os.path.join(savepath, self.res_dir)))
-		"""
+
 
 	def parameters(self):
 		"""
@@ -263,7 +242,7 @@ class output(preprocessing, visualize):
 		Args
 		----
 
-		returns
+		Returns
 		-------
 		params : dict, json
 			all parameters given and assumed used for analysis
@@ -274,19 +253,42 @@ class output(preprocessing, visualize):
 				params[keys] = str(self._ddsde.__dict__[keys])
 		return params
 
-	def summary(self, ret_fig=True):
+	def summary(self, start=0, end=1000, kde=False, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3 ,ret_fig=True):
 		"""
 		Print summary of data and show summary plots chart
 
 		Args
 		----
-			ret_fig : bool, optional(default=True)
+			start : int, (default=0)
+				starting index, begin plotting timeseries from this point
+			end : int, default=1000
+				end point, plots timeseries till this index
+			kde : bool, (default=False)
+				if True, plot kde for histograms
+			title_size : int, (default=15)
+				title font size
+			tick_size : int, (default=12)
+				axis tick size
+			label_size : int, (default=15)
+				label font size
+			label_pad : int, (default=8)
+				axis label padding
+			n_ticks : int, (default=3)
+				number of axis ticks
+			ret_fig : bool, (default=True)
 				if True return figure object
 
-		returns
+		Returns
 		-------
 			None, or figure
+
+		Raises
+		------
+		ValueError
+			If start is greater than end
 		"""
+		if start > end:
+			raise ValueError("'start' sould not be greater than 'end'")
 		if not self.vector:
 			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'M range', 'M mean', '|M| mean']
 			values = [self.vector, self.autocorrelation_time,self._ddsde.gaussian_noise,(round(min(self._data_X), 2), round(max(self._data_X), 2)),	round(np.mean(self._data_X), 2),round(np.mean(np.sqrt(self._data_X**2)), 2)]
@@ -312,47 +314,103 @@ class output(preprocessing, visualize):
 			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
 
 		sys.stdout.flush()
-		fig = self._plot_summary(data, self.vector)
+		fig = self._plot_summary(data, self.vector, kde=kde, tick_size=tick_size, title_size=title_size, label_size=label_size, label_pad=label_pad, n_ticks=n_ticks, timeseries_start=start, timeseries_end=end)
 		plt.show()
 		if ret_fig:
 			return fig
 		return None
 
-	def timeseries(self):
+	def timeseries(self,
+					start=0,
+					 end=1000,
+					 n_ticks=3,
+					 dpi=150,
+					 tick_size=12,
+					 title_size=14,
+					 label_size=14,
+					 label_pad=0):
 		"""
 		Show plot of input data
 
 		Args
 		----
+		start : int, (default=0)
+			starting index, begin plotting timeseries from this point
+		end : int, default=1000
+			end point, plots timeseries till this index
+		n_ticks : int, (default=3)
+			number of axis ticks
+		dpi : int, (default=150)
+			dpi of the figure
+		title_size : int, (default=15)
+			title font size
+		tick_size : int, (default=12)
+			axis tick size
+		label_size : int, (default=15)
+			label font size
+		label_pad : int, (default=8)
+			axis label padding
 
-		returns
+		Returns
 		-------
 		time series plot : matplotlib.pyplot.figure
+
+		Raises
+		------
+		ValueError
+			If start is greater than end
 		"""
+		if start > end:
+			raise ValueError("'start' sould not be greater than 'end'")
 		if self.vector:
-			fig = self._plot_timeseries([self._data_Mx, self._data_My],
-										self.vector)
+			data = [self._data_Mx, self._data_My]
 		else:
-			fig = self._plot_timeseries([self._data_X], self.vector)
+			data = [self._data_X]
+		fig = self._plot_timeseries(data, self.vector,start=start, stop=end, n_ticks=n_ticks, dpi=dpi, tick_size=tick_size, title_size=title_size, label_size=label_size, label_pad=label_pad)
 		plt.show()
 		return fig
 
-	def histogram(self):
+	def histogram(self,	 
+					 kde=False,
+					 dpi=150,
+					 title_size=14,
+					 label_size=15,
+					 tick_size=12,
+					 label_pad=8):
 		"""
 		Show histogram polt chart
 
 		Args
 		----
+		kde : bool, (default=False)
+			If True, plots kde for histograms
+		dpi : int, (defautl=150)
+			figure resolution
+		title_size : int, (default=14)
+			title font size
+		label_size : int, (default=15)
+			axis label font size
+		tick_size : int, (default=12)
+			axis ticks font size
+		label_pad : int, (default=8)
+			axis label padding
 
-		returns
+		Returns
 		-------
 		histogam chart : matplotlib.pyplot.figure
 		"""
 		if self.vector:
-			fig = self._plot_histograms([self._data_Mx, self._data_My],
-										self.vector)
+			data = [self._data_Mx, self._data_My]
 		else:
-			fig = self._plot_histograms([self._data_X], self.vector)
+			data = [self._data_X]
+		fig = self._plot_histograms(data, 
+									 self.vector,
+									 dpi=dpi,
+									 kde=kde,
+									 title_size=title_size,
+									 label_size=label_size,
+									 tick_size=tick_size,
+									 label_pad=label_pad)
 		plt.show()
 		return fig
 
@@ -363,7 +421,7 @@ class output(preprocessing, visualize):
 		Args
 		----
 
-		returns
+		Returns
 		-------
 		opens drift slider : None
 		"""
@@ -385,7 +443,7 @@ class output(preprocessing, visualize):
 		Args
 		----
 
-		returns
+		Returns
 		-------
 		opens diffusion slider : None
 		"""
@@ -409,7 +467,7 @@ class output(preprocessing, visualize):
 			timescale for which drift and diffusion plots need to be shown.
 			If None, displays the plots for inputed timescale.
 
-		returns
+		Returns
 		-------
 			displays plots : None
 		"""
@@ -470,7 +528,7 @@ class output(preprocessing, visualize):
 			fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF',xlabel="$M_{x}$", tick_size=12, label_size=12, title_size=12, r_fig=True)
 			self._visualize_figs.append(fig1)
 
-			fig2, _ = self.plot_data(diffY,
+			fig2, _ = self._plot_data(diffY,
 									  plot_plane=False,
 									  title='DiffY',
 									  z_label='$B_{22}(m)$',
@@ -479,13 +537,13 @@ class output(preprocessing, visualize):
 									  title_size=16)
 			self._visualize_figs.append(fig2)
 			"""
-			fig2_1, _ = self.plot_data(self._data_avgdiffY,
+			fig2_1, _ = self._plot_data(self._data_avgdiffY,
 										title='DiffY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig2_1)
 			"""
 
-			fig3, _ = self.plot_data(diffX,
+			fig3, _ = self._plot_data(diffX,
 									  plot_plane=False,
 									  title='DiffX',
 									  z_label='$B_{11}(m)$',
@@ -494,13 +552,13 @@ class output(preprocessing, visualize):
 									  title_size=16)
 			self._visualize_figs.append(fig3)
 			"""
-			fig3_1, _ = self.plot_data(self._data_avgdiffX,
+			fig3_1, _ = self._plot_data(self._data_avgdiffX,
 										title='DiffX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig3_1)
 			"""
 
-			fig4, _ = self.plot_data(driftY,
+			fig4, _ = self._plot_data(driftY,
 									  plot_plane=False,
 									  title='DriftY',
 									  z_label='$A_{2}(m)$',
@@ -509,13 +567,13 @@ class output(preprocessing, visualize):
 									  title_size=16)
 			self._visualize_figs.append(fig4)
 			"""
-			fig4_1, _ = self.plot_data(self._data_avgdriftY,
+			fig4_1, _ = self._plot_data(self._data_avgdriftY,
 										title='DriftY_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig4_1)
 			"""
 
-			fig5, _ = self.plot_data(driftX,
+			fig5, _ = self._plot_data(driftX,
 									  plot_plane=False,
 									  title='DriftX',
 									  z_label='$A_{1}(m)$',
@@ -524,7 +582,7 @@ class output(preprocessing, visualize):
 									  title_size=16)
 			self._visualize_figs.append(fig5)
 			"""
-			fig5_1, _ = self.plot_data(self._data_avgdriftX,
+			fig5_1, _ = self._plot_data(self._data_avgdriftX,
 										title='DriftX_heatmap',
 										heatmap=True)
 			self._visualize_figs.append(fig5_1)
@@ -541,7 +599,7 @@ class output(preprocessing, visualize):
 		Args
 		----
 
-		returns
+		Returns
 		-------
 		displays figures : None
 		"""
@@ -613,7 +671,7 @@ class output(preprocessing, visualize):
 		Args
 		----
 
-		returns
+		Returns
 		-------
 		displays plots : None
 		"""

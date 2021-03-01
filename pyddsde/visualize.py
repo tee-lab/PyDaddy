@@ -58,7 +58,7 @@ class visualize(metrics):
 					  title_size=15,
 					  label_size=15,
 					  label_pad=8,
-					  n_yticks=3,
+					  n_ticks=3,
 					  timeseries_start=0,
 					  timeseries_end=1000):
 		"""
@@ -78,7 +78,7 @@ class visualize(metrics):
 			Mx_axis = fig.add_subplot(gs[0,0:2])
 			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end])
 			#Mx_axis.set_xticks([])
-			Mx_axis.set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
+			Mx_axis.set_yticks(np.linspace(min(Mx), max(Mx), n_ticks).round(2))
 			self._stylize_axes(Mx_axis,
 				  x_label='',
 				  y_label='$M_{x}$',
@@ -92,7 +92,7 @@ class visualize(metrics):
 
 			My_axis = fig.add_subplot(gs[1,0:2])
 			My_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end])
-			My_axis.set_yticks(np.linspace(min(My), max(My), n_yticks).round(2))
+			My_axis.set_yticks(np.linspace(min(My), max(My), n_ticks).round(2))
 			self._stylize_axes(My_axis,
 				  x_label='Time Index',
 				  y_label='$M_{y}$',
@@ -105,7 +105,7 @@ class visualize(metrics):
 			My_axis.grid("on")
 
 			driftX_axis = fig.add_subplot(gs[2,0], projection='3d')
-			_, driftX_axis = self.plot_data(driftX,
+			_, driftX_axis = self._plot_data(driftX,
 										 ax=driftX_axis,
 										 title="Drift X",
 										 x_label='$m_{x}$',
@@ -120,7 +120,7 @@ class visualize(metrics):
 
 
 			driftY_axis = fig.add_subplot(gs[2,1], projection='3d')
-			_, driftY_axis = self.plot_data(driftY,
+			_, driftY_axis = self._plot_data(driftY,
 										 ax=driftY_axis,
 										 title="Drift Y",
 										 x_label='$m_{x}$',
@@ -136,7 +136,7 @@ class visualize(metrics):
 
 
 			diffX_axis = fig.add_subplot(gs[2,2], projection='3d')
-			_, driffX_axis = self.plot_data(diffX,
+			_, driffX_axis = self._plot_data(diffX,
 										 ax=diffX_axis,
 										 title="Diffusion X",
 										 x_label='$m_{x}$',
@@ -148,7 +148,7 @@ class visualize(metrics):
 										 label_pad=label_pad)
 
 			diffY_axis = fig.add_subplot(gs[2,3], projection='3d')
-			_, diffY_axis = self.plot_data(diffY,
+			_, diffY_axis = self._plot_data(diffY,
 										 ax=diffY_axis,
 										 title="Drift X",
 										 x_label='$m_{x}$',
@@ -239,7 +239,7 @@ class visualize(metrics):
 			#Drift X
 			ax[0][1].remove()
 			ax[0][1] = fig.add_subplot(2, 3, 2, projection='3d')
-			_, ax[0][1] = self.plot_data(driftX,
+			_, ax[0][1] = self._plot_data(driftX,
 										 ax=ax[0][1],
 										 title="Drift X",
 										 x_label='$m_{x}$',
@@ -253,7 +253,7 @@ class visualize(metrics):
 			#Drift Y
 			ax[0][2].remove()
 			ax[0][2] = fig.add_subplot(2, 3, 3, projection='3d')
-			_, ax[0][2] = self.plot_data(driftY,
+			_, ax[0][2] = self._plot_data(driftY,
 										 ax=ax[0][2],
 										 title="Drift Y",
 										 x_label='$m_{x}$',
@@ -267,7 +267,7 @@ class visualize(metrics):
 			#Diffusion X
 			ax[1][1].remove()
 			ax[1][1] = fig.add_subplot(2, 3, 5, projection='3d')
-			_, ax[1][1] = self.plot_data(diffX,
+			_, ax[1][1] = self._plot_data(diffX,
 										 ax=ax[1][1],
 										 title="Diffusion X",
 										 x_label='$m_{x}$',
@@ -281,7 +281,7 @@ class visualize(metrics):
 			#Diffusion Y
 			ax[1][2].remove()
 			ax[1][2] = fig.add_subplot(2, 3, 6, projection='3d')
-			_, ax[1][2] = self.plot_data(diffY,
+			_, ax[1][2] = self._plot_data(diffY,
 										 ax=ax[1][2],
 										 title="Diffusion Y",
 										 x_label='$m_{x}$',
@@ -365,7 +365,7 @@ class visualize(metrics):
 						 vector,
 						 start=0,
 						 stop=1000,
-						 n_yticks=3,
+						 n_ticks=3,
 						 dpi=150,
 						 tick_size=12,
 						 title_size=14,
@@ -382,19 +382,19 @@ class visualize(metrics):
 			fig, ax = plt.subplots(nrows=3, ncols=1, dpi=150, figsize=(8,6))
 			ax[0].plot(range(start, stop),Mx[start:stop], linewidth=1)
 			ax[0].set_xticks([])
-			ax[0].set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
+			ax[0].set_yticks(np.linspace(min(Mx), max(Mx), n_ticks).round(2))
 			self._stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', label_size=label_size, title_size=title_size, tick_size=tick_size)
 
 
 			ax[1].plot(range(start, stop),My[start:stop], linewidth=1)
 			ax[1].set_xticks([])
-			ax[1].set_yticks(np.linspace(min(My), max(My), n_yticks).round(2))
+			ax[1].set_yticks(np.linspace(min(My), max(My), n_ticks).round(2))
 			self._stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',label_size=label_size, tick_size=tick_size)
 
 
 			M = np.sqrt(Mx**2 + My**2)
 			ax[2].plot(range(start, stop),M[start:stop], linewidth=1)
-			ax[2].set_yticks(np.linspace(min(M), max(M), n_yticks).round(2))
+			ax[2].set_yticks(np.linspace(min(M), max(M), n_ticks).round(2))
 			self._stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', label_size=label_size, tick_size=tick_size)
 
 
@@ -405,7 +405,7 @@ class visualize(metrics):
 			fig, ax = plt.subplots(dpi=150, figsize=(6,3))
 			ax.plot(range(start, stop),Mx[start:stop], linewidth=1)
 			self._stylize_axes(ax,x_label='Time Scale', y_label='$M$', title='Time Series',tick_size=tick_size, label_size=label_size, title_size=title_size)
-			ax.set_yticks(np.linspace(min(Mx), max(Mx), n_yticks).round(2))
+			ax.set_yticks(np.linspace(min(Mx), max(Mx), n_ticks).round(2))
 
 		plt.tight_layout()
 		return fig
@@ -862,7 +862,7 @@ class visualize(metrics):
 			return 0, plane1
 		return 1, plane2
 
-	def plot_data(self,
+	def _plot_data(self,
 				  data_in,
 				  title='title',
 				  x_label='$m_x$',

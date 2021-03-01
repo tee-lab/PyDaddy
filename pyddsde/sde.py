@@ -53,7 +53,7 @@ class SDE:
         Returns
         -------
         diff : array_like
-                Diffusion in time series
+            Diffusion in time series
 
         Notes
         -----
@@ -70,19 +70,19 @@ class SDE:
         """
         Get Diffusion coefficient vector of data
 
-        Args
-        ----
+        Parameters
+        ----------
         X : array_like
-                time series data
+            time series data
         t_int : float
-                time step in time series
+            time step in time series
         delta_t : int
-                diffusion calculation timescale
+            diffusion calculation timescale
 
-        Retruns
-        -------
-        drift : array_like
-                Drift in time series
+        Returns
+        --------
+        diff : array.
+            Diffusion
         """
 
         # return np.square(np.array([b - a for a, b in zip(X, X[delta_t:])])) / (t_int * delta_t)
@@ -177,8 +177,14 @@ class SDE:
 
         Returns
         -------
-        list
-            [drift, diff, avgdiff, avgdrift, op]
+        drift : array.
+            drift, of the data
+        diff : array
+            diffusion of the data
+        avgdiff : array
+            average diffusion
+        avgdrift : array
+            average drift 
         """
         op, self.op_range = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []
