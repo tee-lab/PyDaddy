@@ -36,14 +36,13 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			inc=0.01,
 			inc_x=0.1,
 			inc_y=0.1,
-			max_order=10,
 			fft=True,
-			drift_order=None,
-			diff_order=None,
 			slider_range=None,
 			slider_timescales = None,
-			order_metric="R2_adj",
 			n_trials=1,
+			show_summary=True,
+			max_order = 15,
+			order_metric = 'R2_adj',
 			**kwargs):
 
 		self._data = data
@@ -58,9 +57,10 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.delta_t = delta_t
 		self.order_metric = order_metric
 		self.fft = fft
-		self.drift_order = drift_order
-		self.diff_order = drift_order
 		self.n_trials = n_trials
+
+		self.drift_order = None
+		self.diff_order = None
 
 		self.op_range = None
 		self.op_x_range = None
@@ -113,16 +113,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 		return drift_data_dict, diff_data_dict
 
-	def __call__(self,
-				 data,
-				 t=1,
-				 dt='auto',
-				 inc=0.01,
-				 inc_x=0.1,
-				 inc_y=0.1,
-				 t_lag=1000,
-				 max_order=10,
-				 **kwargs):
+	def __call__(self, data, t=1, dt='auto', **kwargs):
 		self.__dict__.update(kwargs)
 		#if t is None and t_int is None:
 		#	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
@@ -187,148 +178,84 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				self._Mx, self._My)
 
 		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
-			self._X, self.dt, self.t_int, inc=self.inc, point=0)
+			self._X, self.dt, self.delta_t, self.t_int, inc=self.inc, point=0)
+		#X, dt, delta_t, t_int, inc=0.01, point=0,
 		return output(self)
 
 
 class Characterize(object):
 	"""
-	Input params:
-	--------------
+	Analyse a time series data and get drift and diffusion plots.
+
+	Args
+	----
 	data : list
 		time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
 		where x, x1 and x2 are of numpy.array object type
-	t : float or numpy.array
-		[float] if its time increment between observation
-		[numpy.array] if time stamp of time series
-	dt = 'auto' : 'auto' or int
-		time scale to run the analysis on (for determinsitic part);
-		algorithm estimates dt if 'auto' is passed, else takes the user input
-	delta_t = 1 : int
-		time scale to run the analysis on (for stochastic part)
-	inc = 0.01 : float
+	t : float, array, optional(default=1.0)
+		float if its time increment between observation
+
+		numpy.array if time stamp of time series
+	dt : int,'auto', optional(default='auto')
+		time scale for drift
+
+		if 'auto' time scale is decided based of drift order.
+	delta_t : int, optional(default=1)
+		time scale for difusion
+	inc : float, optional(default=0.01)
 		increment in order parameter for scalar data
-	inc_x = 0.1 : float
+	inc_x : float, optional(default=0.1)
 		increment in order parameter for vector data x1
-	inc_y = 0.1 : float
+	inc_y : float, optional(default=0.1)
 		increment in order parameter for vector data x2
-	drift_order = None : int
-		order of polynomial to be fit for calculated drift (deterministic part);
-		if None, algorithim estimates the optimium drift_order
-	diff_order = None : int
-		order of polynomial to be fit for calculated diff (stochastic part);
-		if None, algorithim estimates the optimium diff_order
-	max_order = 10 : int
-		maxmium drift_order and diff_order to consider
-	fft = True : bool
+	fft : bool, optional(default=True)
 		if true use fft method to calculate autocorrelation else, use standard method
-	t_lag = 1000 : int
-		maxmium lag to use to calculate acf
+	slider_range : tuple, optional(default=None)
+		range of the slider values, (start, stop, n_steps),
+		if None, uses the default range, ie (1, 2*auto_correlation_time, 8)
+	slider_timescales : list, optional(default=None)
+		List of timescale values to include in slider.
+	n_trials : int, optional(default=1)
+		Number of trials, concatenated timeseries of multiple trials is used.
+	show_summary : bool, optional(default=True)
+		print data summary and show summary chart.
 
 	**kwargs 
-		all the parameters for pyddsde.preporcessing and pyddsde.noise_analysis
+		all the parameters for inherited methods.
 
-	returns:
-	-----------
-	output : pyddsde.output
+	returns
+	-------
+	output : pyddsde.output.output
 		object to access the analysed data, parameters, plots and save them.
 	"""
 	def __new__(
 			cls,
 			data,
-			t=1,
+			t=1.0,
 			dt='auto',
 			delta_t=1,
-			t_lag=1000,
 			inc=0.01,
 			inc_x=0.1,
 			inc_y=0.1,
-			max_order=10,
-			fft=True,
-			drift_order=None,
-			diff_order=None,
 			slider_range=None,
 			slider_timescales=None,
-			order_metric="R2_adj",
 			n_trials=1,
+			show_summary=True,
 			**kwargs):
-		"""
-		Input params:
-		--------------
-		data : list
-			time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
-			where x, x1 and x2 are of numpy.array object type
-		t : float or numpy.array
-			[float] if its time increment between observation
-			[numpy.array] if time stamp of time series
-		dt = 'auto' : 'auto' or int
-			time scale to run the analysis on (for determinsitic part);
-			algorithm estimates dt if 'auto' is passed, else takes the user input
-		delta_t = 1 : int
-			time scale to run the analysis on (for stochastic part)
-		inc = 0.01 : float
-			increment in order parameter for scalar data
-		inc_x = 0.1 : float
-			increment in order parameter for vector data x1
-		inc_y = 0.1 : float
-			increment in order parameter for vector data x2
-		drift_order = None : int
-			order of polynomial to be fit for calculated drift (deterministic part);
-			if None, algorithim estimates the optimium drift_order
-		diff_order = None : int
-			order of polynomial to be fit for calculated diff (stochastic part);
-			if None, algorithim estimates the optimium diff_order
-		max_order = 10 : int
-			maxmium drift_order and diff_order to consider
-		fft = True : bool
-			if true use fft method to calculate autocorrelation else, use standard method
-		t_lag = 1000 : int
-			maxmium lag to use to calculate acf
 
-		**kwargs 
-			all the parameters for pyddsde.preporcessing and pyddsde.noise_analysis
-
-		returns:
-		-----------
-		output : pyddsde.output
-			object to access the analysed data, parameters, plots and save them.
-		"""
-		sde = Main(
+		ddsde = Main(
 			data=data,
 			t=t,
 			dt=dt,
 			delta_t=delta_t,
-			t_lag=t_lag,
 			inc=inc,
 			inc_x=inc_x,
 			inc_y=inc_y,
-			max_order=max_order,
-			fft=fft,
-			drift_order=drift_order,
-			diff_order=diff_order,
 			slider_range=slider_range,
 			slider_timescales=slider_timescales,
-			order_metric=order_metric,
 			n_trials=n_trials,
+			show_summary=show_summary,
 			**kwargs)
 
-		return sde(
-			data=data,
-			t=t,
-			#t_int=t_int,
-			dt=dt,
-			inc=inc,
-			inc_x=inc_x,
-			inc_y=inc_y,
-			t_lag=t_lag,
-			max_order=max_order,
-		)
+		return ddsde(data=data, t=t, dt=dt)
 
-def editFigure(figure):
-	"""
-	pass
-
-	:meta private:
-	"""
-	import pylustrator
-	return pylustrator.load_fig(figure)

@@ -135,7 +135,7 @@ class underlying_noise(SDE):
 		self.__dict__.update(kwargs)
 		SDE.__init__(self)
 
-	def _noise(self, X, dt, t_int, inc=0.01, point=0):
+	def _noise(self, X, dt, delta_t, t_int, inc, point=0):
 		"""
 		Get noise from `X` at a paticular point
 
@@ -162,16 +162,22 @@ class underlying_noise(SDE):
 		avgDrift = []
 		x = X[0:-dt]
 		drift = self._drift(X, t_int, dt)
-		for b in np.arange(point, point + inc, inc):
-			i = np.where(np.logical_and(x < (b + inc), x >= b))[0]
-			avgDrift.append(drift[i].mean())
+		#for b in np.arange(point, point + inc, inc):
+		i = np.where(np.logical_and(x < (point + inc), x >= point))[0]
+		avgDrift.append(drift[i].mean())
 		avgDrift = np.array(avgDrift)
-		j = np.where(np.logical_and(op <= point+inc, op >= point-inc))[0]
-		_avgDrift = 0 if np.any(j >= len(avgDrift)) else avgDrift[j]
+		#j = np.where(op == point)[0]
+		#print(j)
+		#_avgDrift = 0 if j >= len(avgDrift) else avgDrift[j]
+		#print(len(_avgDrift))
+		#print(_avgDrift)
+		x = X
 		try:
-			noise = ((x[i + 1] - x[i]) - (t_int * dt) * _avgDrift) / np.sqrt(t_int)
+			#noise = ((x[delta_t:] - x[:-delta_t]) - avgDrift * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
+			noise = ((x[i+delta_t] - x[i]) - avgDrift * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
 		except IndexError:
-			noise = ((x[i[:-1] + 1] - x[i[:-1]]) - (t_int * dt) * _avgDrift) / np.sqrt(t_int)
+			print("Exception")
+			noise = ((x[i[:-1] + delta_t] - x[i[:-1]]) - avgDrift * (t_int * delta_t) ) / np.sqrt(t_int*delta_t)
 		return noise[~np.isnan(noise)]
 
 
@@ -199,7 +205,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		h_lim = self._X1[1:][np.where(self._f >= 0.95)][0]
 		return l_lim, h_lim
 
-	def _noise_analysis(self, X, dt, t_int, inc=0.01, point=0, **kwargs):
+	def _noise_analysis(self, X, dt, delta_t, t_int, inc, point=0, **kwargs):
 		"""
 		Check if noise is gaussian
 
@@ -226,7 +232,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 			- noise_correlation (array) : noise autocorrelation
 		"""
 		self.__dict__.update(kwargs)
-		noise = self._noise(X, dt, t_int, inc, point)
+		noise = self._noise(X, dt, delta_t, t_int, inc, point)
 		s = noise.size
 		if s == 0:
 			print('Warning : Length of noise is 0')

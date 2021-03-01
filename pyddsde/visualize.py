@@ -870,10 +870,11 @@ class visualize(metrics):
 				  z_label='z',
 				  ax=None,
 				  clear=True,
+				  legend=False,
 				  plot_plane=False,
-				  tick_size=18,
-				  title_size=20,
-				  label_size=20,
+				  tick_size=12,
+				  title_size=16,
+				  label_size=14,
 				  label_pad=12,
 				  label=None,
 				  order=3,
@@ -953,7 +954,9 @@ class visualize(metrics):
 		#ax.yaxis._axinfo['label']['space_factor'] = 2.0
 		#ax.zaxis._axinfo['label']['space_factor'] = 2.0
 		#plt.tight_layout()
-		#plt.legend(prop={'size': 14})
+		if legend:
+			#plt.legend(prop={'size': 14})
+			ax.legend()
 		return fig, ax
 
 	def _plot_heatmap(self, data, title='title', num_ticks=5):

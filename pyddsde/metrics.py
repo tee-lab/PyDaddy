@@ -16,23 +16,23 @@ class metrics:
         """
         self.__dict__.update(kwargs)
 
-    def _rms(self, x1, x2):
+    def _rms(self, x):
         """
-        Calculates root mean square error between x1 and x2
+        Calculates root mean square error of x
 
         Parameters
         ----------
-        x1 : array
-            input 1
-        x2 : array
-            input 2
+        x : array
+            input 
 
         Returns
         -------
         rms : float
-            rms error between x1 and x2
+            rms error
         """
-        return np.nanmean(np.sqrt(np.square(x2 - x1)))
+        x = np.array(x)
+        return np.sqrt(np.square(x - x.mean())).mean()
+        #return np.nanmean(np.sqrt(np.square(x2 - x1)))
 
     def _R2(self, data, op, poly, k, adj=False):
         """
@@ -334,7 +334,7 @@ class metrics:
         ):
             return True
         print(
-            "\n[Warning] : Given slider timescale list is not valid\nUsing default range"
+            "\n[Warning] : Given slider timescale list is not valid, or contains some invalid timescales"
         )
         return False
 
@@ -359,18 +359,21 @@ class metrics:
         -----
         All dublicate values in the list (if any) will be removed
         """
+        t_list = []
         if self._isValidSliderTimesSaleList(slider_scale_list):
-            self.slider_range = None
-            return sorted(list(slider_scale_list))
+            t_list = slider_scale_list
 
         if self._isValidSliderRange(slider_range):
             slider_start, slider_stop, n_step = slider_range
         else:
+            if len(t_list):
+                return sorted(set(map(int, t_list)))
             slider_start = 1
             slider_stop = np.ceil(self.autocorrelation_time) * 2
             n_step = 8
         self.slider_range = (slider_start, slider_stop, n_step)
-        return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
+        #return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
+        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))))
 
     def _closest_time_scale(self, time_scale):
         """
