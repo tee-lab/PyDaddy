@@ -16,6 +16,7 @@ import statsmodels.api as sm
 import statsmodels.stats.diagnostic
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from collections import namedtuple
 
 from pyddsde.preprocessing import preprocessing
 from pyddsde.visualize import visualize
@@ -30,6 +31,9 @@ class output(preprocessing, visualize):
 		self.vector = ddsde.vector
 		self._ddsde = ddsde
 		self.fft = ddsde.fft
+		self.op_range = ddsde.op_range
+		self.op_x_range = ddsde.op_x_range
+		self.op_y_range = ddsde.op_y_range
 
 		if not self.vector:
 			self._data_X = ddsde._X
@@ -169,7 +173,6 @@ class output(preprocessing, visualize):
 					label_size=14,
 					label_pad=12,
 					legend_label=None,
-					legend=False,
 					dpi=150):
 		"""
 		Plot and visualize vector drift or diffusion data of a 3d axis
@@ -214,6 +217,8 @@ class output(preprocessing, visualize):
 			returns figure only if the input ax is None.
 
 		"""
+		legend = True if legend_label else False
+		DataPlot = namedtuple('DataPlot', ('fig', 'ax'))
 		fig, ax = self._plot_data(data_in,
 									ax=ax,
 									title=title,
@@ -228,7 +233,7 @@ class output(preprocessing, visualize):
 									label_pad=label_pad,
 									label=legend_label,
 									dpi=dpi)
-
+		return DataPlot(ax.figure, ax)
 		if fig is None:
 			return ax
 		return ax, fig

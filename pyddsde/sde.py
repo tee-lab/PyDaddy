@@ -66,6 +66,15 @@ class SDE:
         # return np.array([b - a for a, b in zip(X, X[dt:])]) / (t_int * dt)
         return (X[dt:] - X[:-dt]) / (t_int * dt)
 
+    def _residual(self, X, t_int, dt, delta_t=1):
+        """
+        Get the residual.
+        """
+        p = len(X) - max(delta_t, dt)
+        drift = self._drift(X, t_int, dt)[:p]
+        res = (X[delta_t:] - X[:-delta_t])[:p]
+        return res - drift*(t_int*delta_t)
+
     def _diffusion(self, X, t_int, delta_t=1):
         """
         Get Diffusion coefficient vector of data
@@ -177,14 +186,16 @@ class SDE:
 
         Returns
         -------
-        drift : array.
-            drift, of the data
         diff : array
             diffusion of the data
+        drift : array.
+            drift, of the data
         avgdiff : array
             average diffusion
         avgdrift : array
             average drift 
+        op : array
+            order parameter
         """
         op, self.op_range = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []

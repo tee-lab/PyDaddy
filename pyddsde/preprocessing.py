@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm
+from scipy.stats import mode
 import matplotlib.pyplot as plt
 from pyddsde.analysis import underlying_noise
 from pyddsde.analysis import AutoCorrelation
@@ -18,7 +19,7 @@ class preprocessing(gaussian_test):
 		self.__dict__.update(kwargs)
 		gaussian_test.__init__(self)
 
-	def _r2_vs_order(self, op, avgDrift, avgDiff, max_order):
+	def _r2_vs_order(self, op1, op2, avgDrift, avgDiff, max_order):
 		"""
 		Get R2 for different order
 		"""
@@ -26,13 +27,22 @@ class preprocessing(gaussian_test):
 		r2_drift = []
 		r2_diff = []
 		for i in range(max_order):
-			p_drift, _ = self._fit_poly(x=op, y=avgDrift, deg=i)
-			p_diff, _ = self._fit_poly(x=op, y=avgDiff, deg=i)
+			p_drift, _ = self._fit_poly(x=op1, y=avgDrift, deg=i)
+			p_diff, _ = self._fit_poly(x=op2, y=avgDiff, deg=i)
 			r2_drift.append(
-				self._R2(data=avgDrift, op=op, poly=p_drift, k=i, adj=adj))
+				self._R2(data=avgDrift, op=op1, poly=p_drift, k=i, adj=adj))
 			r2_diff.append(
-				self._R2(data=avgDiff, op=op, poly=p_diff, k=i, adj=adj))
+				self._R2(data=avgDiff, op=op2, poly=p_diff, k=i, adj=adj))
 		return r2_drift, r2_diff
+
+	def _remove_nan(self, x, y, sample_size=10):
+		nan_idx = np.argwhere(np.isnan(y))
+		
+		x, y = np.delete(x, nan_idx), np.delete(y, nan_idx)
+		if len(x) < sample_size:
+			sample_size = len(x)
+		idx = np.linspace(0, len(x)-1, sample_size, dtype=np.int)
+		return x[idx], y[idx]
 
 	def _r2_vs_order_multi_dt(self,
 							  X,
@@ -52,7 +62,9 @@ class preprocessing(gaussian_test):
 		for time_scale in time_scale_list:
 			drift, diff, avgDiff, avgDrift, op = self._drift_and_diffusion(
 				X, t_int, dt=time_scale, delta_t=time_scale, inc=inc)
-			r2_drift, r2_diff = self._r2_vs_order(op, avgDrift, avgDiff,max_order)
+			op1, avgDrift = self._remove_nan(op, avgDrift)
+			op2, avgDiff = self._remove_nan(op, avgDiff)
+			r2_drift, r2_diff = self._r2_vs_order(op1, op2, avgDrift, avgDiff,max_order)
 			r2_drift_m_dt.append(r2_drift)
 			r2_diff_m_dt.append(r2_diff)
 
@@ -104,6 +116,8 @@ class preprocessing(gaussian_test):
 		x = np.array(x)
 		if len(x.shape) !=2:
 			x = np.array([x])
+		return self._o1(self._rms_variation(x[0]))
+		
 		o1, o2 = self._get_o1_o2(x)
 		if np.all(o1==o1[0]):
 			return o1[0]
@@ -115,6 +129,15 @@ class preprocessing(gaussian_test):
 			if np.any(x[:,p[i]] > x[:,p[i+1]]):
 				return p[i]
 		return p[-1]
+
+		"""
+		o = []
+		for i in range(len(x)):
+			rms_x = self._rms_variation(x[i])
+			d = np.abs(np.diff(rms_x)[:-1] - np.diff(rms_x, 2))
+			o.append(np.where(d <= 0.25*d.mean())[0][0])
+		return mode(o).mode[0]
+		"""
 
 
 	def _order(self,
@@ -136,8 +159,10 @@ class preprocessing(gaussian_test):
 		#R2_adj multiple dt
 		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(X, M_square, t_int=t_int ,inc=inc, delta_t=delta_t, max_order=max_order)
 
-		self.drift_order = self._find_order(self._r2_drift_m_dt[:-1])
-		self.diff_order = self._find_order(self._r2_diff_m_dt[:-1])
+		if self.drift_order is None:
+			self.drift_order = self._find_order(self._r2_drift_m_dt[:-1])
+		if self.diff_order is None:
+			self.diff_order = self._find_order(self._r2_diff_m_dt[:-1])
 
 		autocorr_time = self._get_autocorr_time(M_square, t_lag=self.t_lag)
 		optimum_dt = autocorr_time - 1 if self.drift_order == 1 else autocorr_time / 10

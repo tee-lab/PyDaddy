@@ -41,7 +41,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			slider_timescales = None,
 			n_trials=1,
 			show_summary=True,
-			max_order = 15,
+			max_order = 9,
 			order_metric = 'R2_adj',
 			**kwargs):
 
@@ -181,8 +181,9 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self._drift_slider, self._diff_slider = self._slider_data(
 				self._Mx, self._My)
 
+		inc = self.inc_x if self.vector else self.inc
 		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
-			self._X, self.dt, self.delta_t, self.t_int, inc=self.inc, point=0)
+			self._X, self.dt, self.delta_t, self.t_int, inc=inc, point=0)
 		#X, dt, delta_t, t_int, inc=0.01, point=0,
 		return output(self)
 

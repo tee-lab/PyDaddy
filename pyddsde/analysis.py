@@ -145,7 +145,7 @@ class underlying_noise(SDE):
 		X : array
 			time series
 		inc : float
-			max binning increments
+			binning increments
 		point : float
 			point at which noise is to be extracted
 		dt : int
@@ -158,13 +158,15 @@ class underlying_noise(SDE):
 		array
 			 noise extracted from data at given point 
 		"""
+
+		"""
 		#op = np.arange(min(X), max(X), inc).round(4)
 		op, _ = self._order_parameter(X, inc, None)
 		avgDrift = []
-		x = X[0:-dt]
 		drift = self._drift(X, t_int, dt)
+		x = X[0:-dt]
 		#for b in np.arange(point, point + inc, inc):
-		i = np.where(np.logical_and(x < (point + inc), x >= point))[0]
+		i = np.where(np.logical_and(x <= (point + inc), x >= point))[0]
 		avgDrift.append(drift[i].mean())
 		avgDrift = np.array(avgDrift)
 		#j = np.where(op == point)[0]
@@ -175,11 +177,21 @@ class underlying_noise(SDE):
 		x = X
 		try:
 			#noise = ((x[delta_t:] - x[:-delta_t]) - avgDrift * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
-			noise = ((x[i+delta_t] - x[i]) - avgDrift * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
+			#noise = ((x[delta_t:] - x[:-delta_t]) - drift[i][:-1] * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
+			noise = ((x[i+delta_t] - x[i]) - drift[i]*(t_int*delta_t)) / np.sqrt(t_int*delta_t)
 		except IndexError:
 			print("Exception")
 			noise = ((x[i[:-1] + delta_t] - x[i[:-1]]) - avgDrift * (t_int * delta_t) ) / np.sqrt(t_int*delta_t)
 		return noise[~np.isnan(noise)]
+		"""
+		x = X[:len(X)-max(dt,delta_t)]
+		i = np.where(np.logical_and(x <= (point + inc), x >= point))[0]
+		noise = self._residual(X, t_int=t_int, dt=dt, delta_t=delta_t) / np.sqrt(t_int * delta_t)
+		return noise[i]
+
+
+
+
 
 
 class gaussian_test(underlying_noise, metrics, AutoCorrelation):
