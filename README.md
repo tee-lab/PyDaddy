@@ -79,17 +79,17 @@ See doc strings or documentation for more information.
 
 `Characterize`  returns an output object in which all analysed results are stored.
 Results can be visualised or stored by calling appropriate functions:
-`summary()`: show summary
-`drift()` : drift slider plot
-`diffusion()` : diffusion slider plot
-`timeseries()`:  time series plot
-`histograms()` : histogram plots
-`noise_characterstics()`: noise characteristics plots
-`visualise(timescale)`: drift and diffusion plots for a timescale
-`diagnostics()`: diagnostics plots
-`data(timescale)`: get drift and diffusion data for a timescale
-`export_data()`: Save data as csv files and mat files
-`plot_data(data)`: plot data on a 3d axis
+- `summary()`: show summary
+- `drift()` : drift slider plot
+- `diffusion()` : diffusion slider plot
+- `timeseries()`:  time series plot
+- `histograms()` : histogram plots
+- `noise_characterstics()`: noise characteristics plots
+- `visualise(timescale)`: drift and diffusion plots for a timescale
+- `diagnostics()`: diagnostics plots
+- `data(timescale)`: get drift and diffusion data for a timescale
+- `export_data()`: Save data as csv files and mat files
+- `plot_data(data)`: plot data on a 3d axis
 
 For more examples see [this](https://github.com/tee-lab/pyFish/blob/master/notebooks/Examples.ipynb) notebook.
 
