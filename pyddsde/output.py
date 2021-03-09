@@ -135,17 +135,19 @@ class output(preprocessing, visualize):
 		if zip:
 			self._zip_dir(dir_path)
 
-		return "Exported to {}".format(self.res_dir)
+		return "Exported to {}".format(os.path.join(os.getcwd(),self.res_dir))
 
 
-	def data(self, time_scale=None):
+	def data(self, drift_time_scale=None, diff_time_scale=None):
 		"""
 		Get the drift, diffusion and order parameter data for any timescale the analysis is done.
 
 		Args
 		----
-		time_scale : int, optional(default=None)
-			time_scale corresponding to the data, if None, returns data for analysed given dt
+		drift_time_scale : int, optional(default=None)
+			time-scale of drift data, if None, returns data analysed for given dt
+		diff_time_scale : int, optional(default=None)
+			time-scale of diffusion data, if None, returns data analysed for given delta_t
 
 		Returns
 		-------
@@ -154,11 +156,15 @@ class output(preprocessing, visualize):
 			- else, [avgdrift, avgdiff, op]
 		"""
 		if not self.vector:
-			drift , diff = self._get_data_from_slider(time_scale)
-			return drift, diff, self._data_op
+			Data = namedtuple('Data', ('drift', 'diff', 'op'))
+			drift , _ = self._get_data_from_slider(drift_time_scale)
+			_ , diff = self._get_data_from_slider(diff_time_scale)
+			return Data(drift, diff, self._data_op)
 
-		driftX, driftY, diffX, diffY = self._get_data_from_slider(time_scale)
-		return driftX, driftY, diffX, diffY, self._data_op_x, self._data_op_y
+		Data = namedtuple('Data', ('driftX', 'driftY', 'diffX', 'diffY', 'op_x', 'op_y'))
+		driftX, driftY, _, _ = self._get_data_from_slider(drift_time_scale)
+		_, _, diffX, diffY = self._get_data_from_slider(diff_time_scale)
+		return Data(driftX, driftY, diffX, diffY, self._data_op_x, self._data_op_y)
 
 	def plot_data(self,
 					data_in,
@@ -462,7 +468,7 @@ class output(preprocessing, visualize):
 		fig.show()
 		return None
 
-	def visualize(self, time_scale=None):
+	def visualize(self, drift_time_scale=None, diff_time_scale=None):
 		"""
 		Display drift and diffusion plots for a time scale.
 
@@ -478,11 +484,14 @@ class output(preprocessing, visualize):
 		"""
 		self._visualize_figs = []
 		if not self.vector:
-			drift, diff = self._get_data_from_slider(time_scale)
+			drift, _ = self._get_data_from_slider(drift_time_scale)
+			_, diff = self._get_data_from_slider(diff_time_scale)
+
 			#Time series
 			fig1 = fig = plt.figure(dpi=150)
 			plt.suptitle("Time_Series")
-			l = int(len(self._data_X) / 4)
+			#l = int(len(self._data_X) / 4)
+			l = 1000
 			try:
 				plt.plot(self._data_t[0:l], self._data_X[0:l])
 			except:
@@ -529,7 +538,8 @@ class output(preprocessing, visualize):
 			self._visualize_figs.append(fig4)
 
 		else:
-			driftX, driftY, diffX, diffY = self._get_data_from_slider(time_scale)
+			driftX, driftY, _, _ = self._get_data_from_slider(drift_time_scale)
+			_, _, diffX, diffY = self._get_data_from_slider(diff_time_scale)
 			fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF',xlabel="$M_{x}$", tick_size=12, label_size=12, title_size=12, r_fig=True)
 			self._visualize_figs.append(fig1)
 

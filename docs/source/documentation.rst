@@ -16,6 +16,11 @@ Characterize
 .. autoclass:: pyddsde.Characterize
    :members:
 
+load_sample_dataset
+-------------------
+.. autoclass:: pyddsde.load_sample_dataset
+   :members:
+
 output
 ------
 .. automodule:: pyddsde.output

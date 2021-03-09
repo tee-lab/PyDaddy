@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
+import pkg_resources
 import pickle
 import tqdm
 import time
@@ -17,7 +18,7 @@ from pyddsde.output import InputError
 
 warnings.filterwarnings("ignore")
 
-__all__ = ['Characterize']
+__all__ = ['Characterize', 'load_data']
 
 
 class Main(preprocessing, gaussian_test, AutoCorrelation):
@@ -263,4 +264,77 @@ class Characterize(object):
 			**kwargs)
 
 		return ddsde(data=data, t=t, dt=dt)
+
+def load_sample_data(data_path):
+	r"""
+	Load the sample distrubuted data
+
+	data
+	├── fish_data
+	│   └── ectropus.csv
+	└── model_data
+		├── scalar
+		│   ├── pairwise.csv
+		│   └── ternary.csv
+		└── vector
+			├── pairwise.csv
+			└── ternary.csv
+
+
+	Each data file in pairwise, ternary and extras have two columns;
+	first column is the timeseries data x, and the second one is the time stamp
+
+	vector_data.csv also has two columns but contains the vector data x1 and x2 with missing time stamp. Use t_int=0.12.
+	"""
+	stream = pkg_resources.resource_stream('pyddsde', data_path)
+	try:
+		return np.loadtxt(stream, delimiter=',')
+	except:
+		return np.loadtxt(stream)
+
+def load_sample_dataset(name):
+	r"""
+	Load sample data set provided.
+
+	Available data sets:
+
+	'fish-data-ectropus'
+
+	'model-data-scalar-pairwise'
+
+	'model-data-scalar-ternary'
+
+	'model-data-vector-pairwise'
+
+	'model-data-vector-ternary'
+
+	Parameters
+	----------
+	name : str
+		name of the data set
+
+	Returns
+	-------
+	data : list
+		timeseries data
+	t : float, array
+		timescale
+	"""
+	data_dict = {
+	'fish-data-ectropus' : 'data/fish_data/ectropus.csv',
+	'model-data-scalar-pairwise' : 'data/model_data/scalar/pairwise.csv',
+	'model-data-scalar-ternary' : 'data/model_data/scalar/ternary.csv',
+	'model-data-vector-pairwise' : 'data/model_data/vector/pairwise.csv',
+	'model-data-vector-ternary' : 'data/model_data/vector/ternary.csv'
+	}
+	if name not in data_dict.keys():
+		print('Invalid data set name\nAvaiable data set\n{}'.format(list(data_dict.keys())))
+		raise InputError('','Invalid data set name')
+
+	if 'scalar' in name:
+		M, t = load_sample_data(data_dict[name]).T
+		return [M], t
+	Mx, My = load_sample_data(data_dict[name]).T
+	return [Mx, My], 0.12
+
 

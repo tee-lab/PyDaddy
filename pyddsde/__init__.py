@@ -32,6 +32,7 @@ from pyddsde.metrics import metrics
 from pyddsde.output import output
 from pyddsde.visualize import visualize
 from pyddsde.Characterize import Characterize
+from pyddsde.Characterize import load_sample_dataset
 #from pyddsde.Characterize import editFigure
 
 __all__ = ['Characterize']
