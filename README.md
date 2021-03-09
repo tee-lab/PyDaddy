@@ -4,7 +4,7 @@
 
 A package to derive an SDE form the data.
 
-[![Documentation Status](https://readthedocs.org/projects/pyddsde/badge/?version=latest)](https://pyddsde.readthedocs.io/en/latest/?badge=latest)  ![](https://img.shields.io/github/license/tee-lab/pyFish) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/pyFish.git/master?filepath=notebooks)
+[![Documentation Status](https://readthedocs.org/projects/pyddsde/badge/?version=latest)](https://pyddsde.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/pyFish) ](https://github.com/tee-lab/pyFish/blob/master/LICENSE.txt)   [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/pyFish.git/master?filepath=notebooks)
 
 pyddsde is a python package implementing a data driven SDE method. pyddsde provides an interface which takes time series data as input, runs the analysis and returns an output object through which data and analysed results can be systematically visualized and saved.
 
