@@ -31,10 +31,12 @@ from pyddsde.preprocessing import preprocessing
 from pyddsde.metrics import metrics
 from pyddsde.output import output
 from pyddsde.visualize import visualize
-from pyddsde.__main__ import Characterize
-from pyddsde.__main__ import editFigure
+from pyddsde.Characterize import Characterize
+#from pyddsde.Characterize import editFigure
 
-def isnotebook():
+__all__ = ['Characterize']
+
+def _isnotebook():
 	try:
 		shell = get_ipython().__class__.__name__
 		print(shell)
@@ -47,7 +49,7 @@ def isnotebook():
 	except NameError:
 		return False      # Probably standard Python interpreter
 
-if not isnotebook():
+if not _isnotebook():
 	pass
 	#import matplotlib
 	#matplotlib.use('Qt5Agg')

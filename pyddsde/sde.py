@@ -1,13 +1,12 @@
 import numpy as np
 
-
 class SDE:
     """
     A class to form a basic SDE from data
 
     Args
     ----
-    X : list, numpy.ndarray
+    X : array_like
             time series data
     t_int : float
             time step in time series
@@ -18,26 +17,33 @@ class SDE:
 
     Returns
     -------
-    diff : numpy.ndarray
+    diff : array_like
             diffusion in time series
-    drift : numpy.ndarray
+    drift : array_like
             drift in time series
-    avgdiff : numpy.ndarray
+    avgdiff : array_like
             avarage diffusion
-    avgdrift : numpy.ndarray
+    avgdrift : array_like
             average drift
+
+    :meta private:
     """
 
     def __init__(self, **kwargs):
+        """
+        pass
+
+        .. document private functions
+        """
         self.__dict__.update(kwargs)
 
     def _drift(self, X, t_int, dt):
-        """
+        r"""
         Get Drift coeffecient vector of data.
 
         Args
         ----
-        X : numpy.ndarray
+        X : array_like
                 Time Series data
         t_int : float
                 time difference betwen consecutive observations
@@ -46,30 +52,46 @@ class SDE:
 
         Returns
         -------
-        diff : numpy.ndarray
-                Diffusion in time series
+        diff : array_like
+            Diffusion in time series
+
+        Notes
+        -----
+        Drift is calculated as follows
+
+        .. math::
+            drift = \frac{x(i+dt)-x(i)}{tint * dt}
         """
 
         # return np.array([b - a for a, b in zip(X, X[dt:])]) / (t_int * dt)
         return (X[dt:] - X[:-dt]) / (t_int * dt)
 
+    def _residual(self, X, t_int, dt, delta_t=1):
+        """
+        Get the residual.
+        """
+        p = len(X) - max(delta_t, dt)
+        drift = self._drift(X, t_int, dt)[:p]
+        res = (X[delta_t:] - X[:-delta_t])[:p]
+        return res - drift*(t_int*delta_t)
+
     def _diffusion(self, X, t_int, delta_t=1):
         """
         Get Diffusion coefficient vector of data
 
-        Args
-        ----
-        X : numpy.ndarray
-                time series data
+        Parameters
+        ----------
+        X : array_like
+            time series data
         t_int : float
-                time step in time series
+            time step in time series
         delta_t : int
-                diffusion calculation timescale
+            diffusion calculation timescale
 
-        Retruns
-        -------
-        drift : numpy.ndarray
-                Drift in time series
+        Returns
+        --------
+        diff : array.
+            Diffusion
         """
 
         # return np.square(np.array([b - a for a, b in zip(X, X[delta_t:])])) / (t_int * delta_t)
@@ -102,14 +124,14 @@ class SDE:
         """
         Checks if the specified range of order parameter is valid range
 
-        Args:
-        -----
+        Args
+        ----
         r : tuple, list
                 range of order parameter
 
-        Returns:
-        --------
-        <bool>
+        Returns
+        -------
+        bool
                 True if valid, False if not.
         """
         return isinstance(r, (list, tuple)) and len(r) == 2
@@ -132,7 +154,7 @@ class SDE:
 
         Returns
         -------
-        <tuple>
+        tuple
                 first element will be the order parameter array
                 second element is the rangen used
         """
@@ -145,7 +167,7 @@ class SDE:
             r = (min(X), max(X))
         return np.arange(min(r), max(r), inc), r
 
-    def _drift_and_diffusion(self, X, t_int, dt, delta_t=1, inc=0.01):
+    def _drift_and_diffusion(self, X, t_int, dt, delta_t, inc):
         """
         Get drift and diffusion coefficients for a given timeseries data
 
@@ -164,14 +186,16 @@ class SDE:
 
         Returns
         -------
-        diff : numpy.array
-                diffusion in time series
-        drift : numpy.ndarray
-                drift in time series
-        avgdiff : numpy.ndarray
-                avarage diffusion
-        avgdrift : numpy.ndarray
-                average drift
+        diff : array
+            diffusion of the data
+        drift : array.
+            drift, of the data
+        avgdiff : array
+            average diffusion
+        avgdrift : array
+            average drift 
+        op : array
+            order parameter
         """
         op, self.op_range = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []
@@ -184,33 +208,57 @@ class SDE:
             avgdrift.append(drift[i].mean())
         return diff, drift, np.array(avgdiff), np.array(avgdrift), op
 
-    def _vector_drift_diff(self, vel_x, vel_y, inc_x, inc_y, t_int, dt, delta_t=1):
-        op_x, self.op_x_range = self._order_parameter(vel_x, inc_x, self.op_x_range)
-        op_y, self.op_y_range = self._order_parameter(vel_y, inc_y, self.op_y_range)
-        # op_x = np.arange(min(min(vel_x), min(vel_y)), max(max(vel_x), max(vel_y)), inc_x)
-        # op_y = np.arange(min(min(vel_x), min(vel_y)), max(max(vel_x), max(vel_y)), inc_y)
-        driftX = self._drift(vel_x, t_int, dt)
-        driftY = self._drift(vel_y, t_int, dt)
-        diffusionX = self._diffusion(vel_x, t_int, delta_t)
-        diffusionY = self._diffusion(vel_y, t_int, delta_t)
-        diffusionXY = self._diffusion_xy(vel_x, vel_y, t_int, delta_t)
+    def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, dt, delta_t):
+        """
+        Get average binned drift and diffusion coefficients for given x and y data
+
+        Args
+        ----
+        x : array_like
+            timeseries x data
+        y : array_like
+            timesereis y data
+        inc_x : float
+            step increment of order parameter for x
+        inc_y : float
+            step increment of order parameter for y
+        dt : int
+            timescale to calculate drift
+        delta_t : int
+            timescale to calculate diffusion
+
+        Returns
+        -------
+        list
+            [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
+        """
+
+        op_x, self.op_x_range = self._order_parameter(x, inc_x, self.op_x_range)
+        op_y, self.op_y_range = self._order_parameter(y, inc_y, self.op_y_range)
+
+        driftX = self._drift(x, t_int, dt)
+        driftY = self._drift(y, t_int, dt)
+
+        diffusionX = self._diffusion(x, t_int, delta_t)
+        diffusionY = self._diffusion(y, t_int, delta_t)
+
+        diffusionXY = self._diffusion_xy(x, y, t_int, delta_t)
 
         avgdriftX = np.zeros((len(op_x), len(op_y)))
         avgdriftY = np.zeros((len(op_x), len(op_y)))
         avgdiffX = np.zeros((len(op_x), len(op_y)))
         avgdiffY = np.zeros((len(op_x), len(op_y)))
         avgdiffXY = np.zeros((len(op_x), len(op_y)))
-        # print("len op_x, op_y, {} {}".format(len(op_x), len(op_y)))
 
         m = 0
-        vel_x_, vel_y_ = vel_x[0 : -max(dt, delta_t)], vel_y[0 : -max(dt, delta_t)]
+        x_, y_ = x[0 : -max(dt, delta_t)], y[0 : -max(dt, delta_t)]
         for bin_x in op_y:
             n = 0
             for bin_y in op_x:
                 i = np.where(
                     np.logical_and(
-                        np.logical_and(vel_x_ < (bin_x + inc_x), vel_x_ >= bin_x),
-                        np.logical_and(vel_y_ < (bin_y + inc_y), vel_y_ >= bin_y),
+                        np.logical_and(x_ < (bin_x + inc_x), x_ >= bin_x),
+                        np.logical_and(y_ < (bin_y + inc_y), y_ >= bin_y),
                     )
                 )[0]
                 avgdriftX[n, m] = np.nanmean(driftX[i])
@@ -220,15 +268,15 @@ class SDE:
                 avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
                 n = n + 1
             m = m + 1
-        return avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y
+        return [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
 
     def __call__(self, X, t_int, dt, delta_t=1, inc=0.01, **kwargs):
         """
         Calcualtes drift, diffusion, average drift and avarage difussion.
 
-        Input params:
-        --------------
-        X : list, numpy.ndarray
+        Parameters
+        ----------
+        X : list, array_like
                 time series data
         t_int :float
                 time step in time series
@@ -237,15 +285,15 @@ class SDE:
         inc = 0.01 : float
                 max increment for binning thae data
 
-        returns:
-        --------------
-        diff : numpy.ndarray
+        returns
+        -------
+        diff : array_like
                 diffusion in time series
-        drift : numpy.ndarray
+        drift : array_like
                 drift in time series
-        avgdiff : numpy.ndarray
+        avgdiff : array_like
                 avarage diffusion
-        avgdrift : numpy.ndarray
+        avgdrift : array_like
                 avaerage drift
         """
         self.__dict__.update(kwargs)
