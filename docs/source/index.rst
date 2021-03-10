@@ -1,7 +1,7 @@
 Welcome to pyddsde
 ==================
 
-pyddsde : a package to analyse timeseries data using stocastic differential equations
+pyddsde : a package to derive governing stocastic differential equations from timeseries data.  
 
 
 pyddsde
