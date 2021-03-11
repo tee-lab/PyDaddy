@@ -43,7 +43,6 @@ extensions = ['sphinx.ext.autodoc',
 				'sphinx.ext.todo', 
 				'sphinx.ext.mathjax', 
 				'sphinxcontrib.contentui', 
-				'sphinx-prompt',
 				'sphinx.ext.autosectionlabel',
 			]
 
