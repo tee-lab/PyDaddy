@@ -170,14 +170,14 @@ Usage
 The time series data is given as input to the ``Characterize`` method
 along with all other optional parameters.
 
-.. toggle-header::
-    :header: Show ``pyddsde.Characterize`` documentation
+  .. toggle-header::
+      :header: Show ``pyddsde.Characterize`` documentation
 
-    .. admonition:: Characterize
+      .. admonition:: Characterize
 
-      .. autoclass:: pyddsde.Characterize
-         :members:
-         :noindex:
+        .. autoclass:: pyddsde.Characterize
+           :members:
+           :noindex:
 
 
 Key parameters
@@ -224,14 +224,14 @@ See :ref:`Data set description` for more information about the datasets.
 are stored. Results can be visualised or stored by calling appropriate
 functions:
 
-.. toggle-header::
-    :header: Show ``pyddsde.output.output`` documentation
+  .. toggle-header::
+      :header: Show ``pyddsde.output.output`` documentation
 
-    .. admonition:: pyddsde.output.output
+      .. admonition:: pyddsde.output.output
 
-      .. autoclass:: pyddsde.output
-         :members:
-         :noindex:
+        .. autoclass:: pyddsde.output
+           :members:
+           :noindex:
 
 -  ``summary()``: show summary
 -  ``drift()`` : drift slider plot
@@ -267,14 +267,14 @@ Data set description
 pyddsde has six data set included along with the package which can be
 loaded using ``load_sample_dataset(dataset_name)`` function
 
-.. toggle-header::
-    :header: Show ``pyddsde.load_sample_dataset`` documentation
+  .. toggle-header::
+      :header: Show ``pyddsde.load_sample_dataset`` documentation
 
-    .. admonition:: pyddsde.load_sample_dataset
+      .. admonition:: pyddsde.load_sample_dataset
 
-      .. autoclass:: pyddsde.load_sample_dataset
-         :members:
-         :noindex:
+        .. autoclass:: pyddsde.load_sample_dataset
+           :members:
+           :noindex:
 
 Experiment data (from experimentation or from observations)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
