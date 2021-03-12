@@ -195,7 +195,7 @@ See doc strings or code documentation for more information.
 
 
 Example using sample data set
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See :ref:`Data set description` for more information about the datasets.
 
