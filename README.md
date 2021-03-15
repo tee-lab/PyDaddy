@@ -6,7 +6,9 @@ A package to derive an SDE form the data.
 
 [![Documentation Status](https://readthedocs.org/projects/pyddsde/badge/?version=latest)](https://pyddsde.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/pyFish) ](https://github.com/tee-lab/pyFish/blob/master/LICENSE.txt)   [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/pyFish.git/master?filepath=notebooks)
 
-pyddsde is a python package implementing a data driven SDE method. pyddsde provides an interface which takes time series data as input, runs the analysis and returns an output object through which data and analysed results can be systematically visualized and saved.
+pyddsde is a python package implementing a method for deriving govern stochastic dynamical equation (SDE) from a high-resolution time series data. Hence, pyddsde stands for python package for data-driven sde. 
+
+pyddsde provides an interface which takes time series data as input, runs the analysis to construct an SDE. It then returns an output object through which both data and analysed results can be systematically visualized and saved. 
 
 Suppose m(t) is a SDE time series data.
 
@@ -131,8 +133,6 @@ Distributed under **GNU General Public License v3.0**. See `Licence.txt` for mor
 
 
 # Reference
-[1] Noise-induced Effects in Collective Dynamics and Inferring Local Interactions from Data
-   [Preprint](https://arxiv.org/abs/1911.09376) [Github](https://github.com/tee-lab/Characterizing_noise)
+[1] Jhawar, Jitesh, and Vishwesha Guttal. "Noise-induced effects in collective dynamics and inferring local interactions from data." Philosophical Transactions of the Royal Society B 375.1807 (2020): 20190381. [Link to Journal](https://royalsocietypublishing.org/doi/full/10.1098/rstb.2019.0381)
  
-[2] Noise-Induced Schooling of Fish 
-	 [Preprint](https://arxiv.org/abs/1903.12132) [Github](https://github.com/tee-lab/schooling_fish) 
+[2] Jhawar, Jitesh, Richard G. Morris, U. R. Amith-Kumar, M. Danny Raj, Tim Rogers, Harikrishnan Rajendran, and Vishwesha Guttal. "Noise-induced schooling of fish." Nature Physics 16, no. 4 (2020): 488-493. [Link to Journal](https://www.nature.com/articles/s41567-020-0787-y) 
