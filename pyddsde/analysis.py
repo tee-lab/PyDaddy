@@ -113,17 +113,25 @@ class AutoCorrelation:
 		coeff1, coeff2 = scipy.optimize.curve_fit(fn, x, y)
 		return coeff1, coeff2
 
-	def _get_autocorr_time(self, X, t_lag=1000):
+	def _get_autocorr_time(self, X, t_lag=1000, update=True):
 		"""
-		Get the autocorrelation time of data `X`
+		Get the autocorrelation time of data `X`, for the analysis.
 		"""
 		t_lag, c = self._acf(X, t_lag)
 		self._autocorr_x, self._autocorr_y = t_lag, c
 		#t_lag, c = self._autocorr(X, t_lag)
 		coeff1, coeff2 = self._fit_exp(t_lag, c)
 		a, b, c = coeff1
-		self._a, self.autocorrelation_time, self._c = a, b, c
+		if update:
+			self._a, self.autocorrelation_time, self._c = a, b, c
 		return int(np.ceil(b))
+
+	def _act(self, X, t_lag=1000):
+		"""
+		Get autocorrelation time of X.
+		"""
+		return self._get_autocorr_time(X, t_lag=t_lag, update=False)
+
 
 
 class underlying_noise(SDE):

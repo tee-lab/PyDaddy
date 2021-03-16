@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
+import matplotlib.gridspec as gridspec
+import matplotlib.ticker as mtick
 import seaborn as sns
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -12,7 +14,7 @@ class visualize(metrics):
 	"""
 	Module to visualize and plot analysed data
 
-    :meta private:
+	:meta private:
 	"""
 	def __init__(self, op_x, op_y, op, autocorrelation_time, **kwargs):
 		self.op_x = op_x
@@ -22,8 +24,9 @@ class visualize(metrics):
 		self.__dict__.update(kwargs)
 		metrics.__init__(self)
 
-		return None
+		self._c_pallet = sns.color_palette("colorblind", as_cmap=True)
 
+		return None
 
 	def _stylize_axes(self,
 					 ax,
@@ -67,13 +70,16 @@ class visualize(metrics):
 		if vector:
 			Mx, My, driftX, driftY, diffX, diffY = data
 			M = np.sqrt(Mx**2 + My**2)
-			fig, axs = plt.subplots(nrows=3, ncols=4,figsize=(15,12), dpi=150)
-			plt.subplots_adjust(wspace= 0.5, hspace= 0.5)
+			#fig, axs = plt.subplots(nrows=3, ncols=4,figsize=(15,12), dpi=150)
+			#plt.subplots_adjust(wspace= 0.5, hspace= 0.5)
+			fig = plt.figure(constrained_layout=True, figsize=(15,12))
 
-			gs = axs[0, 0].get_gridspec()
+			#gs = axs[0, 0].get_gridspec()
+			gs = gridspec.GridSpec(nrows=3, ncols=4,wspace=0.5, hspace=0.5,figure=fig)
+			#fig.set_constrained_layout_pads(w_pad=1, h_pad=5)
 			# remove the underlying axes
-			for ax in axs.flatten():
-			    ax.remove()
+			#for ax in axs.flatten():
+			#    ax.remove()
 
 			Mx_axis = fig.add_subplot(gs[0,0:2])
 			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end])
@@ -164,9 +170,9 @@ class visualize(metrics):
 			ticks = [str(i)+"K" for i in (np.array(distMx_axis.get_yticks())/1000).round(1)]
 			distMx_axis.set_yticklabels(ticks)
 			self._stylize_axes(distMx_axis,
-							  x_label='Order Parameter',
+							  x_label='$M_{x}$',
 							  y_label='Frequency',
-							  title='Dist Mx',
+							  title='',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -177,9 +183,9 @@ class visualize(metrics):
 			ticks = [str(i)+"K" for i in (np.array(distMy_axis.get_yticks())/1000).round(1)]
 			distMy_axis.set_yticklabels(ticks)
 			self._stylize_axes(distMy_axis,
-							  x_label='Order Parameter',
+							  x_label='$M_{y}$',
 							  y_label='Frequency',
-							  title='Dist My',
+							  title='',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -191,17 +197,16 @@ class visualize(metrics):
 			ticks = [str(i)+"K" for i in (np.array(distM_axis.get_yticks())/1000).round(1)]
 			distM_axis.set_yticklabels(ticks)
 			self._stylize_axes(distM_axis,
-							  x_label='Order Parameter',
+							  x_label='|M|',
 							  y_label='Frequency',
-							  title='Dist |M|',
+							  title='',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
 
 			pdf_axis = fig.add_subplot(gs[1,3], projection='3d')
-			pdf_axis = self._plot_3d_hisogram(Mx, My, ax=pdf_axis, title='Mx,My distrubition', title_size=title_size, tick_size=tick_size,label_size=label_size, label_pad=label_pad)
-
+			pdf_axis = self._plot_3d_hisogram(Mx, My, ax=pdf_axis, title='', title_size=title_size, tick_size=tick_size,label_size=label_size, label_pad=label_pad)
 
 			"""
 			fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 12))
@@ -313,10 +318,11 @@ class visualize(metrics):
 
 			#Dist |M|
 			sns.distplot(M, kde=kde, ax=ax[1][0])
+			ax[1][0].set_xticks(np.linspace(min(M), max(M), 5))
 			self._stylize_axes(ax[1][0],
-							  x_label='Order Parameter',
+							  x_label='M',
 							  y_label='Frequency',
-							  title='Dist |M|',
+							  title='',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -325,14 +331,17 @@ class visualize(metrics):
 			#Drift
 			p_drift, _ = self._fit_poly(self.op, drift, drift_order)
 			ax[0][1].scatter(self.op, drift, marker='.', label='drift')
-			ax[0][1].scatter(self.op,
+			ax[0][1].plot(self.op,
 							 p_drift(self.op),
-							 marker='.',
-							 alpha=0.4,
+							 #marker='.',
+							 alpha=0.3,
+							 color='black',
 							 label='poly_fit')
+			ax[0][1].set_xticks(np.linspace(min(self.op), max(self.op), 5))
+			ax[0][1].set_yticks(np.linspace(min(drift), max(drift), 5))
 			self._stylize_axes(ax[0][1],
-							  x_label='op',
-							  y_label='$A_{1}$',
+							  x_label='m',
+							  y_label='F',
 							  title='Drift',
 							  tick_size=tick_size,
 							  title_size=title_size,
@@ -342,14 +351,17 @@ class visualize(metrics):
 			#Diffusion
 			p_diff, _ = self._fit_poly(self.op, diff, diff_order)
 			ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
-			ax[1][1].scatter(self.op,
+			ax[1][1].plot(self.op,
 							 p_diff(self.op),
-							 marker='.',
-							 alpha=0.4,
+							 #marker='.',
+							 alpha=0.3,
+							 color='black',
 							 label='poly_fit')
+			ax[1][1].set_xticks(np.linspace(min(self.op), max(self.op), 5))
+			ax[1][1].set_yticks(np.linspace(min(diff), max(diff), 5))
 			self._stylize_axes(ax[1][1],
-							  x_label='op',
-							  y_label='$B_{1}$',
+							  x_label='m',
+							  y_label='$G^{2}$',
 							  title='Diffusion',
 							  tick_size=tick_size,
 							  title_size=title_size,
@@ -357,6 +369,9 @@ class visualize(metrics):
 							  label_pad=label_pad)
 			ax[1][1].legend(loc=1, frameon=False, fontsize=tick_size)
 
+		#plt.tight_layout()
+		#plt.subplots_adjust(bottom=0.3)
+		#fig.add_axes([0,0,1,1]).axis("off")
 		plt.tight_layout()
 		return fig
 
@@ -431,33 +446,33 @@ class visualize(metrics):
 			ax[0][0] = sns.distplot(Mx, kde=kde, ax=ax[0][0])
 			ticks = [str(i)+"K" for i in (np.array(ax[0][0].get_yticks())/1000).round(1)]
 			ax[0][0].set_yticklabels(ticks)
-			self._stylize_axes(ax[0][0],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0][0],	x_label='$M_{x}$', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1])
 			ticks = [str(i)+"K" for i in (np.array(ax[0][1].get_yticks())/1000).round(1)]
 			ax[0][1].set_yticklabels(ticks)
-			self._stylize_axes(ax[0][1],	x_label='Order Parameter', y_label='Frequency', title="$M_{x}$", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0][1],	x_label='$M_{y}$', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0])
 			ticks = [str(i)+"K" for i in (np.array(ax[1][0].get_yticks())/1000).round(1)]
 			ax[1][0].set_yticklabels(ticks)
-			self._stylize_axes(ax[1][0],	x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[1][0],	x_label='|M|', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][1].remove()
 			ax[1][1] = fig.add_subplot(2,2,4, projection='3d')
 			ax[1][1].set_title('3d Histogram')
-			ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title='Mx,My distrubition', title_size=title_size, label_size=label_size, tick_size=tick_size, label_pad=label_pad)
+			ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title='', title_size=title_size, label_size=label_size, tick_size=tick_size, label_pad=label_pad)
 
 		else:
 			M = timeseries[0]
 			fig, ax = plt.subplots(nrows=1, ncols=2, dpi=150, figsize=(8,4))
 			ax[0] = sns.distplot(M, kde=kde, ax=ax[0])
-			self._stylize_axes(ax[0], x_label='Order Parameter', y_label='Frequency', title="M",tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0], x_label='M', y_label='Frequency', title="",tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 			ticks = [str(i)+"K" for i in (np.array(ax[0].get_yticks())/1000).round(1)]
 			ax[0].set_yticklabels(ticks)
 
 			ax[1] = sns.distplot(np.sqrt(M**2), kde=kde, ax=ax[1])
-			self._stylize_axes(ax[1], x_label='Order Parameter', y_label='Frequency', title="|M|", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[1], x_label='|M|', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 			ticks = [str(i)+"K" for i in (np.array(ax[1].get_yticks())/1000).round(1)]
 			ax[1].set_yticklabels(ticks)
 
@@ -551,6 +566,9 @@ class visualize(metrics):
 		if ax is None:
 			fig = plt.figure(dpi=dpi)
 			ax = fig.add_subplot(projection="3d")
+
+		ax = self._set_zaxis_to_left(ax)
+
 		H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(Mx, My))
 		colors = plt.cm.coolwarm(dz.flatten() / float(dz.max()))
 		hist3d = ax.bar3d(X,Y,Z,dx,dy,dz,alpha=0.6,cmap=plt.cm.coolwarm,color=colors)
@@ -566,8 +584,8 @@ class visualize(metrics):
 		ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		#Set ticks lable and its fontsize
-		ax.set_xticks(np.linspace(min(Mx), max(Mx), 3))
-		ax.set_yticks(np.linspace(min(My), max(My), 3))
+		ax.set_xticks(np.linspace(round(min(Mx),2), round(max(Mx),2), 3))
+		ax.set_yticks(np.linspace(round(min(My),2), round(max(My),2), 3))
 		ax.set_title(title, fontsize=title_size)
 		ticks = [str(i)+"K" for i in (np.array(ax.get_zticks())/1000).round(1)]
 		ax.set_zticklabels(ticks)
@@ -650,15 +668,25 @@ class visualize(metrics):
 			k = 0
 			for r in range(1, nrows + 1):
 				for c in range(1, ncols + 1):
-					marker_colour = 'blue'
-					if k % 2: marker_colour = 'red'
+					#marker_colour = 'blue'
+					#if k % 2: marker_colour = 'red'
+					marker_colour = self._c_pallet[dt_s.index(dt)%len(self._c_pallet)]
+					if k % 2 : marker_colour = self._c_pallet[dt_s.index(dt)%len(self._c_pallet)]
 					fig.append_trace(
 						go.Scatter3d(x=(x.flatten()),
 									 y=(y.flatten()),
 									 z=(data[k].flatten()),
-									 opacity=0.8,
+									 opacity=1,
 									 mode='markers',
-									 marker=dict(size=3, color=marker_colour),
+									 #marker=dict(size=3, color=marker_colour),
+									 marker=dict(
+										color=marker_colour,
+										size=3,
+										line=dict(
+											color='black',
+											width=0
+										)
+									),
 									 name="{}, {}".format(n[k], dt),
 									 visible=visible),
 						row=r,
@@ -738,10 +766,12 @@ class visualize(metrics):
 
 		fig.layout.sliders = sliders
 		fig.layout.template = 'plotly_white'
+		#fig.layout.template = 'plotly'
+
 
 		return fig
 
-	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt'):
+	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', fit_poly=True, order=None):
 		"""
 		Get slider for analysed scalar data
 		"""
@@ -751,11 +781,11 @@ class visualize(metrics):
 		if prefix == 'Dt':
 			t = 'Drift'
 			t_tex = "\Delta t"
-			order = self.drift_order
+			if order is None: order = self.drift_order
 		else:
 			t = 'Diff'
 			t_tex = "\delta t"
-			order = self.diff_order
+			if order is None: order = self.diff_order
 			
 		# Create figure
 		fig = go.Figure()
@@ -766,23 +796,37 @@ class visualize(metrics):
 			visible = 'legendonly'
 			if step == opt_step:
 				visible = True
-			poly, op = self._fit_poly(data[step][-1], data[step][0], order)
+			marker_colour = "red"
+			marker_colour = self._c_pallet[dt_s.index(step)%len(self._c_pallet)]
 			fig.add_trace(
 				go.Scatter(
 					visible=visible,
 					mode='markers',
-					line=dict(color="red", width=6),
+					marker=dict(
+						color=marker_colour,
+						size=10,
+						opacity=1,
+						line=dict(
+							color='black',
+							width=1
+						)
+					),
+					#line=dict(color=marker_colour, width=6),
 					name="{} = {}".format(prefix, str(step)),
 					x=data[step][-1],
 					y=data[step][0]))
-			fig.add_trace(
-				go.Scatter(
-					visible=visible,
-					mode='markers',
-					line=dict(color="blue", width=6),
-					name="poly_fit = " + str(step),
-					x=op,
-					y=poly(op)))
+			if fit_poly:
+				poly, op = self._fit_poly(data[step][-1], data[step][0], order)
+
+				fig.add_trace(
+					go.Scatter(
+						visible=visible,
+						#mode='markers',
+						opacity=0.3,
+						line=dict(color="black", width=6),
+						name="poly_fit = " + str(step),
+						x=op,
+						y=poly(op)))
 
 		fig.update_layout(
 			autosize=True,
@@ -796,6 +840,9 @@ class visualize(metrics):
 
 		# Create and add slider
 		steps = []
+		step_n = 1
+		if fit_poly:
+			step_n = 2
 		for i in range(len(dt_s)):
 			step = dict(
 				method="update",
@@ -805,7 +852,7 @@ class visualize(metrics):
 						 list(data.keys())[i]))
 			
 			#step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
-			step['args'][0]['visible'][i * 2:i * 2 + 2] = [True for j in range(2)]
+			step['args'][0]['visible'][i * step_n:i * step_n + step_n] = [True for j in range(step_n)]
 			steps.append(step)
 
 		sliders = [dict(
@@ -862,6 +909,22 @@ class visualize(metrics):
 			return 0, plane1
 		return 1, plane2
 
+	def _set_zaxis_to_left(self, ax):
+		"""
+		Sets the z-axis of 3d figure to left
+		"""
+		default_planes = (
+		(0, 3, 7, 4), (1, 2, 6, 5),     # yz planes
+		(0, 1, 5, 4), (3, 2, 6, 7),     # xz planes
+		(0, 1, 2, 3), (4, 5, 6, 7),     # xy planes
+			)
+		tmp_planes = ax.zaxis._PLANES
+		if tmp_planes == default_planes:
+			ax.zaxis._PLANES = (tmp_planes[2], tmp_planes[3],
+				 tmp_planes[0], tmp_planes[1],
+				 tmp_planes[4], tmp_planes[5])
+		return ax
+
 	def _plot_data(self,
 				  data_in,
 				  title='title',
@@ -892,6 +955,9 @@ class visualize(metrics):
 		if ax is None:
 			fig = plt.figure(dpi=dpi)
 			ax = fig.add_subplot(projection="3d")
+
+		ax = self._set_zaxis_to_left(ax)
+
 		data = data_in.copy()
 		mask = np.where(((data > m_th * np.nanstd(data)) |
 						 (data < -m_th * np.nanstd(data))))
@@ -945,10 +1011,14 @@ class visualize(metrics):
 		ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		#Set ticks lable and its fontsize
-		ax.set_xlim3d(op_x[0], op_x[-1])
-		ax.set_ylim3d(op_x[0], op_x[-1])
-		ax.set_xticks(np.linspace(op_x[0], op_x[-1], 3))
-		ax.set_yticks(np.linspace(op_y[0], op_y[-1], 3))
+		ax.set_xlim3d(round(op_x[0], 2), round(op_x[-1], 2))
+		ax.set_ylim3d(round(op_x[0], 2), round(op_x[-1], 2))
+		ax.set_xticks(np.linspace(round(op_x[0],2), round(op_x[-1],2), 3))
+		ax.set_yticks(np.linspace(round(op_y[0],2), round(op_y[-1],2), 3))
+		#ax.xaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
+		ax.ticklabel_format(style='sci',axis='x',scilimits=(0,0), useMathText=True)
+		ax.ticklabel_format(style='sci',axis='y',scilimits=(0,0), useMathText=True)
+
 		ax.tick_params(axis='both', which='major', labelsize=tick_size)
 		#ax.xaxis._axinfo['label']['space_factor'] = 2.0
 		#ax.yaxis._axinfo['label']['space_factor'] = 2.0

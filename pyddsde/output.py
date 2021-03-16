@@ -300,9 +300,17 @@ class output(preprocessing, visualize):
 		"""
 		if start > end:
 			raise ValueError("'start' sould not be greater than 'end'")
+		
 		if not self.vector:
-			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'M range', 'M mean', '|M| mean']
-			values = [self.vector, self.autocorrelation_time,self._ddsde.gaussian_noise,(round(min(self._data_X), 2), round(max(self._data_X), 2)),	round(np.mean(self._data_X), 2),round(np.mean(np.sqrt(self._data_X**2)), 2)]
+			feilds = [	'M range', 				'M mean', 
+						'|M| range', 			'|M| mean', 
+						'Autocorr time (M)', 	'(Dt, dt)',
+						]
+			
+			values = [	self._get_data_range(self._data_X),	round(np.nanmean(self._data_X), 2),
+						self._get_data_range(np.sqrt(self._data_X**2)), round(np.nanmean(np.sqrt(self._data_X**2)), 2),
+						np.ceil(self.autocorrelation_time), (self._ddsde.dt, self._ddsde.delta_t),
+						]
 			values = list(map(str, values))
 			summary = []
 			for i in range(len(feilds)):
@@ -310,17 +318,26 @@ class output(preprocessing, visualize):
 				summary.append(values[i])
 			summary_format = ("| {:<20} : {:^15}"*2 +"|\n")*int(len(feilds)/2)
 			print(summary_format.format(*summary))
-			print("Dt = {}\ndt= {}".format(self._ddsde.dt, self._ddsde.delta_t))
 			data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self.drift_order, self.diff_order]
+		
 		else:
-			feilds = ['Data Type (vector)', 'Autocorrelation Time', 'Gaussian Noise', 'Mx range', 'My range', 'range |M|', 'Mx mean', 'My mean', 'M mean', '(dt, delta_t)']
-			values = [self.vector, self.autocorrelation_time, self._ddsde.gaussian_noise, (round(min(self._data_Mx), 2), round(max(self._data_Mx), 2)),	(round(min(self._data_My), 2), round(max(self._data_My), 2)), (round(min(self._data_M), 2), round(max(self._data_M), 2)), round(np.mean(self._data_Mx), 2), round(np.mean(self._data_My), 2), round(np.mean(np.sqrt(self._data_Mx**2 + self._data_My**2)),2), (self._ddsde.dt, self._ddsde.delta_t)]
+			feilds = [	'Mx range', 							'Mx mean', 
+						'My range', 							'My mean', 
+						'|M| range', 							'|M| mean',
+						'Autocorr time (Mx, My, |M|)', 			'(Dt, dt)',
+						]
+			
+			values = [	self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 2),
+						self._get_data_range(self._data_My), round(np.nanmean(self._data_My), 2),									
+						self._get_data_range(self._data_M), round(np.nanmean(np.sqrt(self._data_Mx**2 + self._data_My**2)),2),
+						(self._act(self._data_Mx), self._act(self._data_My), np.ceil(self.autocorrelation_time)), (self._ddsde.dt, self._ddsde.delta_t)
+						]
 			values = list(map(str, values))
 			summary = []
 			for i in range(len(feilds)):
 				summary.append(feilds[i])
 				summary.append(values[i])
-			summary_format = ("| {:<20} : {:^15}"*2 +"|\n")*int(len(feilds)/2)
+			summary_format = ("| {:<30} : {:^15}"*2 +"|\n")*int(len(feilds)/2)
 			print(summary_format.format(*summary))
 			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
 
@@ -425,12 +442,16 @@ class output(preprocessing, visualize):
 		plt.show()
 		return fig
 
-	def drift(self):
+	def drift(self, fit_poly=False, order=None):
 		"""
 		Display drift slider figure
 
 		Args
 		----
+		fit_poly : bool, default=False
+			If True fits a ploynomial for drift data, works only for scalar data analysis
+		order : None or int, default=None
+			order of polynomial to fit, if None, fits a polynomial of observed order of drift.
 
 		Returns
 		-------
@@ -443,17 +464,20 @@ class output(preprocessing, visualize):
 		if self.vector:
 			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos)
 		else:
-			fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos)
+			fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, fit_poly=fit_poly, order=order)
 		fig.show()
 		return None
 
-	def diffusion(self):
+	def diffusion(self, fit_poly=False, order=None):
 		"""
 		Display diffusion slider figure
 
 		Args
 		----
-
+		fit_poly : bool, default=False
+			If True fits a ploynomial for diffusion data, works only for scalar data analysis
+		order : None or int, default=None
+			order of polynomial to fit, if None, fits a polynomial of observed order of diffusion.
 		Returns
 		-------
 		opens diffusion slider : None
@@ -464,7 +488,7 @@ class output(preprocessing, visualize):
 		if self.vector:
 			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0)
 		else:
-			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0)
+			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, fit_poly=fit_poly, order=order)
 		fig.show()
 		return None
 

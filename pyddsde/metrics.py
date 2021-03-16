@@ -268,6 +268,12 @@ class metrics:
                 pass
         return self._make_directory(p, i=i + 1)
 
+    def _get_data_range(self, x):
+        """
+        Get range of the values in x, (min(x), max(x)), rounded to 2 decimal places.
+        """
+        return (round(min(x), 2),round(max(x), 2))
+
     def _remove_nan(self, x, y):
         """
         Removes NaN's by deleting the indices where both `x` and `y` have NaN's

@@ -165,7 +165,7 @@ class SDE:
                 "Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data"
             )
             r = (min(X), max(X))
-        return np.arange(min(r), max(r), inc), r
+        return np.arange(min(r), max(r)+inc, inc), r
 
     def _drift_and_diffusion(self, X, t_int, dt, delta_t, inc):
         """
