@@ -512,7 +512,7 @@ class output(preprocessing, visualize):
 			_, diff = self._get_data_from_slider(diff_time_scale)
 
 			#Time series
-			fig1 = fig = plt.figure(dpi=150)
+			fig1 = plt.figure(dpi=150)
 			plt.suptitle("Time_Series")
 			#l = int(len(self._data_X) / 4)
 			l = 1000
@@ -523,42 +523,49 @@ class output(preprocessing, visualize):
 			self._visualize_figs.append(fig1)
 
 			#PDF
-			fig2 = fig = plt.figure(dpi=150, figsize=(5, 5))
+			fig2 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("PDF")
 			sns.distplot(self._data_X)
 			plt.xlim([min(self._data_X), max(self._data_X)])
+			plt.xticks(np.linspace(min(self._data_X), max(self._data_X), 5))
 			plt.ylabel('PDF')
-			plt.xlabel('Order Parameter')
+			plt.xlabel('M')
 			self._visualize_figs.append(fig2)
 
 			#Drift
 			fig3 = plt.figure(dpi=150, figsize=(5, 5))
-			plt.suptitle("Average_Drift")
+			plt.suptitle("Drift")
 			p_drift, _ = self._fit_poly(self._data_op, drift,
 										self.drift_order)
 			plt.scatter(self._data_op, drift, marker='.')
+			"""
 			plt.scatter(self._data_op,
 						p_drift(self._data_op),
 						marker='.',
 						alpha=0.4)
-			plt.xlabel('Order Parameter')
-			plt.ylabel("Deterministic")
-			plt.xlim([min(self._data_X), max(self._data_X)])
+			"""
+			plt.xlabel('M')
+			plt.ylabel("F")
+			plt.xlim([min(self._data_op), max(self._data_op)])
+			plt.xticks(np.linspace(min(self._data_op), max(self._data_op), 5))
 			self._visualize_figs.append(fig3)
 
 			#Diffusion
 			fig4 = plt.figure(dpi=150, figsize=(5, 5))
-			plt.suptitle("Average_Diffusion")
+			plt.suptitle("Diffusion")
 			p_diff, _ = self._fit_poly(self._data_op, diff,
 									   self.diff_order)
 			plt.scatter(self._data_op, diff, marker='.')
+			"""
 			plt.scatter(self._data_op,
 						p_diff(self._data_op),
 						marker='.',
 						alpha=0.4)
-			plt.xlim([min(self._data_X), max(self._data_X)])
-			plt.xlabel("Order Parameter")
-			plt.ylabel('Stochastic')
+			"""
+			plt.xlim([min(self._data_op), max(self._data_op)])
+			plt.xticks(np.linspace(min(self._data_op), max(self._data_op), 5))
+			plt.xlabel("M")
+			plt.ylabel('$G^{2}$')
 			self._visualize_figs.append(fig4)
 
 		else:
@@ -703,7 +710,13 @@ class output(preprocessing, visualize):
 
 		return None
 
-	def noise_characterstics(self):
+	def noise_characterstics(self,
+								dpi=150, 
+								kde=True, 
+								title_size=14, 
+								tick_size=15, 
+								label_size=15,
+								label_pad=8):
 		"""
 		Show noise characterstics plots.
 
@@ -717,7 +730,13 @@ class output(preprocessing, visualize):
 		self._noise_figs = []
 		#print("Noise is gaussian") if self._ddsde.gaussian_noise else print("Noise is not Gaussian")
 		data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.h_lim, self._ddsde.k, self._ddsde.l_lim,self._ddsde._f, self._ddsde._noise_correlation]
-		fig = self._plot_noise_characterstics(data)
+		fig = self._plot_noise_characterstics(data,
+												dpi=150, 
+												kde=True, 
+												title_size=14, 
+												tick_size=15, 
+												label_size=15,
+												label_pad=8)
 
 		plt.show()
 		return None

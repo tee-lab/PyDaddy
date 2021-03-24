@@ -331,12 +331,14 @@ class visualize(metrics):
 			#Drift
 			p_drift, _ = self._fit_poly(self.op, drift, drift_order)
 			ax[0][1].scatter(self.op, drift, marker='.', label='drift')
+			"""
 			ax[0][1].plot(self.op,
 							 p_drift(self.op),
 							 #marker='.',
 							 alpha=0.3,
 							 color='black',
 							 label='poly_fit')
+			"""
 			ax[0][1].set_xticks(np.linspace(min(self.op), max(self.op), 5))
 			ax[0][1].set_yticks(np.linspace(min(drift), max(drift), 5))
 			self._stylize_axes(ax[0][1],
@@ -351,12 +353,14 @@ class visualize(metrics):
 			#Diffusion
 			p_diff, _ = self._fit_poly(self.op, diff, diff_order)
 			ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
+			"""
 			ax[1][1].plot(self.op,
 							 p_diff(self.op),
 							 #marker='.',
 							 alpha=0.3,
 							 color='black',
 							 label='poly_fit')
+			"""
 			ax[1][1].set_xticks(np.linspace(min(self.op), max(self.op), 5))
 			ax[1][1].set_yticks(np.linspace(min(diff), max(diff), 5))
 			self._stylize_axes(ax[1][1],
@@ -444,18 +448,21 @@ class visualize(metrics):
 			fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(8,8))
 			plt.subplots_adjust(wspace= 0.4, hspace= 0.4)
 			ax[0][0] = sns.distplot(Mx, kde=kde, ax=ax[0][0])
-			ticks = [str(i)+"K" for i in (np.array(ax[0][0].get_yticks())/1000).round(1)]
-			ax[0][0].set_yticklabels(ticks)
+			if not kde:
+				ticks = [str(i)+"K" for i in (np.array(ax[0][0].get_yticks())/1000).round(1)]
+				ax[0][0].set_yticklabels(ticks)
 			self._stylize_axes(ax[0][0],	x_label='$M_{x}$', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1])
-			ticks = [str(i)+"K" for i in (np.array(ax[0][1].get_yticks())/1000).round(1)]
-			ax[0][1].set_yticklabels(ticks)
+			if not kde:
+				ticks = [str(i)+"K" for i in (np.array(ax[0][1].get_yticks())/1000).round(1)]
+				ax[0][1].set_yticklabels(ticks)
 			self._stylize_axes(ax[0][1],	x_label='$M_{y}$', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0])
-			ticks = [str(i)+"K" for i in (np.array(ax[1][0].get_yticks())/1000).round(1)]
-			ax[1][0].set_yticklabels(ticks)
+			if not kde:
+				ticks = [str(i)+"K" for i in (np.array(ax[1][0].get_yticks())/1000).round(1)]
+				ax[1][0].set_yticklabels(ticks)
 			self._stylize_axes(ax[1][0],	x_label='|M|', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][1].remove()

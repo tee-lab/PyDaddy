@@ -298,7 +298,7 @@ def load_sample_dataset(name):
 
 	Available data sets:
 
-	'fish-data-ectropus'
+	'fish-data-ectroplus'
 
 	'model-data-scalar-pairwise'
 
@@ -321,7 +321,7 @@ def load_sample_dataset(name):
 		timescale
 	"""
 	data_dict = {
-	'fish-data-ectropus' : 'data/fish_data/ectropus.csv',
+	'fish-data-ectroplus' : 'data/fish_data/ectropus.csv',
 	'model-data-scalar-pairwise' : 'data/model_data/scalar/pairwise.csv',
 	'model-data-scalar-ternary' : 'data/model_data/scalar/ternary.csv',
 	'model-data-vector-pairwise' : 'data/model_data/vector/pairwise.csv',
