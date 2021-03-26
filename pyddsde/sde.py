@@ -161,11 +161,8 @@ class SDE:
         if r is None:
             r = (min(X), max(X))
         if not self._isValidRange(r):
-            print(
-                "Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data"
-            )
             r = (min(X), max(X))
-        return np.arange(min(r), max(r)+inc, inc), r
+        return np.arange(min(r), max(r)+inc, inc)
 
     def _drift_and_diffusion(self, X, t_int, dt, delta_t, inc):
         """
@@ -197,7 +194,7 @@ class SDE:
         op : array
             order parameter
         """
-        op, self.op_range = self._order_parameter(X, inc, self.op_range)
+        op = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []
         drift = self._drift(X, t_int, dt)
         diff = self._diffusion(X, t_int, delta_t=delta_t)
@@ -233,8 +230,8 @@ class SDE:
             [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
         """
 
-        op_x, self.op_x_range = self._order_parameter(x, inc_x, self.op_x_range)
-        op_y, self.op_y_range = self._order_parameter(y, inc_y, self.op_y_range)
+        op_x = self._order_parameter(x, inc_x, self.op_x_range)
+        op_y = self._order_parameter(y, inc_y, self.op_y_range)
 
         driftX = self._drift(x, t_int, dt)
         driftY = self._drift(y, t_int, dt)

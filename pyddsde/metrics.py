@@ -313,9 +313,6 @@ class metrics:
             return False
         if isinstance(r, (list, tuple)) and len(r) == 3 and (np.array(r) >= 1).all():
             return True
-        print(
-            "\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n"
-        )
         return False
 
     def _isValidSliderTimesSaleList(self, slider_list):
@@ -339,9 +336,6 @@ class metrics:
             and (np.array(slider_list) >= 1).all()
         ):
             return True
-        print(
-            "\n[Warning] : Given slider timescale list is not valid, or contains some invalid timescales"
-        )
         return False
 
     def _get_slider_timescales(self, slider_range, slider_scale_list):
@@ -379,7 +373,7 @@ class metrics:
             n_step = 8
         self.slider_range = (slider_start, slider_stop, n_step)
         #return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
-        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))))
+        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.dt])))
 
     def _closest_time_scale(self, time_scale):
         """
@@ -443,7 +437,7 @@ class metrics:
         if self.vector:
             headers = "x,y,"
         for i in self._drift_slider:
-            headers = headers + "{} {},".format(prefix, i)
+            headers = headers + "{}-{},".format(prefix, i)
         return headers
 
     def _get_stacked_data(self):

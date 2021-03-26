@@ -14,7 +14,6 @@ from pyddsde.analysis import gaussian_test
 from pyddsde.preprocessing import preprocessing
 from pyddsde.metrics import metrics
 from pyddsde.output import output
-from pyddsde.output import InputError
 
 warnings.filterwarnings("ignore")
 
@@ -31,7 +30,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self,
 			data,
 			t=1,
-			dt='auto',
+			dt=None,
 			delta_t=1,
 			t_lag=1000,
 			inc=0.01,
@@ -43,12 +42,11 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			n_trials=1,
 			show_summary=True,
 			max_order = 9,
-			order_metric = 'R2_adj',
 			**kwargs):
 
 		self._data = data
 		self._t = t
-		self.dt_ = dt
+		self.dt = dt
 
 		self.t_lag = t_lag
 		self.max_order = max_order
@@ -56,16 +54,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.inc_x = inc_x
 		self.inc_y = inc_y
 		self.delta_t = delta_t
-		self.order_metric = order_metric
 		self.fft = fft
 		self.n_trials = n_trials
 		self._show_summary = show_summary
 
-		self.drift_order = None
-		self.diff_order = None
-
-		self.drift_order = None
-		self.diff_order = None
+		#self.drift_order = None
+		#self.diff_order = None
 
 		self.op_range = None
 		self.op_x_range = None
@@ -73,10 +67,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.slider_range = slider_range
 		self.slider_timescales = slider_timescales
 
+		"""
 		# When t_lag is greater than timeseries length, reassign its value as length of data
 		if self.t_lag > len(data[0]):
 			print('Warning : t_lag is greater that the length of data; setting t_lag as {}\n'.format(len(data[0]) - 1))
 			self.t_lag = len(data[0]) - 1
+		"""
 
 		self.__dict__.update(kwargs)
 		preprocessing.__init__(self)
@@ -88,9 +84,6 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		#	raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
 
 		return None
-
-	def _timestep(self, t):
-		return (t[-1]-t[0]) / (len(t)-1)
 
 	def _slider_data(self, Mx, My, save=False, savepath='results'):
 		time_scale_list = self._get_slider_timescales(self.slider_range, self.slider_timescales)
@@ -118,11 +111,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 		return drift_data_dict, diff_data_dict
 
-	def __call__(self, data, t=1, dt='auto', **kwargs):
+	def __call__(self, data, t=1, dt=None, **kwargs):
 		self.__dict__.update(kwargs)
 		#if t is None and t_int is None:
 		#	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
 		self._t = t
+		"""
 		if len(data) == 1:
 			self._X = np.array(data[0])
 			self._M_square = np.array(data[0])
@@ -147,14 +141,19 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self.t_int = self._timestep(t)
 
 		#print('opt_dt')
-		self.dt = self._optimium_timescale(self._X,
+		"""
+		self._preprocess()
+		"""
+		self.dt_ = self._optimium_timescale(self._X,
 										   self._M_square,
 										   t_int=self.t_int,
 										   dt=dt,
 										   max_order=self.max_order,
 										   t_lag=self.t_lag,
-										   inc=self.inc)
+										   inc=self.inc_x)
+	   	"""
 		if not self.vector:
+			"""
 			self._diff_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(
 				self._X,
 				self.t_int,
@@ -163,9 +162,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				inc=self.inc)
 			self._avgdiff_ = self._avgdiff_ / self.n_trials
 			self._avgdrift_ = self._avgdrift_ / self.n_trials
+			"""
 			self._drift_slider, self._diff_slider = self._slider_data(self._X, None)
+			self._avgdrift_, self._op_ = self._drift_slider[self.dt]
+			self._avgdiff_ = self._diff_slider[self.dt][0]
 		else:
-			#print('drift diff')
+			"""
 			self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._op_x_, self._op_y_ = self._vector_drift_diff(
 				self._Mx,
 				self._My,
@@ -179,8 +181,10 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self._avgdiffX_ = self._avgdiffX_ / self.n_trials
 			self._avgdiffY_ = self._avgdiffY_ / self.n_trials
 			self._avgdiffXY_ = self._avgdiffXY_ / self.n_trials
-			self._drift_slider, self._diff_slider = self._slider_data(
-				self._Mx, self._My)
+			"""
+			self._drift_slider, self._diff_slider = self._slider_data(self._Mx, self._My)
+			self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.dt]
+			self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
 
 		inc = self.inc_x if self.vector else self.inc
 		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
@@ -238,7 +242,7 @@ class Characterize(object):
 			cls,
 			data,
 			t=1.0,
-			dt='auto',
+			dt=None,
 			delta_t=1,
 			inc=0.01,
 			inc_x=0.1,
@@ -298,7 +302,7 @@ def load_sample_dataset(name):
 
 	Available data sets:
 
-	'fish-data-ectroplus'
+	'fish-data-etroplus'
 
 	'model-data-scalar-pairwise'
 
@@ -321,7 +325,7 @@ def load_sample_dataset(name):
 		timescale
 	"""
 	data_dict = {
-	'fish-data-ectroplus' : 'data/fish_data/ectropus.csv',
+	'fish-data-etroplus' : 'data/fish_data/ectropus.csv',
 	'model-data-scalar-pairwise' : 'data/model_data/scalar/pairwise.csv',
 	'model-data-scalar-ternary' : 'data/model_data/scalar/ternary.csv',
 	'model-data-vector-pairwise' : 'data/model_data/vector/pairwise.csv',

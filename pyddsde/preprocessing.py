@@ -9,6 +9,7 @@ from pyddsde.metrics import metrics
 from pyddsde.sde import SDE
 
 
+
 class preprocessing(gaussian_test):
 	"""
 	pass
@@ -23,16 +24,15 @@ class preprocessing(gaussian_test):
 		"""
 		Get R2 for different order
 		"""
-		adj = False if self.order_metric == "R2" else True
 		r2_drift = []
 		r2_diff = []
 		for i in range(max_order):
 			p_drift, _ = self._fit_poly(x=op1, y=avgDrift, deg=i)
 			p_diff, _ = self._fit_poly(x=op2, y=avgDiff, deg=i)
 			r2_drift.append(
-				self._R2(data=avgDrift, op=op1, poly=p_drift, k=i, adj=adj))
+				self._R2(data=avgDrift, op=op1, poly=p_drift, k=i, adj=True))
 			r2_diff.append(
-				self._R2(data=avgDiff, op=op2, poly=p_diff, k=i, adj=adj))
+				self._R2(data=avgDiff, op=op2, poly=p_diff, k=i, adj=True))
 		return r2_drift, r2_diff
 
 	def _remove_nan(self, x, y, sample_size=10):
@@ -56,9 +56,9 @@ class preprocessing(gaussian_test):
 		"""
 		r2_drift_m_dt = []
 		r2_diff_m_dt = []
-		max_dt = self._get_autocorr_time(M_square, t_lag=self.t_lag)
+		max_dt = self._act(M_square, t_lag=self.t_lag)
 		N = 8
-		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))))
+		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))).union(set([self.dt])))
 		for time_scale in time_scale_list:
 			drift, diff, avgDiff, avgDrift, op = self._drift_and_diffusion(
 				X, t_int, dt=time_scale, delta_t=time_scale, inc=inc)
@@ -194,3 +194,119 @@ class preprocessing(gaussian_test):
 		if dt != 'auto':
 			return dt
 		return int(optimum_dt)
+
+	def _preprocess(self):
+		self._validate_inputs()
+		inc = self.inc_x if self.vector else self.inc
+		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(self._X, self._M_square, t_int=self.t_int ,inc=inc, delta_t=self.delta_t, max_order=self.max_order)
+		k = self._r2_drift_m_dt[-1].index(self.dt)
+		self._r2_drift = np.array(self._r2_drift_m_dt[k])
+		self._r2_diff = np.array(self._r2_diff_m_dt[0])
+		return None
+
+	def _timestep(self, t):
+		return (t[-1]-t[0]) / (len(t)-1)
+
+	def _validate_inputs(self):
+		"""
+		Initailize and validate all inputs.
+		"""
+
+		if not isinstance(self._data, list):
+			raise InputError('Characterize(data=[Mx,My],...)',
+							 'data input must be a list of length 1 or 2!')
+
+		if len(self._data) == 1:
+			self._X = self._data[0].flatten()
+			self._M_square = self._X
+			self.vector = False
+		elif len(self._data) == 2:
+			self._Mx, self._My = np.array(self._data[0]).flatten(), np.array(self._data[1]).flatten()
+			self._M_square = self._Mx**2 + self._My**2
+			self._X = self._Mx.copy()
+			self.vector = True
+		else:
+			raise InputError('Characterize(data=[Mx,My],...)',
+							 'data input must be a list of length 1 or 2!')
+
+		if hasattr(self._t, "__len__"):
+			self.t_int = self._timestep(self._t)
+			if len(self._t) != len(self._M_square):
+				raise InputError("len(t) = len(Mx) = len(My)","TimeSeries and time-stamps must be of same length")
+		else:
+			self.t_int = self._t
+			if not isinstance(self._t, (float, int)):
+				raise InputError("t <float> or <array>","Time increment must either array or float type")
+
+		if self.t_lag >= len(self._X):
+			print('Warning : t_lag is greater that the length of data; setting t_lag as {}\n'.format(len(data[0]) - 1))
+			self.t_lag = len(self._X) - 1
+		self.autocorrelation_time = self._get_autocorr_time(self._M_square)
+
+		try:
+			assert self.inc > 0
+			assert self.inc_x > 0
+			assert self.inc_y > 0
+		except AssertionError:
+			raise InputError("inc, inc_x, inc_y must be > 0", " inc, inc_x, inc_y must be > 0")
+
+		try:
+			assert isinstance(self.delta_t, int)
+			assert self.delta_t >= 1
+			if self.dt is None:
+				self.dt = int(np.ceil(self.autocorrelation_time/10))
+			assert isinstance(self.dt, int) and self.dt >= 1
+		except AssertionError:
+			raise InputError("delta_t and dt must be int and >= 1","delta_t and dt must be int and >= 1")
+
+		if not self._isValidSliderRange(self.slider_range) and self.slider_range is not None:
+			print("\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n")
+
+		if not self._isValidSliderTimesSaleList(self.slider_timescales) and self.slider_timescales is not None:
+			print("\n[Warning] : Given slider timescale list is not valid, or contains some invalid timescales")
+
+		if not self._isValidRange(self.op_range):
+			if self.op_range is None:
+				self.op_range = (min(self._X), max(self._X))
+			else:
+				print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
+				self.op_range = (min(self._X), max(self._X))
+
+		if self.vector:
+			if not self._isValidRange(self.op_x_range):
+				if self.op_x_range is None:
+					self.op_x_range = (min(self._Mx), max(self._Mx))
+				else:
+					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
+					self.op_x_range = (min(self._Mx), max(self._Mx))
+
+			if not self._isValidRange(self.op_y_range):
+				if self.op_y_range is None:
+					self.op_y_range = (min(self._My), max(self._My))
+				else:
+					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
+					self.op_y_range = (min(self._My), max(self._My))
+
+			return None		
+
+class Error(Exception):
+	"""
+	Base class for exceptions in this module.
+	
+    :meta private:
+	"""
+	pass
+
+
+class InputError(Error):
+	"""Exception raised for errors in the input.
+
+	Attributes:
+		expression -- input expression in which the error occurred
+		message -- explanation of the error
+
+    :meta private:
+	"""
+	def __init__(self, expression, message):
+		self.expression = expression
+		self.message = message

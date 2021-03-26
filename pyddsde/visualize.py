@@ -82,26 +82,28 @@ class visualize(metrics):
 			#    ax.remove()
 
 			Mx_axis = fig.add_subplot(gs[0,0:2])
-			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end])
+			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end], label="$M_x$")
+			Mx_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end], color='red', label="$M_y$")
 			#Mx_axis.set_xticks([])
-			Mx_axis.set_yticks(np.linspace(min(Mx), max(Mx), n_ticks).round(2))
+			Mx_axis.set_yticks(np.linspace(min(min(Mx), min(My)), max(max(Mx), max(My)), n_ticks).round(2))
 			self._stylize_axes(Mx_axis,
 				  x_label='',
-				  y_label='$M_{x}$',
+				  y_label='$M_{x}, M_{y}$',
 				  title='Time Series',
 				  tick_size=tick_size,
 				  title_size=title_size,
 				  label_size=label_size,
 				  label_pad=label_pad)
 			Mx_axis.minorticks_on()
+			Mx_axis.legend(loc="best")
 			Mx_axis.grid("on")
 
 			My_axis = fig.add_subplot(gs[1,0:2])
-			My_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end])
-			My_axis.set_yticks(np.linspace(min(My), max(My), n_ticks).round(2))
+			My_axis.plot(range(timeseries_start, timeseries_end), M[timeseries_start:timeseries_end])
+			My_axis.set_yticks(np.linspace(min(M), max(M), n_ticks).round(2))
 			self._stylize_axes(My_axis,
 				  x_label='Time Index',
-				  y_label='$M_{y}$',
+				  y_label='$|M|$',
 				  title='',
 				  tick_size=tick_size,
 				  title_size=title_size,
@@ -300,7 +302,7 @@ class visualize(metrics):
 
 		else:
 			#Time Series
-			M, drift, diff, drift_order, diff_order = data
+			M, drift, diff = data
 			if timeseries_end > len(M):
 				timeseries_end = len(M)
 			fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
@@ -329,7 +331,7 @@ class visualize(metrics):
 							  label_pad=label_pad)
 
 			#Drift
-			p_drift, _ = self._fit_poly(self.op, drift, drift_order)
+			#p_drift, _ = self._fit_poly(self.op, drift, drift_order)
 			ax[0][1].scatter(self.op, drift, marker='.', label='drift')
 			"""
 			ax[0][1].plot(self.op,
@@ -349,9 +351,9 @@ class visualize(metrics):
 							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
-			ax[0][1].legend(loc=1, frameon=False, fontsize=tick_size)
+			#ax[0][1].legend(loc=1, frameon=False, fontsize=tick_size)
 			#Diffusion
-			p_diff, _ = self._fit_poly(self.op, diff, diff_order)
+			#p_diff, _ = self._fit_poly(self.op, diff, diff_order)
 			ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
 			"""
 			ax[1][1].plot(self.op,
@@ -371,7 +373,7 @@ class visualize(metrics):
 							  title_size=title_size,
 							  label_size=label_size,
 							  label_pad=label_pad)
-			ax[1][1].legend(loc=1, frameon=False, fontsize=tick_size)
+			#ax[1][1].legend(loc=1, frameon=False, fontsize=tick_size)
 
 		#plt.tight_layout()
 		#plt.subplots_adjust(bottom=0.3)
@@ -574,18 +576,21 @@ class visualize(metrics):
 			fig = plt.figure(dpi=dpi)
 			ax = fig.add_subplot(projection="3d")
 
-		ax = self._set_zaxis_to_left(ax)
 
 		H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(Mx, My))
 		colors = plt.cm.coolwarm(dz.flatten() / float(dz.max()))
 		hist3d = ax.bar3d(X,Y,Z,dx,dy,dz,alpha=0.6,cmap=plt.cm.coolwarm,color=colors)
 		ax.set_xlabel(xlabel, fontsize=label_size, labelpad=label_pad)
 		ax.set_ylabel(ylabel, fontsize=label_size, labelpad=label_pad)
-		ax.set_zlabel(zlabel, fontsize=label_size, labelpad=label_pad)
+		ax.zaxis.set_rotate_label(False)
+		ax.set_zlabel(zlabel, fontsize=label_size, labelpad=label_pad, rotation=90)
+		ax = self._set_zaxis_to_left(ax)
+
 		# make the panes transparent
 		ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 		ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 		ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+
 		# make the grid lines transparent
 		ax.xaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 		ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
@@ -778,21 +783,18 @@ class visualize(metrics):
 
 		return fig
 
-	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', fit_poly=True, order=None):
+	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', polynomial_order=None):
 		"""
 		Get slider for analysed scalar data
 		"""
-
 		data = slider_data
 		title_template = r"$\text{{ {0} |  Auto correlation time : {1} }} | \text{{ Slider switched to }}{2}= {3}$"
 		if prefix == 'Dt':
 			t = 'Drift'
 			t_tex = "\Delta t"
-			if order is None: order = self.drift_order
 		else:
 			t = 'Diff'
 			t_tex = "\delta t"
-			if order is None: order = self.diff_order
 			
 		# Create figure
 		fig = go.Figure()
@@ -822,8 +824,8 @@ class visualize(metrics):
 					name="{} = {}".format(prefix, str(step)),
 					x=data[step][-1],
 					y=data[step][0]))
-			if fit_poly:
-				poly, op = self._fit_poly(data[step][-1], data[step][0], order)
+			if isinstance(polynomial_order, int):
+				poly, op = self._fit_poly(data[step][-1], data[step][0], polynomial_order)
 
 				fig.add_trace(
 					go.Scatter(
@@ -848,7 +850,7 @@ class visualize(metrics):
 		# Create and add slider
 		steps = []
 		step_n = 1
-		if fit_poly:
+		if isinstance(polynomial_order, int):
 			step_n = 2
 		for i in range(len(dt_s)):
 			step = dict(
@@ -963,7 +965,7 @@ class visualize(metrics):
 			fig = plt.figure(dpi=dpi)
 			ax = fig.add_subplot(projection="3d")
 
-		ax = self._set_zaxis_to_left(ax)
+		#ax = self._set_zaxis_to_left(ax)
 
 		data = data_in.copy()
 		mask = np.where(((data > m_th * np.nanstd(data)) |
@@ -1008,7 +1010,10 @@ class visualize(metrics):
 				)
 		ax.set_xlabel(x_label, fontsize=label_size, labelpad=label_pad)
 		ax.set_ylabel(y_label, fontsize=label_size, labelpad=label_pad)
-		ax.set_zlabel(z_label, fontsize=label_size, labelpad=label_pad)
+		ax.zaxis.set_rotate_label(False)
+		ax.set_zlabel(z_label, fontsize=label_size, labelpad=label_pad, rotation=90)
+		ax = self._set_zaxis_to_left(ax)
+
 		# make the panes transparent
 		ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 		ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
