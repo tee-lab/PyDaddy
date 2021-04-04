@@ -63,10 +63,75 @@ class visualize(metrics):
 					  label_pad=8,
 					  n_ticks=3,
 					  timeseries_start=0,
-					  timeseries_end=1000):
+					  timeseries_end=1000,
+					  **plot_text):
 		"""
 		Plots the summary chart
 		"""
+		text = {
+			'timeseries_title' : 'Time Series',
+			'timeseries_xlabel' : 'Time Index',
+			'timeseries_ylabel' : '|M|',
+			'hist_title' : '',
+			'hist_xlabel' : '|M|',
+			'hist_ylabel' : 'Frequency',
+			'drift_title' : 'Drift',
+			'drift_xlabel' : 'm',
+			'drift_ylabel' : 'F',
+			'diffusion_title' : 'Diffusion',
+			'diffusion_xlabel' : 'm',
+			'diffusion_ylabel' : '$G^{2}$',
+
+			'timeseries1_title' : 'Time Series',
+			'timeseries1_ylabel' : '$M_{x}, M_{y}$',
+			'timeseries1_xlabel' : '',
+			'timeseries1_legend1' : '$M_{x}$',
+			'timeseries1_legend2' : '$M_{y}$',
+			'timeseries2_title' : '',
+			'timeseries2_xlabel' : 'Time Index',
+			'timeseries2_ylabel' : '|M|',
+			
+			'2dhist1_title' : '',
+			'2dhist1_xlabel' : '$M_{x}$',
+			'2dhist1_ylabel' : 'Frequency',
+			
+			'2dhist2_title' : '',
+			'2dhist2_xlabel' : '$M_{y}$',
+			'2dhist2_ylabel' : 'Frequency',
+			
+			'2dhist3_title' : '',
+			'2dhist3_xlabel' : '|M|',
+			'2dhist3_ylabel' : 'Frequency',
+			
+			'3dhist_title' : '',
+			'3dhist_xlabel' : '$M_{x}$',
+			'3dhist_ylabel' : '$M_{y}$',
+			'3dhist_zlabel' : 'Frequency',
+			
+			'driftx_title' : 'Drift X',
+			'driftx_xlabel' : '$m_{x}$',
+			'driftx_ylabel' : '$m_{y}$',
+			'driftx_zlabel' : '$A_{1}$',
+			
+			'drifty_title' : 'Drift Y',
+			'drifty_xlabel' : '$m_{x}$',
+			'drifty_ylabel' : '$m_{y}$',
+			'drifty_zlabel' : '$A_{2}$',
+			
+			'diffusionx_title' : 'Diffusion X',
+			'diffusionx_xlabel' : '$m_{x}$',
+			'diffusionx_ylabel' : '$m_{y}$',
+			'diffusionx_zlabel' : '$B_{11}$',
+			
+			'diffusiony_title' : 'Diffusion Y',
+			'diffusiony_xlabel' : '$m_{x}$',
+			'diffusiony_ylabel' : '$m_{y}$',
+			'diffusiony_zlabel' : '$B_{22}$'
+		}
+		for k in plot_text.keys():
+			if k not in text.keys():
+				print("{} not a valid plot text key".format(k))
+		text.update(plot_text)
 		if vector:
 			Mx, My, driftX, driftY, diffX, diffY = data
 			M = np.sqrt(Mx**2 + My**2)
@@ -82,14 +147,14 @@ class visualize(metrics):
 			#    ax.remove()
 
 			Mx_axis = fig.add_subplot(gs[0,0:2])
-			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end], label="$M_x$")
-			Mx_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end], color='red', label="$M_y$")
+			Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end], label=text['timeseries1_legend1'])
+			Mx_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end], color='red', label=text['timeseries1_legend2'])
 			#Mx_axis.set_xticks([])
 			Mx_axis.set_yticks(np.linspace(min(min(Mx), min(My)), max(max(Mx), max(My)), n_ticks).round(2))
 			self._stylize_axes(Mx_axis,
-				  x_label='',
-				  y_label='$M_{x}, M_{y}$',
-				  title='Time Series',
+				  x_label=text['timeseries1_xlabel'],#'',
+				  y_label=text['timeseries1_ylabel'],#'$M_{x}, M_{y}$',
+				  title=text['timeseries1_title'],#'Time Series',
 				  tick_size=tick_size,
 				  title_size=title_size,
 				  label_size=label_size,
@@ -102,9 +167,9 @@ class visualize(metrics):
 			My_axis.plot(range(timeseries_start, timeseries_end), M[timeseries_start:timeseries_end])
 			My_axis.set_yticks(np.linspace(min(M), max(M), n_ticks).round(2))
 			self._stylize_axes(My_axis,
-				  x_label='Time Index',
-				  y_label='$|M|$',
-				  title='',
+				  x_label=text['timeseries2_xlabel'],#'Time Index',
+				  y_label=text['timeseries2_ylabel'],#'$|M|$',
+				  title=text['timeseries2_title'],#'',
 				  tick_size=tick_size,
 				  title_size=title_size,
 				  label_size=label_size,
@@ -115,10 +180,10 @@ class visualize(metrics):
 			driftX_axis = fig.add_subplot(gs[2,0], projection='3d')
 			_, driftX_axis = self._plot_data(driftX,
 										 ax=driftX_axis,
-										 title="Drift X",
-										 x_label='$m_{x}$',
-										 y_label='$m_{y}$',
-										 z_label='$A_{1}$',
+										 title=text['driftx_title'],#"Drift X",
+										 x_label=text['driftx_xlabel'],#'$m_{x}$',
+										 y_label=text['driftx_ylabel'],#'$m_{y}$',
+										 z_label=text['driftx_zlabel'],#'$A_{1}$',
 										 tick_size=tick_size,
 										 title_size=title_size,
 										 label_size=label_size,
@@ -130,10 +195,10 @@ class visualize(metrics):
 			driftY_axis = fig.add_subplot(gs[2,1], projection='3d')
 			_, driftY_axis = self._plot_data(driftY,
 										 ax=driftY_axis,
-										 title="Drift Y",
-										 x_label='$m_{x}$',
-										 y_label='$m_{y}$',
-										 z_label='$A_{2}$',
+										 title=text['drifty_title'],#"Drift Y",
+										 x_label=text['drifty_xlabel'],#'$m_{x}$',
+										 y_label=text['drifty_ylabel'],#'$m_{y}$',
+										 z_label=text['drifty_zlabel'],#'$A_{2}$',
 										 tick_size=tick_size,
 										 title_size=title_size,
 										 label_size=label_size,
@@ -146,10 +211,10 @@ class visualize(metrics):
 			diffX_axis = fig.add_subplot(gs[2,2], projection='3d')
 			_, driffX_axis = self._plot_data(diffX,
 										 ax=diffX_axis,
-										 title="Diffusion X",
-										 x_label='$m_{x}$',
-										 y_label='$m_{y}$',
-										 z_label='$B_{11}$',
+										 title=text['diffusionx_title'],#"Diffusion X",
+										 x_label=text['diffusionx_xlabel'],#'$m_{x}$',
+										 y_label=text['diffusionx_ylabel'],#'$m_{y}$',
+										 z_label=text['diffusionx_zlabel'],#'$B_{11}$',
 										 tick_size=tick_size,
 										 title_size=title_size,
 										 label_size=label_size,
@@ -158,10 +223,10 @@ class visualize(metrics):
 			diffY_axis = fig.add_subplot(gs[2,3], projection='3d')
 			_, diffY_axis = self._plot_data(diffY,
 										 ax=diffY_axis,
-										 title="Drift X",
-										 x_label='$m_{x}$',
-										 y_label='$m_{y}$',
-										 z_label='$B_{22}$',
+										 title=text['diffusiony_title'],#"Diffusion Y",
+										 x_label=text['diffusiony_xlabel'],#'$m_{x}$',
+										 y_label=text['diffusiony_ylabel'],#'$m_{y}$',
+										 z_label=text['diffusiony_zlabel'],#'$B_{22}$',
 										 tick_size=tick_size,
 										 title_size=title_size,
 										 label_size=label_size,
@@ -172,9 +237,9 @@ class visualize(metrics):
 			ticks = [str(i)+"K" for i in (np.array(distMx_axis.get_yticks())/1000).round(1)]
 			distMx_axis.set_yticklabels(ticks)
 			self._stylize_axes(distMx_axis,
-							  x_label='$M_{x}$',
-							  y_label='Frequency',
-							  title='',
+							  x_label=text['2dhist1_xlabel'],#'$M_{x}$',
+							  y_label=text['2dhist1_ylabel'],#'Frequency',
+							  title=text['2dhist1_title'],#'',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -185,9 +250,9 @@ class visualize(metrics):
 			ticks = [str(i)+"K" for i in (np.array(distMy_axis.get_yticks())/1000).round(1)]
 			distMy_axis.set_yticklabels(ticks)
 			self._stylize_axes(distMy_axis,
-							  x_label='$M_{y}$',
-							  y_label='Frequency',
-							  title='',
+							  x_label=text['2dhist2_xlabel'],#'$M_{y}$',
+							  y_label=text['2dhist2_ylabel'],#'Frequency',
+							  title=text['2dhist2_title'],#'',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -199,9 +264,9 @@ class visualize(metrics):
 			ticks = [str(i)+"K" for i in (np.array(distM_axis.get_yticks())/1000).round(1)]
 			distM_axis.set_yticklabels(ticks)
 			self._stylize_axes(distM_axis,
-							  x_label='|M|',
-							  y_label='Frequency',
-							  title='',
+							  x_label=text['2dhist3_xlabel'],#'|M|',
+							  y_label=text['2dhist3_ylabel'],#'Frequency',
+							  title=text['2dhist3_title'],#'',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -310,9 +375,9 @@ class visualize(metrics):
 						  M[timeseries_start:timeseries_end])
 			ax[0][0].set_ylim(min(M), max(M))
 			self._stylize_axes(ax[0][0],
-							  x_label='Time Index',
-							  y_label='|M|',
-							  title='Time Series',
+							  x_label=text['timeseries_xlabel'],#'Time Index',
+							  y_label=text['timeseries_ylabel'],#'|M|',
+							  title=text['timeseries_title'],#'Time Series',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -322,9 +387,9 @@ class visualize(metrics):
 			sns.distplot(M, kde=kde, ax=ax[1][0])
 			ax[1][0].set_xticks(np.linspace(min(M), max(M), 5))
 			self._stylize_axes(ax[1][0],
-							  x_label='M',
-							  y_label='Frequency',
-							  title='',
+							  x_label=text['hist_xlabel'],#'M',
+							  y_label=text['hist_ylabel'],#'Frequency',
+							  title=text['hist_title'],#'',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -344,9 +409,9 @@ class visualize(metrics):
 			ax[0][1].set_xticks(np.linspace(min(self.op), max(self.op), 5))
 			ax[0][1].set_yticks(np.linspace(min(drift), max(drift), 5))
 			self._stylize_axes(ax[0][1],
-							  x_label='m',
-							  y_label='F',
-							  title='Drift',
+							  x_label=text['drift_xlabel'],#'m',
+							  y_label=text['drift_ylabel'],#'F',
+							  title=text['drift_title'],#'Drift',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,
@@ -366,9 +431,9 @@ class visualize(metrics):
 			ax[1][1].set_xticks(np.linspace(min(self.op), max(self.op), 5))
 			ax[1][1].set_yticks(np.linspace(min(diff), max(diff), 5))
 			self._stylize_axes(ax[1][1],
-							  x_label='m',
-							  y_label='$G^{2}$',
-							  title='Diffusion',
+							  x_label=text['diffusion_xlabel'],#'m',
+							  y_label=text['diffusion_ylabel'],#'$G^{2}$',
+							  title=text['diffusion_title'],#'Diffusion',
 							  tick_size=tick_size,
 							  title_size=title_size,
 							  label_size=label_size,

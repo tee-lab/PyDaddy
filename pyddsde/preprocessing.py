@@ -64,6 +64,8 @@ class preprocessing(gaussian_test):
 				X, t_int, dt=time_scale, delta_t=time_scale, inc=inc)
 			op1, avgDrift = self._remove_nan(op, avgDrift)
 			op2, avgDiff = self._remove_nan(op, avgDiff)
+			if len(avgDrift) == 0 or len(avgDiff) == 0:
+				continue
 			r2_drift, r2_diff = self._r2_vs_order(op1, op2, avgDrift, avgDiff,max_order)
 			r2_drift_m_dt.append(r2_drift)
 			r2_diff_m_dt.append(r2_diff)

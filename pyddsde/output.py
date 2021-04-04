@@ -261,7 +261,7 @@ class output(preprocessing, visualize):
 				params[keys] = str(self._ddsde.__dict__[keys])
 		return params
 
-	def summary(self, start=0, end=1000, kde=False, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3 ,ret_fig=True):
+	def summary(self, start=0, end=1000, kde=False, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3 ,ret_fig=True, **plot_text):
 		"""
 		Print summary of data and show summary plots chart
 
@@ -285,6 +285,96 @@ class output(preprocessing, visualize):
 				number of axis ticks
 			ret_fig : bool, (default=True)
 				if True return figure object
+			** plot_text
+				plots title and axis texts
+
+				timeseries_title : title of timeseries plot
+
+				timeseries_xlabel : x label of timeseries
+
+				timeseries_ylabel : y label of timeseries
+
+				drift_title : drift plot title
+
+				drift_xlabel : drift plot x label
+
+				drift_ylabel : drift plot ylabel
+
+				diffusion_title : diffusion plot title
+
+				diffusion_xlabel : diffusion plot x label
+
+				diffusion_ylabel : diffusion plot y label
+				
+				timeseries1_title : first timeseries plot title
+
+				timeseries1_ylabel : first timeseries plot ylabel
+
+				timeseries1_xlabel : first timeseries plot xlabel
+
+				timeseries2_title : second timeseries plot title
+
+				timeseries2_xlabel : second timeseries plot x label
+
+				timeseries2_ylabel : second timeseries plot y label
+
+				2dhist1_title : Mx 2d histogram title
+
+				2dhist1_xlabel : Mx 2d histogram x label
+
+				2dhist1_ylabel : Mx 2d histogram y label
+
+				2dhist2_title : My 2d histogram title
+
+				2dhist2_xlabel : My 2d histogram x label
+
+				2dhist2_ylabel : My 2d histogram y label
+
+				2dhist3_title :  M 3d histogram title
+
+				2dhist3_xlabel : M 2d histogram x label
+
+				2dhist3_ylabel : M 2d histogram y label
+
+				3dhist_title :  3d histogram title
+
+				3dhist_xlabel : 3d histogram x label
+
+				3dhist_ylabel : 3d histogram y label
+
+				3dhist_zlabel : 3d histogram z label
+
+				driftx_title : drift x plot title
+
+				driftx_xlabel : drift x plot x label
+
+				driftx_ylabel : drift x plot y label
+
+				driftx_zlabel : drift x plot z label
+
+				drifty_title : drift y plot title
+
+				drifty_xlabel : drift y plot x label
+
+				drifty_ylabel : drift y plot y label
+
+				drifty_zlabel : drift y plot z label
+
+				diffusionx_title : diffusion x plot title
+
+				diffusionx_xlabel : diffusion x plot x label
+
+				diffusionx_ylabel : diffusion x plot y label
+
+				diffusionx_zlabel : diffusion x plot z label
+
+				diffusiony_title : diffusion y plot title
+
+				diffusiony_xlabel : diffusion y plot x label
+
+				diffusiony_ylabel : diffusion y plot y label
+
+				diffusiony_zlabel : diffusion y plot z label
 
 		Returns
 		-------
@@ -304,9 +394,9 @@ class output(preprocessing, visualize):
 						'Autocorr time (M)', 	'(Dt, dt)',
 						]
 			
-			values = [	self._get_data_range(self._data_X),	round(np.nanmean(self._data_X), 2),
-						self._get_data_range(np.sqrt(self._data_X**2)), round(np.nanmean(np.sqrt(self._data_X**2)), 2),
-						np.ceil(self.autocorrelation_time), (self._ddsde.dt, self._ddsde.delta_t),
+			values = [	self._get_data_range(self._data_X),	round(np.nanmean(self._data_X), 3),
+						self._get_data_range(np.sqrt(self._data_X**2)), round(np.nanmean(np.sqrt(self._data_X**2)), 3),
+						self.autocorrelation_time, (self._ddsde.dt, self._ddsde.delta_t),
 						]
 			values = list(map(str, values))
 			summary = []
@@ -324,10 +414,10 @@ class output(preprocessing, visualize):
 						'Autocorr time (Mx, My, |M|)', 			'(Dt, dt)',
 						]
 			
-			values = [	self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 2),
-						self._get_data_range(self._data_My), round(np.nanmean(self._data_My), 2),									
-						self._get_data_range(self._data_M), round(np.nanmean(np.sqrt(self._data_Mx**2 + self._data_My**2)),2),
-						(self._act(self._data_Mx), self._act(self._data_My), np.ceil(self.autocorrelation_time)), (self._ddsde.dt, self._ddsde.delta_t)
+			values = [	self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
+						self._get_data_range(self._data_My), round(np.nanmean(self._data_My), 3),									
+						self._get_data_range(self._data_M), round(np.nanmean(np.sqrt(self._data_Mx**2 + self._data_My**2)),3),
+						(self._act(self._data_Mx), self._act(self._data_My), self.autocorrelation_time), (self._ddsde.dt, self._ddsde.delta_t)
 						]
 			values = list(map(str, values))
 			summary = []
@@ -335,11 +425,12 @@ class output(preprocessing, visualize):
 				summary.append(feilds[i])
 				summary.append(values[i])
 			summary_format = ("| {:<30} : {:^15}"*1 +"|\n")*int(len(feilds)/1)
+			print("Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
 			print(summary_format.format(*summary))
 			data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX, self._data_avgdiffY]
 
 		sys.stdout.flush()
-		fig = self._plot_summary(data, self.vector, kde=kde, tick_size=tick_size, title_size=title_size, label_size=label_size, label_pad=label_pad, n_ticks=n_ticks, timeseries_start=start, timeseries_end=end)
+		fig = self._plot_summary(data, self.vector, kde=kde, tick_size=tick_size, title_size=title_size, label_size=label_size, label_pad=label_pad, n_ticks=n_ticks, timeseries_start=start, timeseries_end=end, **plot_text)
 		plt.show()
 		if ret_fig:
 			return fig

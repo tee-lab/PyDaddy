@@ -270,9 +270,9 @@ class metrics:
 
     def _get_data_range(self, x):
         """
-        Get range of the values in x, (min(x), max(x)), rounded to 2 decimal places.
+        Get range of the values in x, (min(x), max(x)), rounded to 3 decimal places.
         """
-        return (round(min(x), 2),round(max(x), 2))
+        return (round(min(x), 3),round(max(x), 3))
 
     def _remove_nan(self, x, y):
         """

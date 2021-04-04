@@ -123,8 +123,8 @@ class AutoCorrelation:
 		coeff1, coeff2 = self._fit_exp(t_lag, c)
 		a, b, c = coeff1
 		if update:
-			self._a, self.autocorrelation_time, self._c = a, b, c
-		return int(np.ceil(b))
+			self._a, self.autocorrelation_time, self._c = a, int(np.ceil(b)), c
+		return self.autocorrelation_time
 
 	def _act(self, X, t_lag=1000):
 		"""
