@@ -843,7 +843,8 @@ class visualize(metrics):
 
 		fig.update_layout(
 			autosize=True,
-			scene_aspectmode='cube',
+			scene1_aspectmode='cube',
+			scene2_aspectmode='cube',
 			scene1=scene1,
 			scene2=scene2,
 			#scene3 = scene,
