@@ -12,6 +12,7 @@ from pyddsde.analysis import underlying_noise
 from pyddsde.analysis import AutoCorrelation
 from pyddsde.analysis import gaussian_test
 from pyddsde.preprocessing import preprocessing
+from pyddsde.preprocessing import InputError
 from pyddsde.metrics import metrics
 from pyddsde.output import output
 
