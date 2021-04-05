@@ -124,7 +124,7 @@ class AutoCorrelation:
 		a, b, c = coeff1
 		if update:
 			self._a, self.autocorrelation_time, self._c = a, int(np.ceil(b)), c
-		return self.autocorrelation_time
+		return int(np.ceil(b))
 
 	def _act(self, X, t_lag=1000):
 		"""
@@ -144,7 +144,7 @@ class underlying_noise(SDE):
 		self.__dict__.update(kwargs)
 		SDE.__init__(self)
 
-	def _noise(self, X, dt, delta_t, t_int, inc, point=0):
+	def _noise(self, X, Dt, dt, t_int, inc, point=0):
 		"""
 		Get noise from `X` at a paticular point
 
@@ -156,7 +156,7 @@ class underlying_noise(SDE):
 			binning increments
 		point : float
 			point at which noise is to be extracted
-		dt : int
+		Dt : int
 			drift time scale
 		t_int : int
 			time difference between consecutive observations
@@ -171,8 +171,8 @@ class underlying_noise(SDE):
 		#op = np.arange(min(X), max(X), inc).round(4)
 		op, _ = self._order_parameter(X, inc, None)
 		avgDrift = []
-		drift = self._drift(X, t_int, dt)
-		x = X[0:-dt]
+		drift = self._drift(X, t_int, Dt)
+		x = X[0:-Dt]
 		#for b in np.arange(point, point + inc, inc):
 		i = np.where(np.logical_and(x <= (point + inc), x >= point))[0]
 		avgDrift.append(drift[i].mean())
@@ -184,17 +184,17 @@ class underlying_noise(SDE):
 		#print(_avgDrift)
 		x = X
 		try:
-			#noise = ((x[delta_t:] - x[:-delta_t]) - avgDrift * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
-			#noise = ((x[delta_t:] - x[:-delta_t]) - drift[i][:-1] * (t_int * delta_t)) / np.sqrt(t_int*delta_t)
-			noise = ((x[i+delta_t] - x[i]) - drift[i]*(t_int*delta_t)) / np.sqrt(t_int*delta_t)
+			#noise = ((x[dt:] - x[:-dt]) - avgDrift * (t_int * dt)) / np.sqrt(t_int*dt)
+			#noise = ((x[dt:] - x[:-dt]) - drift[i][:-1] * (t_int * dt)) / np.sqrt(t_int*dt)
+			noise = ((x[i+dt] - x[i]) - drift[i]*(t_int*dt)) / np.sqrt(t_int*dt)
 		except IndexError:
 			print("Exception")
-			noise = ((x[i[:-1] + delta_t] - x[i[:-1]]) - avgDrift * (t_int * delta_t) ) / np.sqrt(t_int*delta_t)
+			noise = ((x[i[:-1] + dt] - x[i[:-1]]) - avgDrift * (t_int * dt) ) / np.sqrt(t_int*dt)
 		return noise[~np.isnan(noise)]
 		"""
-		x = X[:len(X)-max(dt,delta_t)]
+		x = X[:len(X)-max(Dt,dt)]
 		i = np.where(np.logical_and(x <= (point + inc), x >= point))[0]
-		noise = self._residual(X, t_int=t_int, dt=dt, delta_t=delta_t) / np.sqrt(t_int * delta_t)
+		noise = self._residual(X, t_int=t_int, Dt=Dt, dt=dt) / np.sqrt(t_int * dt)
 		return noise[i]
 
 
@@ -226,7 +226,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		h_lim = self._X1[1:][np.where(self._f >= 0.95)][0]
 		return l_lim, h_lim
 
-	def _noise_analysis(self, X, dt, delta_t, t_int, inc, point=0, **kwargs):
+	def _noise_analysis(self, X, Dt, dt, t_int, inc, point=0, **kwargs):
 		"""
 		Check if noise is gaussian
 
@@ -234,7 +234,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		----------
 		X : array
 			timeseries data
-		dt : int
+		Dt : int
 			drift timescale
 		inc : float
 			increment in order parameter of X
@@ -253,7 +253,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 			- noise_correlation (array) : noise autocorrelation
 		"""
 		self.__dict__.update(kwargs)
-		noise = self._noise(X, dt, delta_t, t_int, inc, point)
+		noise = self._noise(X, Dt, dt, t_int, inc, point)
 		s = noise.size
 		if s == 0:
 			print('Warning : Length of noise is 0')

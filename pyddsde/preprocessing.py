@@ -8,8 +8,6 @@ from pyddsde.analysis import gaussian_test
 from pyddsde.metrics import metrics
 from pyddsde.sde import SDE
 
-
-
 class preprocessing(gaussian_test):
 	"""
 	pass
@@ -48,20 +46,20 @@ class preprocessing(gaussian_test):
 							  X,
 							  M_square,
 							  t_int,
-							  delta_t=1,
+							  dt=1,
 							  max_order=10,
 							  inc=0.01):
 		"""
-		Get R2 vs order for different dt
+		Get R2 vs order for different Dt
 		"""
 		r2_drift_m_dt = []
 		r2_diff_m_dt = []
 		max_dt = self._act(M_square, t_lag=self.t_lag)
 		N = 8
-		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))).union(set([self.dt])))
+		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))).union(set([self.Dt])))
 		for time_scale in time_scale_list:
 			drift, diff, avgDiff, avgDrift, op = self._drift_and_diffusion(
-				X, t_int, dt=time_scale, delta_t=time_scale, inc=inc)
+				X, t_int, Dt=time_scale, dt=time_scale, inc=inc)
 			op1, avgDrift = self._remove_nan(op, avgDrift)
 			op2, avgDiff = self._remove_nan(op, avgDiff)
 			if len(avgDrift) == 0 or len(avgDiff) == 0:
@@ -101,7 +99,7 @@ class preprocessing(gaussian_test):
 
 	def _get_o1_o2(self, x):
 		"""
-		Get o1 and o2 values for r2_adjusted multiple dt
+		Get o1 and o2 values for r2_adjusted multiple Dt
 		"""
 		o1 = []
 		o2 = []
@@ -146,8 +144,8 @@ class preprocessing(gaussian_test):
 			   X,
 			   M_square,
 			   t_int,
-			   dt='auto',
-			   delta_t=1,
+			   Dt='auto',
+			   dt=1,
 			   max_order=10,
 			   inc=0.01):
 		"""
@@ -158,8 +156,8 @@ class preprocessing(gaussian_test):
 			Time scale = autocorrelation time if drift order is 1, else its auto correaltion time.
 		"""
 
-		#R2_adj multiple dt
-		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(X, M_square, t_int=t_int ,inc=inc, delta_t=delta_t, max_order=max_order)
+		#R2_adj multiple Dt
+		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(X, M_square, t_int=t_int ,inc=inc, dt=dt, max_order=max_order)
 
 		if self.drift_order is None:
 			self.drift_order = self._find_order(self._r2_drift_m_dt[:-1])
@@ -180,7 +178,7 @@ class preprocessing(gaussian_test):
 							X,
 							M_square,
 							t_int,
-							dt='auto',
+							Dt='auto',
 							max_order=10,
 							t_lag=1000,
 							inc=0.01):
@@ -190,18 +188,18 @@ class preprocessing(gaussian_test):
 		order, r2, optimum_dt = self._order(X,
 						M_square,
 						t_int,
-						dt=dt,
+						Dt=Dt,
 						max_order=max_order,
 						inc=inc)
-		if dt != 'auto':
-			return dt
+		if Dt != 'auto':
+			return Dt
 		return int(optimum_dt)
 
 	def _preprocess(self):
 		self._validate_inputs()
 		inc = self.inc_x if self.vector else self.inc
-		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(self._X, self._M_square, t_int=self.t_int ,inc=inc, delta_t=self.delta_t, max_order=self.max_order)
-		k = self._r2_drift_m_dt[-1].index(self.dt)
+		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(self._X, self._M_square, t_int=self.t_int ,inc=inc, dt=self.dt, max_order=self.max_order)
+		k = self._r2_drift_m_dt[-1].index(self.Dt)
 		self._r2_drift = np.array(self._r2_drift_m_dt[k])
 		self._r2_diff = np.array(self._r2_diff_m_dt[0])
 		return None
@@ -245,21 +243,34 @@ class preprocessing(gaussian_test):
 			self.t_lag = len(self._X) - 1
 		self.autocorrelation_time = self._get_autocorr_time(self._M_square)
 
+		if self.vector:
+			self._act_mx = self._act(self._Mx)
+			self._act_my = self._act(self._My)
+
 		try:
 			assert self.inc > 0
 			assert self.inc_x > 0
 			assert self.inc_y > 0
 		except AssertionError:
 			raise InputError("inc, inc_x, inc_y must be > 0", " inc, inc_x, inc_y must be > 0")
+		if self.bins:
+			if self.vector:
+				r_mx = (min(self._Mx), max(self._Mx))
+				r_my = (min(self._My), max(self._My))
+				self.inc_x = (r_mx[-1] - r_mx[0])/self.bins
+				self.inc_y = (r_my[-1] - r_my[0])/self.bins
+				self.inc = self.inc_x/10 
+			r = (min(self._X), max(self._X))
+			self.inc = (r[-1] - r[0])/self.bins
 
 		try:
-			assert isinstance(self.delta_t, int)
-			assert self.delta_t >= 1
-			if self.dt is None:
-				self.dt = int(np.ceil(self.autocorrelation_time/10))
-			assert isinstance(self.dt, int) and self.dt >= 1
+			assert isinstance(self.dt, int)
+			assert self.dt >= 1
+			if self.Dt is None:
+				self.Dt = int(np.ceil(self.autocorrelation_time/10))
+			assert isinstance(self.Dt, int) and self.Dt >= 1
 		except AssertionError:
-			raise InputError("delta_t and dt must be int and >= 1","delta_t and dt must be int and >= 1")
+			raise InputError("dt and Dt must be int and >= 1","dt and Dt must be int and >= 1")
 
 		if not self._isValidSliderRange(self.slider_range) and self.slider_range is not None:
 			print("\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n")

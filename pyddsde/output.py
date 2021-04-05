@@ -56,7 +56,8 @@ class output(preprocessing, visualize):
 			self._data_avgdriftY = ddsde._avgdriftY_
 			self._data_avgdiffX = ddsde._avgdiffX_
 			self._data_avgdiffY = ddsde._avgdiffY_
-			#self._data_avgdiffXY = ddsde._avgdiffXY_
+			self._data_avgdiffXY = ddsde._avgdiffXY_
+			self._data_avgdiffYX = ddsde._avgdiffYX_
 			self._data_op_x = ddsde._op_x_
 			self._data_op_y = ddsde._op_y_
 
@@ -65,10 +66,11 @@ class output(preprocessing, visualize):
 			#self._diff_slider = ddsde._diff_slider
 
 			visualize.__init__(self, self._data_op_x, self._data_op_y, None,
-							   self._ddsde.autocorrelation_time)
+							   self._ddsde.autocorrelation_time, _act_mx=self._ddsde._act_mx, _act_my=self._ddsde._act_my)
 
 		self._drift_slider = ddsde._drift_slider
 		self._diff_slider = ddsde._diff_slider
+		self._cross_diff_slider = ddsde._cross_diff_slider
 		self._time_scale_list = list(self._drift_slider.keys())
 
 		self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
@@ -158,10 +160,10 @@ class output(preprocessing, visualize):
 			_ , diff = self._get_data_from_slider(diff_time_scale)
 			return Data(drift, diff, self._data_op)
 
-		Data = namedtuple('Data', ('driftX', 'driftY', 'diffX', 'diffY', 'op_x', 'op_y'))
-		driftX, driftY, _, _ = self._get_data_from_slider(drift_time_scale)
-		_, _, diffX, diffY = self._get_data_from_slider(diff_time_scale)
-		return Data(driftX, driftY, diffX, diffY, self._data_op_x, self._data_op_y)
+		Data = namedtuple('Data', ('driftX', 'driftY', 'diffX', 'diffY', 'diffXY', 'diffYX' ,'op_x', 'op_y'))
+		driftX, driftY, _, _, _, _ = self._get_data_from_slider(drift_time_scale)
+		_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
+		return Data(driftX, driftY, diffX, diffY, diffXY, diffYX, self._data_op_x, self._data_op_y)
 
 	def plot_data(self,
 					data_in,
@@ -285,96 +287,103 @@ class output(preprocessing, visualize):
 				number of axis ticks
 			ret_fig : bool, (default=True)
 				if True return figure object
-			** plot_text
-				plots title and axis texts
 
-				timeseries_title : title of timeseries plot
-
-				timeseries_xlabel : x label of timeseries
-
-				timeseries_ylabel : y label of timeseries
-
-				drift_title : drift plot title
-
-				drift_xlabel : drift plot x label
-
-				drift_ylabel : drift plot ylabel
-
-				diffusion_title : diffusion plot title
-
-				diffusion_xlabel : diffusion plot x label
-
-				diffusion_ylabel : diffusion plot y label
+			**plot_text:
+				plots' title and axis texts
 				
-				timeseries1_title : first timeseries plot title
+				For scalar analysis summary plot:
+					timeseries_title : title of timeseries plot
 
-				timeseries1_ylabel : first timeseries plot ylabel
+					timeseries_xlabel : x label of timeseries
 
-				timeseries1_xlabel : first timeseries plot xlabel
+					timeseries_ylabel : y label of timeseries
 
-				timeseries2_title : second timeseries plot title
+					drift_title : drift plot title
 
-				timeseries2_xlabel : second timeseries plot x label
+					drift_xlabel : drift plot x label
 
-				timeseries2_ylabel : second timeseries plot y label
+					drift_ylabel : drift plot ylabel
 
-				2dhist1_title : Mx 2d histogram title
+					diffusion_title : diffusion plot title
 
-				2dhist1_xlabel : Mx 2d histogram x label
+					diffusion_xlabel : diffusion plot x label
 
-				2dhist1_ylabel : Mx 2d histogram y label
+					diffusion_ylabel : diffusion plot y label
+				
+				For vector analysis summary plot:
+					timeseries1_title : first timeseries plot title
 
-				2dhist2_title : My 2d histogram title
+					timeseries1_ylabel : first timeseries plot ylabel
 
-				2dhist2_xlabel : My 2d histogram x label
+					timeseries1_xlabel : first timeseries plot xlabel
 
-				2dhist2_ylabel : My 2d histogram y label
+					timeseries1_legend1 : first timeseries (Mx) legend label
+	 
+					timeseries1_legend2 : first timeseries (My) legend label
 
-				2dhist3_title :  M 3d histogram title
+					timeseries2_title : second timeseries plot title
 
-				2dhist3_xlabel : M 2d histogram x label
+					timeseries2_xlabel : second timeseries plot x label
 
-				2dhist3_ylabel : M 2d histogram y label
+					timeseries2_ylabel : second timeseries plot y label
 
-				3dhist_title :  3d histogram title
+					2dhist1_title : Mx 2d histogram title
 
-				3dhist_xlabel : 3d histogram x label
+					2dhist1_xlabel : Mx 2d histogram x label
 
-				3dhist_ylabel : 3d histogram y label
+					2dhist1_ylabel : Mx 2d histogram y label
 
-				3dhist_zlabel : 3d histogram z label
+					2dhist2_title : My 2d histogram title
 
-				driftx_title : drift x plot title
+					2dhist2_xlabel : My 2d histogram x label
 
-				driftx_xlabel : drift x plot x label
+					2dhist2_ylabel : My 2d histogram y label
 
-				driftx_ylabel : drift x plot y label
+					2dhist3_title :  M 3d histogram title
 
-				driftx_zlabel : drift x plot z label
+					2dhist3_xlabel : M 2d histogram x label
 
-				drifty_title : drift y plot title
+					2dhist3_ylabel : M 2d histogram y label
 
-				drifty_xlabel : drift y plot x label
+					3dhist_title :  3d histogram title
 
-				drifty_ylabel : drift y plot y label
+					3dhist_xlabel : 3d histogram x label
 
-				drifty_zlabel : drift y plot z label
+					3dhist_ylabel : 3d histogram y label
 
-				diffusionx_title : diffusion x plot title
+					3dhist_zlabel : 3d histogram z label
 
-				diffusionx_xlabel : diffusion x plot x label
+					driftx_title : drift x plot title
 
-				diffusionx_ylabel : diffusion x plot y label
+					driftx_xlabel : drift x plot x label
 
-				diffusionx_zlabel : diffusion x plot z label
+					driftx_ylabel : drift x plot y label
 
-				diffusiony_title : diffusion y plot title
+					driftx_zlabel : drift x plot z label
 
-				diffusiony_xlabel : diffusion y plot x label
+					drifty_title : drift y plot title
 
-				diffusiony_ylabel : diffusion y plot y label
+					drifty_xlabel : drift y plot x label
 
-				diffusiony_zlabel : diffusion y plot z label
+					drifty_ylabel : drift y plot y label
+
+					drifty_zlabel : drift y plot z label
+
+					diffusionx_title : diffusion x plot title
+
+					diffusionx_xlabel : diffusion x plot x label
+
+					diffusionx_ylabel : diffusion x plot y label
+
+					diffusionx_zlabel : diffusion x plot z label
+
+					diffusiony_title : diffusion y plot title
+
+					diffusiony_xlabel : diffusion y plot x label
+
+					diffusiony_ylabel : diffusion y plot y label
+
+					diffusiony_zlabel : diffusion y plot z label
 
 		Returns
 		-------
@@ -396,7 +405,7 @@ class output(preprocessing, visualize):
 			
 			values = [	self._get_data_range(self._data_X),	round(np.nanmean(self._data_X), 3),
 						self._get_data_range(np.sqrt(self._data_X**2)), round(np.nanmean(np.sqrt(self._data_X**2)), 3),
-						self.autocorrelation_time, (self._ddsde.dt, self._ddsde.delta_t),
+						self.autocorrelation_time, (self._ddsde.Dt, self._ddsde.dt),
 						]
 			values = list(map(str, values))
 			summary = []
@@ -417,7 +426,7 @@ class output(preprocessing, visualize):
 			values = [	self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
 						self._get_data_range(self._data_My), round(np.nanmean(self._data_My), 3),									
 						self._get_data_range(self._data_M), round(np.nanmean(np.sqrt(self._data_Mx**2 + self._data_My**2)),3),
-						(self._act(self._data_Mx), self._act(self._data_My), self.autocorrelation_time), (self._ddsde.dt, self._ddsde.delta_t)
+						(self._ddsde._act_mx, self._ddsde._act_my, self.autocorrelation_time), (self._ddsde.Dt, self._ddsde.dt)
 						]
 			values = list(map(str, values))
 			summary = []
@@ -444,7 +453,8 @@ class output(preprocessing, visualize):
 					 tick_size=12,
 					 title_size=14,
 					 label_size=14,
-					 label_pad=0):
+					 label_pad=0,
+					 **plot_text):
 		"""
 		Show plot of input data
 
@@ -466,6 +476,34 @@ class output(preprocessing, visualize):
 			label font size
 		label_pad : int, (default=8)
 			axis label padding
+		**plot_text:
+			plots' title and axis texts
+
+			For scalar analysis plot:
+				timeseries_title : title 
+
+				timeseries_xlabel : x label
+
+				timeseries_ylabel : y label
+
+			For vector analysis plot:
+				timeseries1_title : first timeseries plot title
+
+				timeseries1_xlabel : first timeseries plot x label
+
+				timeseries1_ylabel : first timeseries plot y lable
+
+				timeseries2_title : second timeseries plot title
+
+				timeseries2_xlabel : second timeseries plot x label
+
+				timeseries2_ylabel : second timeseries plot y label
+
+				timeseries3_title : third timeseries plot title
+
+				timeseries3_xlabel : third timeseries plot x label
+
+				timeseries3_ylabel : third timeseries plot y label
 
 		Returns
 		-------
@@ -482,7 +520,7 @@ class output(preprocessing, visualize):
 			data = [self._data_Mx, self._data_My]
 		else:
 			data = [self._data_X]
-		fig = self._plot_timeseries(data, self.vector,start=start, stop=end, n_ticks=n_ticks, dpi=dpi, tick_size=tick_size, title_size=title_size, label_size=label_size, label_pad=label_pad)
+		fig = self._plot_timeseries(data, self.vector,start=start, stop=end, n_ticks=n_ticks, dpi=dpi, tick_size=tick_size, title_size=title_size, label_size=label_size, label_pad=label_pad, **plot_text)
 		plt.show()
 		return fig
 
@@ -510,6 +548,39 @@ class output(preprocessing, visualize):
 			axis ticks font size
 		label_pad : int, (default=8)
 			axis label padding
+		**plot_text:
+			plots' axis and title text
+
+			For scalar analysis histograms:
+				hist_title : title
+
+				hist_xlabel : x label
+
+				hist_ylabel : y label
+
+			For vector analysis histograms:
+				hist1_title : first histogram title
+
+				hist1_xlabel : first histogram x label
+
+				hist1_ylabel : first histogram y label
+
+				hist2_title : second histogram title
+
+				hist2_xlabel : second histogram x label
+
+				hist2_ylabel : second histogram y label
+
+				hist3_title : third histogram title
+
+				hist3_xlabel : third histogram x label
+
+				hist3_ylabel : third histogram y label
+
+				hist4_title : fourth (3d) histogram title
+				hist4_xlabel : fourth (3d) histogram x label
+				hist4_ylabel : fourth (3d) histogram y label
+				hist4_zlabel : fourth (3d) histogram z label
 
 		Returns
 		-------
@@ -575,6 +646,29 @@ class output(preprocessing, visualize):
 			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, polynomial_order=polynomial_order)
 		fig.show()
 		return None
+
+	def cross_correlation(self):
+		"""
+		Display diffusion cross correlation slider figure
+
+		Args
+		----
+		polynomial_order : None or int, default=None
+			order of polynomial to fit, if None, no fitting is done.
+		Returns
+		-------
+		opens diffusion slider : None
+		"""
+		dt_s = list(self._cross_diff_slider.keys())
+		if not len(dt_s): # empty slider
+			return None
+		if self.vector:
+			fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0)
+			fig.show()
+		else:
+			print('N/A')
+		return None
+
 
 	def visualize(self, drift_time_scale=None, diff_time_scale=None):
 		"""
@@ -648,52 +742,13 @@ class output(preprocessing, visualize):
 			plt.ylabel('$G^{2}$')
 
 		else:
-			driftX, driftY, _, _ = self._get_data_from_slider(drift_time_scale)
-			_, _, diffX, diffY = self._get_data_from_slider(diff_time_scale)
+			driftX, driftY, _, _, _, _ = self._get_data_from_slider(drift_time_scale)
+			_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
 			fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF',xlabel="$M_{x}$", tick_size=12, label_size=12, title_size=12, r_fig=True)
-
-			fig2, _ = self._plot_data(diffY,
-									  plot_plane=False,
-									  title='DiffY',
-									  z_label='$B_{22}(m)$',
-									  tick_size=12,
-									  label_size=14,
-									  title_size=16)
-			"""
-			fig2_1, _ = self._plot_data(self._data_avgdiffY,
-										title='DiffY_heatmap',
-										heatmap=True)
-			"""
-
-			fig3, _ = self._plot_data(diffX,
-									  plot_plane=False,
-									  title='DiffX',
-									  z_label='$B_{11}(m)$',
-									  tick_size=12,
-									  label_size=14,
-									  title_size=16)
-			"""
-			fig3_1, _ = self._plot_data(self._data_avgdiffX,
-										title='DiffX_heatmap',
-										heatmap=True)
-			"""
-
-			fig4, _ = self._plot_data(driftY,
-									  plot_plane=False,
-									  title='DriftY',
-									  z_label='$A_{2}(m)$',
-									  tick_size=12,
-									  label_size=14,
-									  title_size=16)
-			"""
-			fig4_1, _ = self._plot_data(self._data_avgdriftY,
-										title='DriftY_heatmap',
-										heatmap=True)
-			"""
 
 			fig5, _ = self._plot_data(driftX,
 									  plot_plane=False,
-									  title='DriftX',
+									  title='Drift X',
 									  z_label='$A_{1}(m)$',
 									  tick_size=12,
 									  label_size=14,
@@ -704,7 +759,61 @@ class output(preprocessing, visualize):
 										heatmap=True)
 			"""
 
+			fig4, _ = self._plot_data(driftY,
+									  plot_plane=False,
+									  title='Drift Y',
+									  z_label='$A_{2}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
+			"""
+			fig4_1, _ = self._plot_data(self._data_avgdriftY,
+										title='DriftY_heatmap',
+										heatmap=True)
+			"""
 
+			fig3, _ = self._plot_data(diffX,
+									  plot_plane=False,
+									  title='Diffusion X',
+									  z_label='$B_{11}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
+			"""
+			fig3_1, _ = self._plot_data(self._data_avgdiffX,
+										title='DiffX_heatmap',
+										heatmap=True)
+			"""
+
+			fig2, _ = self._plot_data(diffY,
+									  plot_plane=False,
+									  title='Diffusion Y',
+									  z_label='$B_{22}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
+			"""
+			fig2_1, _ = self._plot_data(self._data_avgdiffY,
+										title='DiffY_heatmap',
+										heatmap=True)
+			"""
+
+			fig6, _ = self._plot_data(diffXY,
+									  plot_plane=False,
+									  title='Diffusion XY',
+									  z_label='$B_{12}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
+
+
+			fig7, _ = self._plot_data(diffYX,
+									  plot_plane=False,
+									  title='Diffusion YX',
+									  z_label='$B_{21}(m)$',
+									  tick_size=12,
+									  label_size=14,
+									  title_size=16)
 		return None
 
 	def diagnostic(self):

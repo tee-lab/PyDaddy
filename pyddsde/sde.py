@@ -10,7 +10,7 @@ class SDE:
             time series data
     t_int : float
             time step in time series
-    dt : int
+    Dt : int
             analysis time step
     inc : float
             max increment for binning thae data
@@ -37,7 +37,7 @@ class SDE:
         """
         self.__dict__.update(kwargs)
 
-    def _drift(self, X, t_int, dt):
+    def _drift(self, X, t_int, Dt):
         r"""
         Get Drift coeffecient vector of data.
 
@@ -47,7 +47,7 @@ class SDE:
                 Time Series data
         t_int : float
                 time difference betwen consecutive observations
-        dt : float
+        Dt : float
                 drift calculation timescale
 
         Returns
@@ -60,22 +60,22 @@ class SDE:
         Drift is calculated as follows
 
         .. math::
-            drift = \frac{x(i+dt)-x(i)}{tint * dt}
+            drift = \frac{x(i+Dt)-x(i)}{tint * Dt}
         """
 
-        # return np.array([b - a for a, b in zip(X, X[dt:])]) / (t_int * dt)
-        return (X[dt:] - X[:-dt]) / (t_int * dt)
+        # return np.array([b - a for a, b in zip(X, X[Dt:])]) / (t_int * Dt)
+        return (X[Dt:] - X[:-Dt]) / (t_int * Dt)
 
-    def _residual(self, X, t_int, dt, delta_t=1):
+    def _residual(self, X, t_int, Dt, dt=1):
         """
         Get the residual.
         """
-        p = len(X) - max(delta_t, dt)
-        drift = self._drift(X, t_int, dt)[:p]
-        res = (X[delta_t:] - X[:-delta_t])[:p]
-        return res - drift*(t_int*delta_t)
+        p = len(X) - max(dt, Dt)
+        drift = self._drift(X, t_int, Dt)[:p]
+        res = (X[dt:] - X[:-dt])[:p]
+        return res - drift*(t_int*dt)
 
-    def _diffusion(self, X, t_int, delta_t=1):
+    def _diffusion(self, X, t_int, dt=1):
         """
         Get Diffusion coefficient vector of data
 
@@ -85,7 +85,7 @@ class SDE:
             time series data
         t_int : float
             time step in time series
-        delta_t : int
+        dt : int
             diffusion calculation timescale
 
         Returns
@@ -94,10 +94,10 @@ class SDE:
             Diffusion
         """
 
-        # return np.square(np.array([b - a for a, b in zip(X, X[delta_t:])])) / (t_int * delta_t)
-        return np.square(X[delta_t:] - X[:-delta_t]) / (t_int * delta_t)
+        # return np.square(np.array([b - a for a, b in zip(X, X[dt:])])) / (t_int * dt)
+        return np.square(X[dt:] - X[:-dt]) / (t_int * dt)
 
-    def _diffusion_xy(self, x, y, t_int, delta_t):
+    def _diffusion_xy(self, x, y, t_int, dt):
         """
         Get cross-correlation coefficients between x and y arrays.
 
@@ -109,16 +109,36 @@ class SDE:
                 y data
         t_int : float
                 time difference betwen consecutive observations
-        delta_t : diffusion calculation timescale
+        dt : diffusion calculation timescale
 
         Returns
         -------
         diffusion_xy : numpy.array
                 cross-correlation coefficients between x and y data
         """
-        return np.array(
-            [(b - a) * (d - c) for a, b, c, d in zip(x, x[delta_t:], y, y[delta_t:])]
-        ) / (delta_t * t_int)
+        return ((x[dt:] - x[:-dt]) * (y[dt:] - y[:-dt])) / (dt * t_int)
+        #return np.array([(b - a) * (d - c) for a, b, c, d in zip(x, x[dt:], y, y[dt:])]) / (dt * t_int)
+
+    def _diffusion_yx(self, x, y, t_int, dt):
+        """
+        Get cross-correlation coefficients between x and y arrays.
+
+        Args
+        ----
+        x : numpy.array
+                x data
+        y : numpy.array
+                y data
+        t_int : float
+                time difference betwen consecutive observations
+        dt : diffusion calculation timescale
+
+        Returns
+        -------
+        diffusion_xy : numpy.array
+                cross-correlation coefficients between y and x data
+        """
+        return ((x[dt:] - x[:-dt]) * (y[dt:] - y[:-dt])) / (dt * t_int)
 
     def _isValidRange(self, r):
         """
@@ -164,7 +184,7 @@ class SDE:
             r = (min(X), max(X))
         return np.arange(min(r), max(r)+inc, inc)
 
-    def _drift_and_diffusion(self, X, t_int, dt, delta_t, inc):
+    def _drift_and_diffusion(self, X, t_int, Dt, dt, inc):
         """
         Get drift and diffusion coefficients for a given timeseries data
 
@@ -174,9 +194,9 @@ class SDE:
                 time series data
         t_int : float
                 time difference betwen consecutive observations
-        dt : int
+        Dt : int
                 timescale to calculate drift
-        delta_t : int
+        dt : int
                 timescale to claculate diffusion
         inc : float
                 step increments in order parameter
@@ -196,16 +216,16 @@ class SDE:
         """
         op = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []
-        drift = self._drift(X, t_int, dt)
-        diff = self._diffusion(X, t_int, delta_t=delta_t)
-        X = X[0 : -max(dt, delta_t)]
+        drift = self._drift(X, t_int, Dt)
+        diff = self._diffusion(X, t_int, dt=dt)
+        X = X[0 : -max(Dt, dt)]
         for b in op:
             i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
             avgdiff.append(diff[i].mean())
             avgdrift.append(drift[i].mean())
         return diff, drift, np.array(avgdiff), np.array(avgdrift), op
 
-    def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, dt, delta_t):
+    def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, Dt, dt):
         """
         Get average binned drift and diffusion coefficients for given x and y data
 
@@ -219,9 +239,9 @@ class SDE:
             step increment of order parameter for x
         inc_y : float
             step increment of order parameter for y
-        dt : int
+        Dt : int
             timescale to calculate drift
-        delta_t : int
+        dt : int
             timescale to calculate diffusion
 
         Returns
@@ -233,22 +253,25 @@ class SDE:
         op_x = self._order_parameter(x, inc_x, self.op_x_range)
         op_y = self._order_parameter(y, inc_y, self.op_y_range)
 
-        driftX = self._drift(x, t_int, dt)
-        driftY = self._drift(y, t_int, dt)
+        driftX = self._drift(x, t_int, Dt)
+        driftY = self._drift(y, t_int, Dt)
 
-        diffusionX = self._diffusion(x, t_int, delta_t)
-        diffusionY = self._diffusion(y, t_int, delta_t)
+        diffusionX = self._diffusion(x, t_int, dt)
+        diffusionY = self._diffusion(y, t_int, dt)
 
-        diffusionXY = self._diffusion_xy(x, y, t_int, delta_t)
+        diffusionXY = self._diffusion_xy(x, y, t_int, dt)
+        diffusionYX = self._diffusion_yx(x, y, t_int, dt)
 
         avgdriftX = np.zeros((len(op_x), len(op_y)))
         avgdriftY = np.zeros((len(op_x), len(op_y)))
         avgdiffX = np.zeros((len(op_x), len(op_y)))
         avgdiffY = np.zeros((len(op_x), len(op_y)))
         avgdiffXY = np.zeros((len(op_x), len(op_y)))
+        avgdiffYX = np.zeros((len(op_x), len(op_y)))
+
 
         m = 0
-        x_, y_ = x[0 : -max(dt, delta_t)], y[0 : -max(dt, delta_t)]
+        x_, y_ = x[0 : -max(Dt, dt)], y[0 : -max(Dt, dt)]
         for bin_x in op_y:
             n = 0
             for bin_y in op_x:
@@ -263,11 +286,12 @@ class SDE:
                 avgdiffX[n, m] = np.nanmean(diffusionX[i])
                 avgdiffY[n, m] = np.nanmean(diffusionY[i])
                 avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
+                avgdiffYX[n, m] = np.nanmean(diffusionYX[i])
                 n = n + 1
             m = m + 1
-        return [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
+        return [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y]
 
-    def __call__(self, X, t_int, dt, delta_t=1, inc=0.01, **kwargs):
+    def __call__(self, X, t_int, Dt, dt=1, inc=0.01, **kwargs):
         """
         Calcualtes drift, diffusion, average drift and avarage difussion.
 
@@ -277,7 +301,7 @@ class SDE:
                 time series data
         t_int :float
                 time step in time series
-        dt : float
+        Dt : float
                 analysis time step
         inc = 0.01 : float
                 max increment for binning thae data
@@ -294,4 +318,4 @@ class SDE:
                 avaerage drift
         """
         self.__dict__.update(kwargs)
-        return self._drift_and_diffusion(X, t_int, dt, inc)
+        return self._drift_and_diffusion(X, t_int, Dt, inc)

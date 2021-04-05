@@ -456,11 +456,32 @@ class visualize(metrics):
 						 tick_size=12,
 						 title_size=14,
 						 label_size=14,
-						 label_pad=0):
+						 label_pad=0,
+						 **plot_text):
 		"""
 		Plots timeseries figure
 		"""
+		text = {
+			'timeseries_title' : 'Time Series',
+			'timeseries_xlabel' : 'Time Index',
+			'timeseries_ylabel' : 'M',
 
+			'timeseries1_title' : 'Time Series',
+			'timeseries1_xlabel' : '',
+			'timeseries1_ylabel' : '$M_{x}$',
+
+			'timeseries2_title' : '',
+			'timeseries2_xlabel' : '',
+			'timeseries2_ylabel' : '$M_{y}$',
+
+			'timeseries3_title' : '',
+			'timeseries3_xlabel' : '',
+			'timeseries3_ylabel' : '|M|'
+		}
+		for k in plot_text.keys():
+			if k not in text.keys():
+				print("{} not a valid plot text key".format(k))
+		text.update(plot_text)
 		if vector:
 			Mx, My = timeseries
 			if stop > len(Mx):
@@ -469,19 +490,19 @@ class visualize(metrics):
 			ax[0].plot(range(start, stop),Mx[start:stop], linewidth=1)
 			ax[0].set_xticks([])
 			ax[0].set_yticks(np.linspace(min(Mx), max(Mx), n_ticks).round(2))
-			self._stylize_axes(ax[0],x_label='', y_label='$M_{x}$', title='Time Series', label_size=label_size, title_size=title_size, tick_size=tick_size)
+			self._stylize_axes(ax[0],x_label=text['timeseries1_xlabel'], y_label=text['timeseries1_ylabel'], title=text['timeseries1_title'], label_size=label_size, title_size=title_size, tick_size=tick_size)
 
 
 			ax[1].plot(range(start, stop),My[start:stop], linewidth=1)
 			ax[1].set_xticks([])
 			ax[1].set_yticks(np.linspace(min(My), max(My), n_ticks).round(2))
-			self._stylize_axes(ax[1],x_label='', y_label='$M_{y}$', title='',label_size=label_size, tick_size=tick_size)
+			self._stylize_axes(ax[1],x_label=text['timeseries2_xlabel'], y_label=text['timeseries2_ylabel'], title=text['timeseries2_title'],label_size=label_size, tick_size=tick_size)
 
 
 			M = np.sqrt(Mx**2 + My**2)
 			ax[2].plot(range(start, stop),M[start:stop], linewidth=1)
 			ax[2].set_yticks(np.linspace(min(M), max(M), n_ticks).round(2))
-			self._stylize_axes(ax[2],x_label='Time Scale', y_label='|M|', title='', label_size=label_size, tick_size=tick_size)
+			self._stylize_axes(ax[2],x_label=text['timeseries3_xlabel'], y_label=text['timeseries3_ylabel'], title=text['timeseries3_title'], label_size=label_size, tick_size=tick_size)
 
 
 		else:
@@ -490,7 +511,7 @@ class visualize(metrics):
 				stop = len(Mx)
 			fig, ax = plt.subplots(dpi=150, figsize=(6,3))
 			ax.plot(range(start, stop),Mx[start:stop], linewidth=1)
-			self._stylize_axes(ax,x_label='Time Scale', y_label='$M$', title='Time Series',tick_size=tick_size, label_size=label_size, title_size=title_size)
+			self._stylize_axes(ax,x_label=text['timeseries_xlabel'], y_label=text['timeseries_ylabel'], title=text['timeseries_title'],tick_size=tick_size, label_size=label_size, title_size=title_size)
 			ax.set_yticks(np.linspace(min(Mx), max(Mx), n_ticks).round(2))
 
 		plt.tight_layout()
@@ -504,11 +525,39 @@ class visualize(metrics):
 						 title_size=14,
 						 label_size=15,
 						 tick_size=12,
-						 label_pad=8):
+						 label_pad=8,
+						 **plot_text):
 		"""
 		Plot histogram figures
 		"""
 
+		text = {
+			'hist_title' : '',
+			'hist_xlabel' : 'M',
+			'hist_ylabel' : 'Frequency',
+
+
+			'hist1_title' : '',
+			'hist1_xlabel' : '$M_{x}$',
+			'hist1_ylabel' : 'Frequency',
+
+			'hist2_title' : '',
+			'hist2_xlabel' : '$M_{y}$',
+			'hist2_ylabel' : 'Frequency',	
+
+			'hist3_title' : '',
+			'hist3_xlabel' : '$|M|$',
+			'hist3_ylabel' : 'Frequency',
+
+			'hist4_title' : '',
+			'hist4_xlabel' : '$M_{x}$',
+			'hist4_ylabel' : '$M_{y}$',
+			'hist4_zlabel' : 'Frequency'		
+		}
+		for k in plot_text.keys():
+			if k not in text.keys():
+				print("{} not a valid plot text key".format(k))
+		text.update(plot_text)
 		if vector:
 			Mx, My = timeseries
 			M = np.sqrt(Mx**2 + My**2)
@@ -518,35 +567,35 @@ class visualize(metrics):
 			if not kde:
 				ticks = [str(i)+"K" for i in (np.array(ax[0][0].get_yticks())/1000).round(1)]
 				ax[0][0].set_yticklabels(ticks)
-			self._stylize_axes(ax[0][0],	x_label='$M_{x}$', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0][0],	x_label=text['hist1_xlabel'], y_label=text['hist1_ylabel'], title=text['hist1_title'], tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1])
 			if not kde:
 				ticks = [str(i)+"K" for i in (np.array(ax[0][1].get_yticks())/1000).round(1)]
 				ax[0][1].set_yticklabels(ticks)
-			self._stylize_axes(ax[0][1],	x_label='$M_{y}$', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0][1],	x_label=text['hist2_xlabel'], y_label=text['hist2_ylabel'], title=text['hist2_title'], tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0])
 			if not kde:
 				ticks = [str(i)+"K" for i in (np.array(ax[1][0].get_yticks())/1000).round(1)]
 				ax[1][0].set_yticklabels(ticks)
-			self._stylize_axes(ax[1][0],	x_label='|M|', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[1][0],	x_label=text['hist3_xlabel'], y_label=text['hist3_ylabel'], title=text['hist3_title'], tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 
 			ax[1][1].remove()
 			ax[1][1] = fig.add_subplot(2,2,4, projection='3d')
 			ax[1][1].set_title('3d Histogram')
-			ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title='', title_size=title_size, label_size=label_size, tick_size=tick_size, label_pad=label_pad)
+			ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title=text['hist4_title'], title_size=title_size, label_size=label_size, tick_size=tick_size, label_pad=label_pad)
 
 		else:
 			M = timeseries[0]
 			fig, ax = plt.subplots(nrows=1, ncols=2, dpi=150, figsize=(8,4))
 			ax[0] = sns.distplot(M, kde=kde, ax=ax[0])
-			self._stylize_axes(ax[0], x_label='M', y_label='Frequency', title="",tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[0], x_label=text['hist_xlabel'], y_label=text['hist_ylabel'], title=text['hist_title'],tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 			ticks = [str(i)+"K" for i in (np.array(ax[0].get_yticks())/1000).round(1)]
 			ax[0].set_yticklabels(ticks)
 
 			ax[1] = sns.distplot(np.sqrt(M**2), kde=kde, ax=ax[1])
-			self._stylize_axes(ax[1], x_label='|M|', y_label='Frequency', title="", tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
+			self._stylize_axes(ax[1], x_label="|{}|".format(text['hist_xlabel']), y_label=text['hist_ylabel'], title=text['hist_title'], tick_size=tick_size, label_size=label_size, title_size=title_size, label_pad=label_pad)
 			ticks = [str(i)+"K" for i in (np.array(ax[1].get_yticks())/1000).round(1)]
 			ax[1].set_yticklabels(ticks)
 
@@ -681,7 +730,7 @@ class visualize(metrics):
 		if prefix == 'Dt':
 			t = 'Drift'
 			t_tex = "\Delta t"
-			sub_titles = ('driftX', 'driftY')
+			sub_titles = ('Drift X', 'Drift Y')
 			scene1 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
@@ -698,10 +747,10 @@ class visualize(metrics):
 				yaxis_title=r'my',
 				zaxis_title=r'A2',
 			)
-		else:
-			t = 'Diff'
+		elif prefix == 'dt':
+			t = 'Diffusion'
 			t_tex = "\delta t"
-			sub_titles = ('diffX', 'diffY')
+			sub_titles = ('Diffusion X', 'Diffusion Y')
 			scene1 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
@@ -718,8 +767,29 @@ class visualize(metrics):
 				yaxis_title=r'my',
 				zaxis_title=r'B22',
 			)
+		else:
+			prefix = 'dt'
+			t = 'Cross Correaltion'
+			t_tex = "\delta t"
+			sub_titles = ('Diffusion XY', 'Diffusion YX')
+			scene1 = dict(
+				xaxis=dict(showbackground=True),
+				yaxis=dict(showbackground=True),
+				zaxis=dict(showbackground=True, ),
+				xaxis_title=r'mx',
+				yaxis_title=r'my',
+				zaxis_title=r'B12',
+			)
+			scene2 = dict(
+				xaxis=dict(showbackground=True),
+				yaxis=dict(showbackground=True),
+				zaxis=dict(showbackground=True, ),
+				xaxis_title=r'mx',
+				yaxis_title=r'my',
+				zaxis_title=r'B21',
+			)
 		nrows, ncols = 1, 2
-		title_template = r"$\text{{ {0} |  Auto correlation time : {1} }} | \text{{ Slider switched to }}{2}= {3}$"
+		title_template = r"$\text{{ {0} |  Auto correlation time (Mx, My, |M|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
 		fig = make_subplots(
 			rows=nrows,
 			cols=ncols,
@@ -780,7 +850,7 @@ class visualize(metrics):
 			#scene4 = scene,
 			title_text=title_template.format(t, self.autocorrelation_time,
 											 t_tex,
-											 dt_s[init_pos]),
+											 dt_s[init_pos], self._act_mx, self._act_my),
 			height=600,
 			width=900,
 			#updatemenus=[
@@ -824,7 +894,7 @@ class visualize(metrics):
 				}, {
 					"title":
 					title_template.format(t, self.autocorrelation_time, t_tex,
-										  str(dt_s[i])),
+										  str(dt_s[i]), self._act_mx, self._act_my),
 				}],  # layout attribute
 				label='{} {}'.format(prefix,
 									 list(slider_data.keys())[i]))
@@ -858,7 +928,7 @@ class visualize(metrics):
 			t = 'Drift'
 			t_tex = "\Delta t"
 		else:
-			t = 'Diff'
+			t = 'Diffusion'
 			t_tex = "\delta t"
 			
 		# Create figure

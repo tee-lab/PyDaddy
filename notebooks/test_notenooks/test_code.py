@@ -1,6 +1,6 @@
-import pyFish
-import pyFish.tests
+import pyddsde
+import pyddsde.tests
 
-pyFish.tests.scalar_test(show=False)
+pyddsde.tests.scalar_test(show=False)
 
-pyFish.tests.vector_test(show=False)
+pyddsde.tests.vector_test(show=False)

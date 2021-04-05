@@ -30,8 +30,8 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self,
 			data,
 			t=1,
-			dt=None,
-			delta_t=1,
+			Dt=None,
+			dt=1,
 			t_lag=1000,
 			inc=0.01,
 			inc_x=0.1,
@@ -46,14 +46,14 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 		self._data = data
 		self._t = t
-		self.dt = dt
+		self.Dt = Dt
 
 		self.t_lag = t_lag
 		self.max_order = max_order
 		self.inc = inc
 		self.inc_x = inc_x
 		self.inc_y = inc_y
-		self.delta_t = delta_t
+		self.dt = dt
 		self.fft = fft
 		self.n_trials = n_trials
 		self._show_summary = show_summary
@@ -64,6 +64,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.op_range = None
 		self.op_x_range = None
 		self.op_y_range = None
+		self.bins = None
 		self.slider_range = slider_range
 		self.slider_timescales = slider_timescales
 
@@ -85,33 +86,33 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 		return None
 
-	def _slider_data(self, Mx, My, save=False, savepath='results'):
+	def _slider_data(self, Mx, My):
 		time_scale_list = self._get_slider_timescales(self.slider_range, self.slider_timescales)
 		drift_data_dict = dict()
 		diff_data_dict = dict()
+		cross_diff_dict = dict()
 		for time_scale in tqdm.tqdm(time_scale_list, desc='Generating Slider data'):
 			if self.vector:
-				avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, dt=time_scale, delta_t=time_scale)
+				avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, Dt=time_scale, dt=time_scale)
 				drift_data = [avgdriftX/self.n_trials, avgdriftY/self.n_trials, op_x, op_y]
 				diff_data = [avgdiffX/self.n_trials, avgdiffY/self.n_trials, op_x, op_y]
+				cross_diff_data = [avgdiffXY/self.n_trials, avgdiffYX/self.n_trials, op_x, op_y]
 			else:
-				_, _, avgdiff, avgdrift, op = self._drift_and_diffusion(Mx, t_int=self.t_int, dt=time_scale, delta_t=time_scale, inc=self.inc)
+				_, _, avgdiff, avgdrift, op = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
 				drift_data = [avgdrift/self.n_trials, op]
 				diff_data = [avgdiff/self.n_trials, op]
 
 			drift_data_dict[time_scale] = drift_data
 			diff_data_dict[time_scale] = diff_data
 
-		if save:
-			savepath = self._make_directory(os.path.join(savepath, self.res_dir))
-			with open(os.path.join(savepath, 'slider_data.pkl'), 'wb') as f:
-				pickle.dump([drift_data_dict, diff_data_dict],
-							f,
-							protocol=pickle.HIGHEST_PROTOCOL)
+			if self.vector: 
+				cross_diff_dict[time_scale] = cross_diff_data
 
+		if self.vector:
+			return drift_data_dict, diff_data_dict, cross_diff_dict
 		return drift_data_dict, diff_data_dict
 
-	def __call__(self, data, t=1, dt=None, **kwargs):
+	def __call__(self, data, t=1, Dt=None, **kwargs):
 		self.__dict__.update(kwargs)
 		#if t is None and t_int is None:
 		#	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
@@ -147,7 +148,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.dt_ = self._optimium_timescale(self._X,
 										   self._M_square,
 										   t_int=self.t_int,
-										   dt=dt,
+										   Dt=Dt,
 										   max_order=self.max_order,
 										   t_lag=self.t_lag,
 										   inc=self.inc_x)
@@ -157,15 +158,16 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self._diff_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(
 				self._X,
 				self.t_int,
+				Dt=self.Dt,
 				dt=self.dt,
-				delta_t=self.delta_t,
 				inc=self.inc)
 			self._avgdiff_ = self._avgdiff_ / self.n_trials
 			self._avgdrift_ = self._avgdrift_ / self.n_trials
 			"""
 			self._drift_slider, self._diff_slider = self._slider_data(self._X, None)
-			self._avgdrift_, self._op_ = self._drift_slider[self.dt]
+			self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
 			self._avgdiff_ = self._diff_slider[self.dt][0]
+			self._cross_diff_slider = None
 		else:
 			"""
 			self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._op_x_, self._op_y_ = self._vector_drift_diff(
@@ -174,22 +176,23 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				inc_x=self.inc_x,
 				inc_y=self.inc_y,
 				t_int=self.t_int,
-				dt=self.dt,
-				delta_t=self.delta_t)
+				Dt=self.Dt,
+				dt=self.dt)
 			self._avgdriftX_ = self._avgdriftX_ / self.n_trials
 			self._avgdriftY_ = self._avgdriftY_ / self.n_trials
 			self._avgdiffX_ = self._avgdiffX_ / self.n_trials
 			self._avgdiffY_ = self._avgdiffY_ / self.n_trials
 			self._avgdiffXY_ = self._avgdiffXY_ / self.n_trials
 			"""
-			self._drift_slider, self._diff_slider = self._slider_data(self._Mx, self._My)
-			self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.dt]
+			self._drift_slider, self._diff_slider, self._cross_diff_slider = self._slider_data(self._Mx, self._My)
+			self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.Dt]
 			self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
+			self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
 
 		inc = self.inc_x if self.vector else self.inc
 		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
-			self._X, self.dt, self.delta_t, self.t_int, inc=inc, point=0)
-		#X, dt, delta_t, t_int, inc=0.01, point=0,
+			self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
+		#X, Dt, dt, t_int, inc=0.01, point=0,
 		return output(self)
 
 
@@ -206,11 +209,11 @@ class Characterize(object):
 		float if its time increment between observation
 
 		numpy.array if time stamp of time series
-	dt : int,'auto', optional(default='auto')
+	Dt : int,'auto', optional(default='auto')
 		time scale for drift
 
 		if 'auto' time scale is decided based of drift order.
-	delta_t : int, optional(default=1)
+	dt : int, optional(default=1)
 		time scale for difusion
 	inc : float, optional(default=0.01)
 		increment in order parameter for scalar data
@@ -242,8 +245,8 @@ class Characterize(object):
 			cls,
 			data,
 			t=1.0,
-			dt=None,
-			delta_t=1,
+			Dt=None,
+			dt=1,
 			inc=0.01,
 			inc_x=0.1,
 			inc_y=0.1,
@@ -256,8 +259,8 @@ class Characterize(object):
 		ddsde = Main(
 			data=data,
 			t=t,
+			Dt=Dt,
 			dt=dt,
-			delta_t=delta_t,
 			inc=inc,
 			inc_x=inc_x,
 			inc_y=inc_y,
@@ -267,7 +270,7 @@ class Characterize(object):
 			show_summary=show_summary,
 			**kwargs)
 
-		return ddsde(data=data, t=t, dt=dt)
+		return ddsde(data=data, t=t, Dt=Dt)
 
 def load_sample_data(data_path):
 	r"""

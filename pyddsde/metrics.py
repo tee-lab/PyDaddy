@@ -373,7 +373,7 @@ class metrics:
             n_step = 8
         self.slider_range = (slider_start, slider_stop, n_step)
         #return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
-        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.dt])))
+        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.Dt])))
 
     def _closest_time_scale(self, time_scale):
         """
@@ -393,6 +393,8 @@ class metrics:
                     self._data_avgdriftY,
                     self._data_avgdiffX,
                     self._data_avgdiffY,
+                    self._data_avgdiffXY,
+                    self._data_avgdiffYX
                 )
             if time_scale not in self._time_scale_list:
                 print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
@@ -407,6 +409,8 @@ class metrics:
                 self._drift_slider[time_scale][1],
                 self._diff_slider[time_scale][0],
                 self._diff_slider[time_scale][1],
+                self._cross_diff_slider[time_scale][0],
+                self._cross_diff_slider[time_scale][1]
             )
         else:
             if time_scale is None:
@@ -460,6 +464,10 @@ class metrics:
             data_dict["diffusion_y"] = self._stack_slider_data(
                 data.copy(), self._diff_slider, index=1
             )
+            data_dict["diffusion_xy"] = self._stack_slider_data(
+                data.copy(), self._cross_diff_slider, index=0)
+            data_dict["diffusion_yx"] = self._stack_slider_data(
+                data.copy(), self._cross_diff_slider, index=1)
         else:
             data = self._data_op
             data_dict["drift"] = self._stack_slider_data(
@@ -489,14 +497,17 @@ class metrics:
         combined_data = dict()
         if self.vector:
             k = ["x", "y"]
+            k_ = ["xy", "yx"]
             combined_data["x"] = self._data_op_x
             combined_data["y"] = self._data_op_y
             for i in self._drift_slider:
                 for j in range(2):
                     drift_key = "drift_{}_{}".format(k[j], i)
                     diff_key = "diffusion_{}_{}".format(k[j], i)
+                    cross_diff_key = "diffusion_{}_{}".format(k_[j], i)
                     combined_data[drift_key] = self._drift_slider[i][j]
                     combined_data[diff_key] = self._diff_slider[i][j]
+                    combined_data[cross_diff_key] = self._cross_diff_slider[i][j]
         else:
             combined_data["x"] = self._data_op
             for i in self._drift_slider:
