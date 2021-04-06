@@ -177,7 +177,7 @@ class metrics:
         """
         k = p * np.log(np.abs(((p + 1e-100) / (q + 1e-100))))
         # k[np.where(np.isnan(k))] = 0
-        return np.sum(k)
+        return np.nansum(k)
 
     def _fit_plane(
         self, x, y, z, order=2, inc_x=0.1, inc_y=0.1, range_x=(-1, 1), range_y=(-1, 1)
@@ -259,12 +259,14 @@ class metrics:
         """
         if type(p) != list:
             p = p.split("/")
+        if p[0] == '':
+            p[0] = '/'
         if i > len(p):
             return os.path.join(*p)
         else:
             try:
                 os.mkdir(os.path.join(*p[0:i]))
-            except FileExistsError:
+            except (FileExistsError, FileNotFoundError):
                 pass
         return self._make_directory(p, i=i + 1)
 

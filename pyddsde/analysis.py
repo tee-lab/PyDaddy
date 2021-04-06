@@ -64,9 +64,10 @@ class AutoCorrelation:
 			print('Missing values in time series')
 			self.fft = False
 			return self._nan_acf(data, t_lag)
+		data = data - data.mean()
 		x = np.arange(0, t_lag)
 		c = np.fft.ifft(np.square(np.abs(np.fft.fft(data))))
-		c /= max(c)
+		c /= c[0]
 		return x, c[0:t_lag]
 
 	def _nan_acf(self, data, t_lag):
@@ -222,8 +223,8 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		hist, self._X1 = np.histogram(kl_dist, normed=True)
 		dx = self._X1[1] - self._X1[0]
 		self._f = np.cumsum(hist) * dx
-		l_lim = self._X1[1:][np.where(self._f <= 0.05)][-1]
-		h_lim = self._X1[1:][np.where(self._f >= 0.95)][0]
+		l_lim = self._X1[1:][np.where(self._f <= 0.025)][-1]
+		h_lim = self._X1[1:][np.where(self._f >= 0.975)][0]
 		return l_lim, h_lim
 
 	def _noise_analysis(self, X, Dt, dt, t_int, inc, point=0, **kwargs):
@@ -254,6 +255,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 		"""
 		self.__dict__.update(kwargs)
 		noise = self._noise(X, Dt, dt, t_int, inc, point)
+		#noise[np.isnan(noise)] = 0
 		s = noise.size
 		if s == 0:
 			print('Warning : Length of noise is 0')

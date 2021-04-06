@@ -115,13 +115,16 @@ class output(preprocessing, visualize):
 		path : str
 			path where data is exported
 		"""
-		if dir_path is None:
-			self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-			dir_path = self._make_directory(os.path.join('results', self.res_dir))
-			self.res_dir = dir_path
 
-		if not os.path.exists(dir_path):
+		if dir_path != None and not os.path.exists(dir_path):
 			raise PathNotFound(dir_path, "Entered directory path does not exists.")
+
+		self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+		if dir_path is None:
+			dir_path = self._make_directory(os.path.join('pyddsde_exports', self.res_dir))
+			self.res_dir = os.path.join(os.getcwd(), dir_path)
+		else:
+			dir_path = self._make_directory(os.path.join(dir_path, 'pyddsde_exports', self.res_dir))
 
 		data_dict = self._get_stacked_data()
 		for key in data_dict:
@@ -134,7 +137,7 @@ class output(preprocessing, visualize):
 		if zip:
 			self._zip_dir(dir_path)
 
-		return "Exported to {}".format(os.path.join(os.getcwd(),self.res_dir))
+		return "Exported to {}".format(os.path.join(dir_path,self.res_dir))
 
 
 	def data(self, drift_time_scale=None, diff_time_scale=None):
@@ -710,8 +713,8 @@ class output(preprocessing, visualize):
 			#Drift
 			fig3 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("Drift")
-			p_drift, _ = self._fit_poly(self._data_op, drift,
-										self.drift_order)
+			#p_drift, _ = self._fit_poly(self._data_op, drift,
+			#							self.drift_order)
 			plt.scatter(self._data_op, drift, marker='.')
 			"""
 			plt.scatter(self._data_op,
@@ -727,8 +730,8 @@ class output(preprocessing, visualize):
 			#Diffusion
 			fig4 = plt.figure(dpi=150, figsize=(5, 5))
 			plt.suptitle("Diffusion")
-			p_diff, _ = self._fit_poly(self._data_op, diff,
-									   self.diff_order)
+			#p_diff, _ = self._fit_poly(self._data_op, diff,
+			#						   self.diff_order)
 			plt.scatter(self._data_op, diff, marker='.')
 			"""
 			plt.scatter(self._data_op,
@@ -830,14 +833,29 @@ class output(preprocessing, visualize):
 		exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
 
 		print("Exponential function of the form: ")
-		expression = r'\exp(\frac{a}{b} + c)'
+		expression = r'a*\exp(\frac{-t}{\tau}) + C'
 		ax = plt.axes([0,0,0.1,0.1]) #left,bottom,width,height
 		ax.set_xticks([])
 		ax.set_yticks([])
 		ax.axis('off')
 		plt.text(0.4,0.4,'${}$'.format(expression) ,size=20,color="black")
 		plt.show()
-		print("is fitted. `b` is the autocorrelation time and, `a`, `c` are the fitting parameters")
+		print("is fitted. `\\tau` is the autocorrelation time and, `a`, `c` are scalling and fitting parameters respectively.\n")
+
+		if not self.vector:
+			x_M, acf_M = self._acf(self._data_X, t_lag=self._ddsde.t_lag)
+			[a_M, b_M, c_M], _ = self._fit_exp(x_M, acf_M)
+			exp_M = exp_fn(x_M, a_M, b_M, c_M)
+
+			fig1 = plt.figure(dpi=150)
+			plt.suptitle("$Autocorrealtion\ M$")
+			plt.plot(x_M, acf_M)
+			plt.plot(x_M, exp_M)
+			plt.legend(('acf', 'exp_fit'))
+			plt.xlabel('Time Lag')
+			plt.ylabel('$ACF\ (M)$')
+			print("acf_M : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
+			return None
 
 		x_M, acf_M = self._acf(self._data_M**2, t_lag=self._ddsde.t_lag)
 		[a_M, b_M, c_M], _ = self._fit_exp(x_M, acf_M)
@@ -858,8 +876,8 @@ class output(preprocessing, visualize):
 		plt.plot(x_M, exp_M)
 		plt.legend(('acf', 'exp_fit'))
 		plt.xlabel('Time Lag')
-		plt.ylabel('$acf\ |M|^{2}$')
-		print("acf_|M|^2 : a = {}, b = {}, c = {}".format(a_M, b_M, c_M))
+		plt.ylabel('$ACF\ (|M|^{2})$')
+		print("acf_|M|^2 : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
 
 		fig2 = plt.figure(dpi=150)
 		plt.suptitle("$Autocorrealtion\ M_{x}$")
@@ -867,8 +885,8 @@ class output(preprocessing, visualize):
 		plt.plot(x_Mx, exp_Mx)
 		plt.legend(('acf', 'exp_fit'))
 		plt.xlabel('Time Lag')
-		plt.ylabel('$acf\ M_{x}$')
-		print("acf_M_x : a = {}, b = {}, c = {}".format(a_Mx, b_Mx, c_Mx))
+		plt.ylabel('$ACF\ (M_{x})$')
+		print("acf_M_x : a = {}, tau = {}, c = {}".format(a_Mx, b_Mx, c_Mx))
 
 		fig3 = plt.figure(dpi=150)
 		plt.suptitle("$Autocorrealtion\ M_{y}$")
@@ -876,8 +894,8 @@ class output(preprocessing, visualize):
 		plt.plot(x_My, exp_My)
 		plt.legend(('acf', 'exp_fit'))
 		plt.xlabel('Time Lag')
-		plt.ylabel('$acf\ M_{y}$')
-		print("acf_My : a = {}, b = {}, c = {}".format(a_My, b_My, c_My))
+		plt.ylabel('$ACF\ (M_{y})$')
+		print("acf_My : a = {}, tau = {}, c = {}".format(a_My, b_My, c_My))
 
 		plt.show()
 		return None
@@ -896,6 +914,10 @@ class output(preprocessing, visualize):
 		-------
 		displays figures : None
 		"""
+
+		if self.vector:
+			print("N/A")
+			return None
 		t1 = "R2_adj"
 		"""
 		#ACF

@@ -72,9 +72,9 @@ class visualize(metrics):
 		text = {
 			'timeseries_title' : 'Time Series',
 			'timeseries_xlabel' : 'Time Index',
-			'timeseries_ylabel' : '|M|',
+			'timeseries_ylabel' : 'M',
 			'hist_title' : '',
-			'hist_xlabel' : '|M|',
+			'hist_xlabel' : 'M',
 			'hist_ylabel' : 'Frequency',
 			'drift_title' : 'Drift',
 			'drift_xlabel' : 'm',
@@ -138,7 +138,7 @@ class visualize(metrics):
 			M = np.sqrt(Mx**2 + My**2)
 			#fig, axs = plt.subplots(nrows=3, ncols=4,figsize=(15,12), dpi=150)
 			#plt.subplots_adjust(wspace= 0.5, hspace= 0.5)
-			fig = plt.figure(constrained_layout=True, figsize=(15,12))
+			fig = plt.figure(constrained_layout=True, figsize=(15,12), dpi=100)
 
 			#gs = axs[0, 0].get_gridspec()
 			gs = gridspec.GridSpec(nrows=3, ncols=4,wspace=0.5, hspace=0.5,figure=fig)
@@ -623,7 +623,7 @@ class visualize(metrics):
 		self._stylize_axes(ax[0][0],	
 						x_label='', 
 						y_label='Noise', 
-						title="Residulas", 
+						title="Residuals", 
 						tick_size=tick_size, 
 						label_size=label_size, 
 						title_size=title_size, 
@@ -636,7 +636,7 @@ class visualize(metrics):
 		#ax[1][0].plot(noise_correlation[0], noise_correlation[1])
 		self._stylize_axes(ax[1][0],	
 						x_label='lags', 
-						y_label='acf noise', 
+						y_label='ACF(Noise)', 
 						title="Noise Autocorrelation", 
 						tick_size=tick_size, 
 						label_size=label_size, 
@@ -656,11 +656,11 @@ class visualize(metrics):
 		ax[1][1] = sns.distplot(kl_dist, kde=kde, ax=ax[1][1])
 		start, stop = ax[1][1].get_ylim()
 		ax[1][1].plot(np.ones(len(X1)) * l_lim,
-		 np.linspace(start, stop, len(X1)), 'r', label='lower_cl')
+		 np.linspace(start, stop, len(X1)), 'r', label='2.5%')
 		ax[1][1].plot(np.ones(len(X1)) * k,
 		 np.linspace(start, stop, len(X1)), 'g', label='Test Statistics')
 		ax[1][1].plot(np.ones(len(X1)) * h_lim,
-		 np.linspace(start, stop, len(X1)), 'r', label='upper_cl')
+		 np.linspace(start, stop, len(X1)), 'r', label='97.5%'.format(h_lim))
 		self._stylize_axes(ax[1][1],	
 				x_label='', 
 				y_label='', 
@@ -842,7 +842,7 @@ class visualize(metrics):
 				zaxis_title=r'B21',
 			)
 		nrows, ncols = 1, 2
-		title_template = r"$\text{{ {0} |  Auto correlation time (Mx, My, |M|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
+		title_template = r"$\text{{ {0} |  Autocorrelation time (Mx, My, |M|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
 		fig = make_subplots(
 			rows=nrows,
 			cols=ncols,
