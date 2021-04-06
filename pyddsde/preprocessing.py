@@ -247,12 +247,6 @@ class preprocessing(gaussian_test):
 			self._act_mx = self._act(self._Mx)
 			self._act_my = self._act(self._My)
 
-		try:
-			assert self.inc > 0
-			assert self.inc_x > 0
-			assert self.inc_y > 0
-		except AssertionError:
-			raise InputError("inc, inc_x, inc_y must be > 0", " inc, inc_x, inc_y must be > 0")
 		if self.bins:
 			if self.vector:
 				r_mx = (min(self._Mx), max(self._Mx))
@@ -262,6 +256,13 @@ class preprocessing(gaussian_test):
 				self.inc = self.inc_x/10 
 			r = (min(self._X), max(self._X))
 			self.inc = (r[-1] - r[0])/self.bins
+		else:
+			try:
+				assert self.inc > 0
+				assert self.inc_x > 0
+				assert self.inc_y > 0
+			except AssertionError:
+				raise InputError("inc, inc_x, inc_y must be > 0", " inc, inc_x, inc_y must be > 0")
 
 		try:
 			assert isinstance(self.dt, int)
@@ -272,11 +273,12 @@ class preprocessing(gaussian_test):
 		except AssertionError:
 			raise InputError("dt and Dt must be int and >= 1","dt and Dt must be int and >= 1")
 
-		if not self._isValidSliderRange(self.slider_range) and self.slider_range is not None:
+		if not self._isValidSliderRange(self.slider_range):
+			self.slider_range = 'default'
 			print("\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n")
 
 		if not self._isValidSliderTimesSaleList(self.slider_timescales) and self.slider_timescales is not None:
-			print("\n[Warning] : Given slider timescale list is not valid, or contains some invalid timescales")
+			print("\n[Warning] : Given slider timescale list is not valid, or contains invalid timescales")
 
 		if not self._isValidRange(self.op_range):
 			if self.op_range is None:

@@ -34,11 +34,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			Dt=None,
 			dt=1,
 			t_lag=1000,
+			bins=20,
 			inc=0.01,
 			inc_x=0.1,
 			inc_y=0.1,
 			fft=True,
-			slider_range=None,
+			slider_range='defult',
 			slider_timescales = None,
 			n_trials=1,
 			show_summary=True,
@@ -65,7 +66,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.op_range = None
 		self.op_x_range = None
 		self.op_y_range = None
-		self.bins = None
+		self.bins = bins
 		self.slider_range = slider_range
 		self.slider_timescales = slider_timescales
 
@@ -88,10 +89,10 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		return None
 
 	def _slider_data(self, Mx, My):
-		time_scale_list = self._get_slider_timescales(self.slider_range, self.slider_timescales)
 		drift_data_dict = dict()
 		diff_data_dict = dict()
 		cross_diff_dict = dict()
+		time_scale_list = self._get_slider_timescales(self.slider_range, self.slider_timescales)
 		for time_scale in tqdm.tqdm(time_scale_list, desc='Generating Slider data'):
 			if self.vector:
 				avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, Dt=time_scale, dt=time_scale)
@@ -155,40 +156,51 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 										   inc=self.inc_x)
 	   	"""
 		if not self.vector:
-			"""
-			self._diff_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(
-				self._X,
-				self.t_int,
-				Dt=self.Dt,
-				dt=self.dt,
-				inc=self.inc)
-			self._avgdiff_ = self._avgdiff_ / self.n_trials
-			self._avgdrift_ = self._avgdrift_ / self.n_trials
-			"""
-			self._drift_slider, self._diff_slider = self._slider_data(self._X, None)
-			self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
-			self._avgdiff_ = self._diff_slider[self.dt][0]
+			if self.slider_range is None and self.slider_timescales is None:	
+				self._drift_slider = dict()
+				self._diff_slider = dict()
+				_, _, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(
+					self._X,
+					self.t_int,
+					Dt=self.Dt,
+					dt=self.dt,
+					inc=self.inc)
+				self._avgdiff_ = self._avgdiff_ / self.n_trials
+				self._avgdrift_ = self._avgdrift_ / self.n_trials
+				self._drift_slider[self.Dt] = [self._avgdrift_, self._op_]
+				self._diff_slider[self.dt] = [self._avgdiff_, self._op_]
+			else:
+				self._drift_slider, self._diff_slider = self._slider_data(self._X, None)
+				self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
+				self._avgdiff_ = self._diff_slider[self.dt][0]
 			self._cross_diff_slider = None
+
 		else:
-			"""
-			self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._op_x_, self._op_y_ = self._vector_drift_diff(
-				self._Mx,
-				self._My,
-				inc_x=self.inc_x,
-				inc_y=self.inc_y,
-				t_int=self.t_int,
-				Dt=self.Dt,
-				dt=self.dt)
-			self._avgdriftX_ = self._avgdriftX_ / self.n_trials
-			self._avgdriftY_ = self._avgdriftY_ / self.n_trials
-			self._avgdiffX_ = self._avgdiffX_ / self.n_trials
-			self._avgdiffY_ = self._avgdiffY_ / self.n_trials
-			self._avgdiffXY_ = self._avgdiffXY_ / self.n_trials
-			"""
-			self._drift_slider, self._diff_slider, self._cross_diff_slider = self._slider_data(self._Mx, self._My)
-			self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.Dt]
-			self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
-			self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
+			if self.slider_range is None and self.slider_timescales is None:
+				self._drift_slider = dict()
+				self._diff_slider = dict()
+				self._cross_diff_slider = dict()
+				self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, self._op_x_, self._op_y_ = self._vector_drift_diff(
+					self._Mx,
+					self._My,
+					inc_x=self.inc_x,
+					inc_y=self.inc_y,
+					t_int=self.t_int,
+					Dt=self.Dt,
+					dt=self.dt)
+				self._avgdriftX_ = self._avgdriftX_ / self.n_trials
+				self._avgdriftY_ = self._avgdriftY_ / self.n_trials
+				self._avgdiffX_ = self._avgdiffX_ / self.n_trials
+				self._avgdiffY_ = self._avgdiffY_ / self.n_trials
+				self._avgdiffXY_ = self._avgdiffXY_ / self.n_trials
+				self._drift_slider[self.Dt] = [self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_]
+				self._diff_slider[self.dt] = [self._avgdiffX_, self._avgdiffY_, self._op_x_, self._op_y_]
+				self._cross_diff_slider[self.dt] = [self._avgdiffXY_, self._avgdiffYX_, self._op_x_, self._op_y_]
+			else:
+				self._drift_slider, self._diff_slider, self._cross_diff_slider = self._slider_data(self._Mx, self._My)
+				self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.Dt]
+				self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
+				self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
 
 		inc = self.inc_x if self.vector else self.inc
 		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
@@ -248,10 +260,11 @@ class Characterize(object):
 			t=1.0,
 			Dt=None,
 			dt=1,
+			bins=20,
 			inc=0.01,
 			inc_x=0.1,
 			inc_y=0.1,
-			slider_range=None,
+			slider_range='default',
 			slider_timescales=None,
 			n_trials=1,
 			show_summary=True,
@@ -262,6 +275,7 @@ class Characterize(object):
 			t=t,
 			Dt=Dt,
 			dt=dt,
+			bins=bins,
 			inc=inc,
 			inc_x=inc_x,
 			inc_y=inc_y,

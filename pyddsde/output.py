@@ -617,7 +617,7 @@ class output(preprocessing, visualize):
 		dt_s = list(self._drift_slider.keys())
 		if not len(dt_s): # empty slider
 			return None
-		init_pos = np.abs(np.array(dt_s) - self._ddsde.dt).argmin()
+		init_pos = np.abs(np.array(dt_s) - self._ddsde.Dt).argmin()
 		if self.vector:
 			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos)
 		else:
@@ -647,7 +647,7 @@ class output(preprocessing, visualize):
 		fig.show()
 		return None
 
-	def cross_correlation(self):
+	def diffusion_cross(self):
 		"""
 		Display diffusion cross correlation slider figure
 
@@ -816,7 +816,75 @@ class output(preprocessing, visualize):
 									  title_size=16)
 		return None
 
-	def diagnostic(self):
+	def acf_diagnostic(self):
+		"""
+		Show autocorrealtion and autocorrelation time calculation plots.
+
+		Args
+		----
+
+		Returns
+		-------
+		displays figures : None
+		"""
+		exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
+
+		print("Exponential function of the form: ")
+		expression = r'\exp(\frac{a}{b} + c)'
+		ax = plt.axes([0,0,0.1,0.1]) #left,bottom,width,height
+		ax.set_xticks([])
+		ax.set_yticks([])
+		ax.axis('off')
+		plt.text(0.4,0.4,'${}$'.format(expression) ,size=20,color="black")
+		plt.show()
+		print("is fitted. `b` is the autocorrelation time and, `a`, `c` are the fitting parameters")
+
+		x_M, acf_M = self._acf(self._data_M**2, t_lag=self._ddsde.t_lag)
+		[a_M, b_M, c_M], _ = self._fit_exp(x_M, acf_M)
+		exp_M = exp_fn(x_M, a_M, b_M, c_M)
+
+		x_Mx, acf_Mx = self._acf(self._data_Mx, t_lag=self._ddsde.t_lag)
+		[a_Mx, b_Mx, c_Mx], _ = self._fit_exp(x_Mx, acf_Mx)
+		exp_Mx = exp_fn(x_Mx, a_Mx, b_Mx, c_Mx)
+
+		x_My, acf_My = self._acf(self._data_My, t_lag=self._ddsde.t_lag)
+		[a_My, b_My, c_My], _ = self._fit_exp(x_My, acf_My)
+		exp_My = exp_fn(x_My, a_My, b_My, c_My)
+
+
+		fig1 = plt.figure(dpi=150)
+		plt.suptitle("$Autocorrealtion\ |M|^{2}$")
+		plt.plot(x_M, acf_M)
+		plt.plot(x_M, exp_M)
+		plt.legend(('acf', 'exp_fit'))
+		plt.xlabel('Time Lag')
+		plt.ylabel('$acf\ |M|^{2}$')
+		print("acf_|M|^2 : a = {}, b = {}, c = {}".format(a_M, b_M, c_M))
+
+		fig2 = plt.figure(dpi=150)
+		plt.suptitle("$Autocorrealtion\ M_{x}$")
+		plt.plot(x_Mx, acf_Mx)
+		plt.plot(x_Mx, exp_Mx)
+		plt.legend(('acf', 'exp_fit'))
+		plt.xlabel('Time Lag')
+		plt.ylabel('$acf\ M_{x}$')
+		print("acf_M_x : a = {}, b = {}, c = {}".format(a_Mx, b_Mx, c_Mx))
+
+		fig3 = plt.figure(dpi=150)
+		plt.suptitle("$Autocorrealtion\ M_{y}$")
+		plt.plot(x_My, acf_My)
+		plt.plot(x_My, exp_My)
+		plt.legend(('acf', 'exp_fit'))
+		plt.xlabel('Time Lag')
+		plt.ylabel('$acf\ M_{y}$')
+		print("acf_My : a = {}, b = {}, c = {}".format(a_My, b_My, c_My))
+
+		plt.show()
+		return None
+
+
+
+	def fitting_diagnostic(self):
 		"""
 		Show diagnostics figures like autocorrelation plots, r2 adjusted plots, for drift and diffusion
 		for multiple dt.
@@ -829,6 +897,7 @@ class output(preprocessing, visualize):
 		displays figures : None
 		"""
 		t1 = "R2_adj"
+		"""
 		#ACF
 		fig1 = plt.figure(dpi=150)
 		plt.suptitle("ACF")
@@ -840,6 +909,7 @@ class output(preprocessing, visualize):
 		plt.legend(('ACF', 'exp_fit'))
 		plt.xlabel('Time Lag')
 		plt.ylabel('ACF')
+		"""
 
 		#R2 vs order for drift
 		fig2 = plt.figure(dpi=150)
@@ -883,7 +953,7 @@ class output(preprocessing, visualize):
 
 		return None
 
-	def noise_characterstics(self,
+	def noise_diagnostic(self,
 								dpi=150, 
 								kde=True, 
 								title_size=14, 

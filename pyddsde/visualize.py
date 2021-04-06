@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.gridspec as gridspec
 import matplotlib.ticker as mtick
 import seaborn as sns
+import statsmodels.graphics
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from pyddsde.metrics import metrics
@@ -618,6 +619,58 @@ class visualize(metrics):
 
 		fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(10,8))
 
+		ax[0][0].plot(noise[0:1000])
+		self._stylize_axes(ax[0][0],	
+						x_label='', 
+						y_label='Noise', 
+						title="Residulas", 
+						tick_size=tick_size, 
+						label_size=label_size, 
+						title_size=title_size, 
+						label_pad=label_pad)
+
+		lags = 50
+		if len(noise) < lags + 1:
+			lags = len(noise) - 1
+		statsmodels.graphics.tsaplots.plot_acf(noise, lags=lags, ax=ax[1][0])
+		#ax[1][0].plot(noise_correlation[0], noise_correlation[1])
+		self._stylize_axes(ax[1][0],	
+						x_label='lags', 
+						y_label='acf noise', 
+						title="Noise Autocorrelation", 
+						tick_size=tick_size, 
+						label_size=label_size, 
+						title_size=title_size, 
+						label_pad=label_pad)
+
+		ax[0][1] = sns.distplot(noise, kde=kde, ax=ax[0][1])
+		self._stylize_axes(ax[0][1],	
+						x_label='', 
+						y_label='Density', 
+						title="Noise Distribution", 
+						tick_size=tick_size, 
+						label_size=label_size, 
+						title_size=title_size, 
+						label_pad=label_pad)
+
+		ax[1][1] = sns.distplot(kl_dist, kde=kde, ax=ax[1][1])
+		start, stop = ax[1][1].get_ylim()
+		ax[1][1].plot(np.ones(len(X1)) * l_lim,
+		 np.linspace(start, stop, len(X1)), 'r', label='lower_cl')
+		ax[1][1].plot(np.ones(len(X1)) * k,
+		 np.linspace(start, stop, len(X1)), 'g', label='Test Statistics')
+		ax[1][1].plot(np.ones(len(X1)) * h_lim,
+		 np.linspace(start, stop, len(X1)), 'r', label='upper_cl')
+		self._stylize_axes(ax[1][1],	
+				x_label='', 
+				y_label='', 
+				title="Hypothesis Testing", 
+				tick_size=tick_size, 
+				label_size=label_size, 
+				title_size=title_size, 
+				label_pad=label_pad)
+		ax[1][1].legend(prop={'size':6})
+		"""
 		ax[0][0] = sns.distplot(noise, kde=kde, ax=ax[0][0])
 		self._stylize_axes(ax[0][0],	
 						x_label='', 
@@ -670,7 +723,7 @@ class visualize(metrics):
 				title_size=title_size, 
 				label_pad=label_pad)
 		ax[1][1].legend(loc=1, prop={'size':6})
-
+		"""
 		plt.tight_layout()
 		return fig
 

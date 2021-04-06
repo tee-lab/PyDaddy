@@ -309,8 +309,8 @@ class metrics:
             True if valid, else False
 
         """
-        if r is None:
-            return False
+        if r is None or r == 'default':
+            return True
         if isinstance(r, (list, tuple)) and len(r) == 3 and (np.array(r) >= 1).all():
             return True
         return False
@@ -360,20 +360,22 @@ class metrics:
         All dublicate values in the list (if any) will be removed
         """
         t_list = []
+        default_range = (1, np.ceil(self.autocorrelation_time) * 2, 8)
         if self._isValidSliderTimesSaleList(slider_scale_list):
             t_list = slider_scale_list
 
         if self._isValidSliderRange(slider_range):
-            slider_start, slider_stop, n_step = slider_range
+            if slider_range is None:
+                slider_start, slider_stop, n_step = 0, 0, 0
+            elif slider_range == 'default':
+                slider_start, slider_stop, n_step = default_range
+            else:
+                slider_start, slider_stop, n_step = slider_range
         else:
-            if len(t_list):
-                return sorted(set(map(int, t_list)))
-            slider_start = 1
-            slider_stop = np.ceil(self.autocorrelation_time) * 2
-            n_step = 8
-        self.slider_range = (slider_start, slider_stop, n_step)
+            slider_start, slider_stop, n_step = default_range
+            self.slider_range = (slider_start, slider_stop, n_step)
         #return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
-        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.Dt])))
+        return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.dt, self.Dt])))
 
     def _closest_time_scale(self, time_scale):
         """
