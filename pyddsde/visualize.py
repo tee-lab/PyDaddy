@@ -632,7 +632,7 @@ class visualize(metrics):
 		lags = 50
 		if len(noise) < lags + 1:
 			lags = len(noise) - 1
-		statsmodels.graphics.tsaplots.plot_acf(noise, lags=lags, ax=ax[1][0])
+		statsmodels.graphics.tsaplots.plot_acf(noise, lags=lags, ax=ax[1][0], missing='conservative')
 		#ax[1][0].plot(noise_correlation[0], noise_correlation[1])
 		self._stylize_axes(ax[1][0],	
 						x_label='lags', 
