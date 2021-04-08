@@ -4,6 +4,7 @@ import os
 import gc
 import json
 import numpy.matlib
+import tqdm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
@@ -265,6 +266,203 @@ class output(preprocessing, visualize):
 			if str(keys)[0] != '_':
 				params[keys] = str(self._ddsde.__dict__[keys])
 		return params
+
+
+	def fit(self, function_name, order, drift_time_scale=None, diff_time_scale=None):
+		"""
+		Fit a polynomial or plane to the derrived data
+
+		Args
+		----
+		function_name : str
+			name of the function
+
+			For scalar
+			F : drift
+			G : diffusion
+
+			For Vector
+			A1 : driftX
+			A2 : driftY
+			B11 : diffusionX
+			B22 : diffusionY
+			B12 : diffusionXY
+			B21 : diffusionYx
+		order : int
+			order (degree) of the polynomial or plane to fit
+
+		Returns
+		-------
+		func : poly or plane
+			a callable function
+			y = poly(x)
+			z = plane(x,y)
+
+		Note
+		----
+			Plane fitting is yet to be implemented
+		"""
+		fmap = {
+		'F'   : 'drift',
+		'G'   : 'diff',
+		'A1'  : 'driftX',
+		'A2'  : 'driftY',
+		'B11' : 'diffX',
+		'B12' : 'diffXY',
+		'B21' : 'diffYX',
+		'B22' : 'diffY'
+		}
+		if function_name not in fmap.keys():
+			print("Invalid function name")
+			return None
+
+		if self.vector:
+			if function_name not in list(fmap.keys())[2:]:
+				print("Invalid function name for vector analysis")
+				return None
+			data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
+
+			x,y = np.meshgrid(data['op_x'], data['op_y'])
+			z = data[fmap[function_name]]
+			plane = self._fit_plane(x=x, y=y, z=z, order=order)
+			return plane
+
+		if function_name not in list(fmap.keys())[:2]:
+			print("Invalid function name for scalar analysis")
+			return None
+
+		data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
+
+		poly, _ = self._fit_poly(data['op'], data[fmap[function_name]], order)
+		print(poly)
+		return poly
+
+	def simulate(self, sigma=4, dt=None, T=None, **functions):
+		"""
+		Simulate SDE
+
+		Takes drift and diffusion functions as input and
+		simuates the SDE using the analysis parameters.
+
+		The drift and diffusion functions given must be callable type functions.
+
+		For scalar F and G (drift and diffusion) must take one input and return a
+		number
+
+
+		Args
+		----
+		sigma : float
+			magnitude of the noise eta(t)
+
+		**functions:
+			drift and diffusion callable functions
+
+				For scalar analysis
+					F : drift function
+
+					G : diffusion dunction
+
+				For vector analysis
+					A1 : drift X
+
+					A2 : drift Y
+
+					B11 : diffusion X
+
+					B22 : diffusion Y
+
+					B12 : diffusion XY
+
+					B21 : diffusion YX
+
+		Returns
+		-------
+		simulated timeseries : list
+			[M] if scalar
+
+			[Mx, My] is vector
+
+		Examples
+		--------
+		# For scalar analysis
+		def drift_function(x):
+			return 0.125 * x
+
+		def diffusion_function(x):
+			return -(x**2 + 1)
+
+		simulated_data = ddsde.simulate(F=drift_function, G=diffusion_function)
+
+		# For vector analysis
+		def drift_x(x, y):
+			return x*x + y*y * x*y**2
+
+		def dirft_y(x, y):
+			return x*y
+
+		def diffusion_x(x,y):
+			return x**2 + x*y
+
+		def diffusion_y(x,y):
+			return y**2 + x*y
+
+		def diffusion_xy(x,y):
+			return 0
+
+		def diffusion_yx(x,y):
+			rerutn 0
+		
+		simulated_data = ddsde.simulate(A1=drift_x,
+						A2=drift_y,
+						B11=diffusion_x,
+						B22=diffusion_y,
+						B12=diffusion_xy.
+						B21=diffusion_yx
+						)
+
+		"""
+		func = {
+		'F'   : None,
+		'G'   : None,
+		'A1'  : None,
+		'A2'  : None,
+		'B11' : None,
+		'B12' : None,
+		'B21' : None,
+		'B22' : None
+		}
+
+		func.update(functions)
+
+		if dt is None: dt = self._ddsde.t_int
+
+		if self.vector:
+			print('N/A, yet to be implemented')
+			return None
+
+			for k in ['A1', 'A2', 'B11', 'B12', 'B21', 'B22']:
+				if func[k] == None:
+					print('Insufficient data, provide {}'.format(k))
+					return None
+		else:
+			for k in ['F', 'G']:
+				if func[k] == None:
+					print('Insufficient data, provide {}'.format(k))
+					return None
+
+			if T is None: T = len(self._data_X) * dt
+
+			n_iter = int(T/dt)
+
+			m = [self._data_X[0]]
+
+			for i in tqdm.tqdm(range(n_iter)):
+				m.append(m[i] + func['F'](m[i])*dt + sigma*np.random.normal()*func['G'](m[i])*np.sqrt(dt))
+
+			return m 
+
+
 
 	def summary(self, start=0, end=1000, kde=False, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3 ,ret_fig=True, **plot_text):
 		"""
@@ -622,7 +820,7 @@ class output(preprocessing, visualize):
 			return None
 		init_pos = np.abs(np.array(dt_s) - self._ddsde.Dt).argmin()
 		if self.vector:
-			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos)
+			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, order=polynomial_order)
 		else:
 			fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, polynomial_order=polynomial_order)
 		fig.show()
@@ -644,7 +842,7 @@ class output(preprocessing, visualize):
 		if not len(dt_s): # empty slider
 			return None
 		if self.vector:
-			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0)
+			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, order=polynomial_order)
 		else:
 			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, polynomial_order=polynomial_order)
 		fig.show()

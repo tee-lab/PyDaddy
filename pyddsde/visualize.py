@@ -773,7 +773,7 @@ class visualize(metrics):
 			return fig, ax
 		return ax
 
-	def _slider_3d(self, slider_data, init_pos=0, prefix='dt'):
+	def _slider_3d(self, slider_data, init_pos=0, prefix='dt', order=None):
 		"""
 		Get slider for analysed vector data.
 		"""
@@ -892,8 +892,34 @@ class visualize(metrics):
 						row=r,
 						col=c,
 					)
+					if isinstance(order, int):
+						x, y = np.meshgrid(self.op_x, self.op_y)
+						c_s = []
+						for _ in range(len(x.flatten())):
+							c_s.append([1, 'rgb(1, 0, 0)'])
+						try:
+							plane = self._fit_plane(x=x, y=y, z=data[k], order=order)
+						except:
+							print('Unable to fit plane')
+							order =None
+							k = k + 1
+							continue
+						fig.append_trace(
+							go.Surface(
+								x=x,
+								y=y,
+								z=plane(x,y),
+								opacity=0.3,
+								name='fit',
+								visible=visible,
+								showscale=False,
+								colorscale=c_s,
+								surfacecolor=c_s,
+								),
+							row=r,
+							col=c,
+							)
 					k = k + 1
-
 		fig.update_layout(
 			autosize=True,
 			scene1_aspectmode='cube',
@@ -940,6 +966,9 @@ class visualize(metrics):
 			)
 
 		steps = []
+		step_n = 2
+		if isinstance(order, int):
+			step_n = 4
 		for i in range(len(slider_data)):
 			step = dict(
 				method='update',
@@ -953,8 +982,9 @@ class visualize(metrics):
 				label='{} {}'.format(prefix,
 									 list(slider_data.keys())[i]))
 			#step['args'][0][i*4:i*4+4] = [True for j in range(4)]
-			step['args'][0]['visible'][i * 2:i * 2 +
-									   2] = [True for j in range(2)]
+			#step['args'][0]['visible'][i * 2:i * 2 + 2] = [True for j in range(2)]
+			step['args'][0]['visible'][i * step_n:i * step_n + step_n] = [True for j in range(step_n)]
+
 			steps.append(step)
 
 		sliders = [
