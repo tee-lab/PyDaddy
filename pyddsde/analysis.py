@@ -261,7 +261,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 			print('Warning : Length of noise is 0')
 		kl_dist = []
 		#for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
-		for _ in range(10000):
+		for _ in tqdm(range(1000)):
 			p = np.random.normal(size=s)
 			q = np.random.normal(size=s)
 			kl_dist.append(self._kl_divergence(p, q))
