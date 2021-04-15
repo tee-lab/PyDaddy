@@ -372,9 +372,9 @@ class visualize(metrics):
 			if timeseries_end > len(M):
 				timeseries_end = len(M)
 			fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
-			ax[0][0].plot(range(timeseries_start, timeseries_end),
-						  M[timeseries_start:timeseries_end])
-			ax[0][0].set_ylim(min(M), max(M))
+			M_ = M[timeseries_start:timeseries_end]
+			ax[0][0].plot(range(timeseries_start, timeseries_end),  M_)
+			ax[0][0].set_ylim(min(M_), max(M_))
 			self._stylize_axes(ax[0][0],
 							  x_label=text['timeseries_xlabel'],#'Time Index',
 							  y_label=text['timeseries_ylabel'],#'|M|',
@@ -1051,7 +1051,7 @@ class visualize(metrics):
 						visible=visible,
 						#mode='markers',
 						opacity=0.3,
-						line=dict(color="black", width=6),
+						line=dict(color=marker_colour, width=6),
 						name="poly_fit = " + str(step),
 						x=op,
 						y=poly(op)))

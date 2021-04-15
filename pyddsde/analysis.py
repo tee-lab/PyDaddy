@@ -218,7 +218,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 	def _get_critical_values(self, kl_dist):
 		"""
 		Get critical values of null hypothesis, 
-		i.e values at the boundries of 5% and 95% of null hypothesis
+		i.e values at the boundries of 2.5% and 97.5% of null hypothesis
 		"""
 		hist, self._X1 = np.histogram(kl_dist, normed=True)
 		dx = self._X1[1] - self._X1[0]
@@ -261,7 +261,7 @@ class gaussian_test(underlying_noise, metrics, AutoCorrelation):
 			print('Warning : Length of noise is 0')
 		kl_dist = []
 		#for _ in tqdm(range(10000), desc='Gaussian check for underlying noise'):
-		for _ in range(10000):
+		for _ in tqdm(range(1000)):
 			p = np.random.normal(size=s)
 			q = np.random.normal(size=s)
 			kl_dist.append(self._kl_divergence(p, q))

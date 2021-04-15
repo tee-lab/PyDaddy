@@ -5,6 +5,7 @@ import gc
 import json
 import numpy.matlib
 import tqdm
+import sdeint
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
@@ -169,6 +170,120 @@ class output(preprocessing, visualize):
 		_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
 		return Data(driftX, driftY, diffX, diffY, diffXY, diffYX, self._data_op_x, self._data_op_y)
 
+	#def kl_div(self, a,b):
+	#	a, bins_a = np.histogram(a, bins=100, density=True)
+	#	b, bins_b = np.histogram(b, bins=bins_a, density=True)
+	#	a_b = np.sum(np.where((a != 0)&(b != 0), a * np.log(a / b), 0))
+	#	b_a = np.sum(np.where((a != 0)&(b != 0), b * np.log(b / a), 0))
+	#	return (a_b + b_a)/2
+
+
+	def derive_functions(self, drift_order, diff_order, t_inc=None, T=None, m0=None, Dt='default', dt=1):
+		"""
+		Simulated to optimize the best fitting functional forms for the derrived drift and diffusion 
+		coefficients.
+
+		Args
+		----
+		drift_order : int
+			order of the drift coefficient observed
+		diff_order : int
+			order of the diffusion coefficient observed
+		t_inc : float (or None)
+			time increment for the SDE integration, if None
+			time_increment will be taken as 1/autocorrelation time or
+			the observed (input) timeseries
+		T : int (or None)
+			total time units of simulation, if None,
+			T will be taken as the fraction of  total time units of 
+			observed (input) data and its autocorrealtion time.
+		m0 : float (or None)
+			initial state of the SDE, if None, then m0 will be the first 
+			value of the input data
+		Dt : list or 'default', 'all'
+			list of drift timescales for to simulate reconstructed SDE and compare
+			it with the observed data.
+
+			If 'default', Dt = range(1, autocorrealtion_time+1, 10)
+
+			if 'all', Dt will include all timescales for which the drift and 
+			diffusion coefficients are derrived.
+		dt : int, (default = 1)
+			diffusion time scale 
+
+		Returns
+		-------
+		opt_F : callable
+			drift polynomila function of the given order, and the timescale for which the simulated
+			SDE's PDF was in close match with that of the observed.
+		opt_G : callable
+			diffusion polynomial function of the given order and timescale `dt`.
+
+		Note
+		----
+		If the Dt set contains, timescale values for which the drift and diffusion 
+		coefficents have not been derrived, then such timescale values will be ignored.
+
+		In other words, Dt set must be a subset of the set containing the slider timescales.
+
+		"""
+		if self.vector:
+			print("Feature not implemented for vector data")
+			return None
+
+		if Dt == 'default':
+			start, stop, n_steps = 1, self._ddsde.autocorrelation_time, 10
+			Dt = set(np.linspace(1, self._ddsde.autocorrelation_time, 10, dtype=np.int))
+			Dt = Dt.intersection(set(self._ddsde._avaiable_timescales))
+		elif Dt == 'all':
+			Dt = list(self._ddsde._avaiable_timescales)
+		else:
+			Dt = set(Dt)
+			Dt = Dt.intersection(set(self._ddsde._avaiable_timescales))
+		Dt = sorted(list(Dt))
+
+		if t_inc is None:
+			t_inc = 1/self._ddsde.autocorrelation_time
+		if T is None:
+			T = int(np.ceil(len(self._data_X)/self._ddsde.autocorrelation_time))
+		t_span = np.arange(0, T, t_inc)
+
+		if self._isnotebook():
+			pbar = tqdm.tqdm_notebook(total=len(Dt))
+		else:
+			pbar = tqdm.tqdm(total=len(Dt))
+		_g = self.fit("G", order=diff_order, diff_time_scale=dt)
+		G = lambda x, t: _g(x)
+		m0 = self._data_X[0]
+		M = []
+		for i in Dt:
+			_f = self.fit("F", order=drift_order, drift_time_scale=i)
+			F = lambda x, t: _f(x)
+			n = sdeint.itoEuler(F, G, m0, t_span)
+			M.append(n.flatten())
+			pbar.update(1)
+		pbar.close()
+
+		M = np.array(M)
+		divergence_list = []
+		p = self._data_X,copy()
+		for q in M:
+			divergence_list.append(self._divergence(p, q))
+		divergence_list = np.array(divergence_list)
+		opt_Dt = divergence_list.argmin() + 1
+
+		fig = plt.figure(dpi=300)
+		plt.plot(list(Dt), divergence_list)
+		plt.xlabel('Dt')
+		plt.ylabel('KL Divergence')
+		plt.show()
+		print("optimium time scale Dt : {}".format(opt_Dt))
+		opt_F = self.fit('F', order=drift_order, drift_time_scale=opt_Dt)
+		opt_G = self.fit('G', order=diff_order, diff_time_scale=dt)
+		print(opt_F)
+		print(opt_G)
+		return opt_F, opt_G
+
 	def plot_data(self,
 					data_in,
 					ax=None,
@@ -332,9 +447,12 @@ class output(preprocessing, visualize):
 			return None
 
 		data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
-
-		poly, _ = self._fit_poly(data['op'], data[fmap[function_name]], order)
-		print(poly)
+		if function_name in ['G']:
+			y = np.sqrt(data[fmap[function_name]])
+		else:
+			y = data[fmap[function_name]]
+		poly, _ = self._fit_poly(data['op'], y, order)
+		#print(poly)
 		return poly
 
 	def simulate(self, sigma=4, dt=None, T=None, **functions):
@@ -438,13 +556,19 @@ class output(preprocessing, visualize):
 		if dt is None: dt = self._ddsde.t_int
 
 		if self.vector:
-			print('N/A, yet to be implemented')
-			return None
-
 			for k in ['A1', 'A2', 'B11', 'B12', 'B21', 'B22']:
 				if func[k] == None:
 					print('Insufficient data, provide {}'.format(k))
 					return None
+			if T is None: T = len(self._data_Mx) * dt
+			n_iter = int(T/dt)
+			mx = [self._data_Mx[0]]
+			my = [self._data_My[0]]
+			for i in tqdm.tqdm(range(n_iter)):
+				mx.append(mx[i] + func['A1'](mx[i], my[i])*dt + sigma*np.random.normal()*(func['B11'](mx[i], my[i]) + func['B12'](mx[i], my[i]))*np.sqrt(dt))
+				my.append(my[i] + func['A2'](mx[i], my[i])*dt + sigma*np.random.normal()*(func['B22'](mx[i], my[i]) + func['B21'](mx[i], my[i]))*np.sqrt(dt))
+			return np.array(mx), np.array(my)
+
 		else:
 			for k in ['F', 'G']:
 				if func[k] == None:
@@ -460,7 +584,7 @@ class output(preprocessing, visualize):
 			for i in tqdm.tqdm(range(n_iter)):
 				m.append(m[i] + func['F'](m[i])*dt + sigma*np.random.normal()*func['G'](m[i])*np.sqrt(dt))
 
-			return m 
+			return np.array(m)
 
 
 
@@ -848,7 +972,7 @@ class output(preprocessing, visualize):
 		fig.show()
 		return None
 
-	def diffusion_cross(self):
+	def diffusion_cross(self, polynomial_order=None):
 		"""
 		Display diffusion cross correlation slider figure
 
@@ -864,7 +988,7 @@ class output(preprocessing, visualize):
 		if not len(dt_s): # empty slider
 			return None
 		if self.vector:
-			fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0)
+			fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order)
 			fig.show()
 		else:
 			print('N/A')
@@ -1208,7 +1332,7 @@ class Error(Exception):
 	"""
 	Base class for exceptions in this module.
 	
-    :meta private:
+	:meta private:
 	"""
 	pass
 
@@ -1216,7 +1340,7 @@ class PathNotFound(Error):
 	"""
 	pass
 
-    :meta private:
+	:meta private:
 	"""
 	def __init__(self, full_path, message):
 		self.full_path = full_path

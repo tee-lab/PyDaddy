@@ -215,7 +215,9 @@ class preprocessing(gaussian_test):
 		if not isinstance(self._data, list):
 			raise InputError('Characterize(data=[Mx,My],...)',
 							 'data input must be a list of length 1 or 2!')
-
+		for d in self._data:
+			if np.isinf(d).any():
+				raise ValueError('TimeSeries data must not contain inf')
 		if len(self._data) == 1:
 			self._X = self._data[0].flatten()
 			self._M_square = self._X

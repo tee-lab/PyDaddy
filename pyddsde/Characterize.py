@@ -112,9 +112,11 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 		if self.vector:
 			return drift_data_dict, diff_data_dict, cross_diff_dict
+		self._avaiable_timescales = time_scale_list
 		return drift_data_dict, diff_data_dict
 
 	def __call__(self, data, t=1, Dt=None, **kwargs):
+		self._reset_tqdm()
 		self.__dict__.update(kwargs)
 		#if t is None and t_int is None:
 		#	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
