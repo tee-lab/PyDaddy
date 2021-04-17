@@ -266,7 +266,7 @@ class output(preprocessing, visualize):
 
 		M = np.array(M)
 		divergence_list = []
-		p = self._data_X,copy()
+		p = self._data_X.copy()
 		for q in M:
 			divergence_list.append(self._divergence(p, q))
 		divergence_list = np.array(divergence_list)
@@ -282,7 +282,7 @@ class output(preprocessing, visualize):
 		opt_G = self.fit('G', order=diff_order, diff_time_scale=dt)
 		print(opt_F)
 		print(opt_G)
-		return opt_F, opt_G
+		return opt_F, opt_G, M,d
 
 	def plot_data(self,
 					data_in,

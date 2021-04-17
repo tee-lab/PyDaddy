@@ -4,6 +4,8 @@ import shutil
 import tqdm
 import sympy
 import os
+from scipy.spatial.distance import jensenshannon
+
 
 
 class metrics:
@@ -202,9 +204,10 @@ class metrics:
 		"""
 		a, bins_a = np.histogram(a, bins=100, density=True)
 		b, bins_b = np.histogram(b, bins=bins_a, density=True)
-		a_b = np.sum(np.where((a != 0)&(b != 0), a * np.log(a / b), 0))
-		b_a = np.sum(np.where((a != 0)&(b != 0), b * np.log(b / a), 0))
-		return (a_b + b_a)/2
+		return jensenshannon(a,b)
+		#a_b = np.sum(np.where((a != 0)&(b != 0), a * np.log(a / b), 0))
+		#b_a = np.sum(np.where((a != 0)&(b != 0), b * np.log(b / a), 0))
+		#return (a_b + b_a)/2
 
 	def _fit_plane(self, x, y, z, order=2):
 		"""
