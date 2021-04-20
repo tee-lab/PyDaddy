@@ -48,7 +48,7 @@ If you already have an installation, do the following if you dont care about the
 To install and run the provided notebook files, clone the repo and install so you have a copy of all the notebook files provided.
 
     $ git clone https://github.com/tee-lab/pyddsde.git
-    $ cd pyFish
+    $ cd pyddsde
     $ python -m pip install .
     
 To just install the package use:
