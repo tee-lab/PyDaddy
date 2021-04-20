@@ -39,6 +39,8 @@ If you already have an installation, do the following if you dont care about the
     $ git restore . 
     $ git pull
     $ python -m pip install .
+    
+ Or the following will just reinstall the package without altering other folders:    
     $ python -m pip install --force-reinstall git+https://github.com/tee-lab/pyddsde.git
 
 # Installation
