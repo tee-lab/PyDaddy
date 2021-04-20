@@ -33,7 +33,7 @@ This data driven SDE method is  based on the assumption that the noise in the ti
 
 For detailed documentation refer the [docs](https://pyddsde.readthedocs.io/en/latest/index.html) page.
 
-#Reinstallation
+# Reinstallation
 If you already have an installation, do the following if you dont care about the data you have on the same folder pyddsde. 
 
     $ git restore . 
