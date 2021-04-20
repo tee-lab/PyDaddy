@@ -35,6 +35,7 @@ For detailed documentation refer the [docs](https://pyddsde.readthedocs.io/en/la
 
 #Reinstallation
 If you already have an installation, do the following if you dont care about the data you have on the same folder pyddsde. 
+
     $ git restore . 
     $ git pull
     $ python -m pip install .
