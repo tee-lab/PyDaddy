@@ -58,7 +58,7 @@ class preprocessing(gaussian_test):
 		N = 8
 		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))).union(set([self.Dt])))
 		for time_scale in time_scale_list:
-			drift, diff, avgDiff, avgDrift, op = self._drift_and_diffusion(
+			drift, diff, avgDiff, avgDrift, op, drift_ebar, diff_ebar = self._drift_and_diffusion(
 				X, t_int, Dt=time_scale, dt=time_scale, inc=inc)
 			op1, avgDrift = self._remove_nan(op, avgDrift)
 			op2, avgDiff = self._remove_nan(op, avgDiff)
@@ -275,9 +275,9 @@ class preprocessing(gaussian_test):
 		except AssertionError:
 			raise InputError("dt and Dt must be int and >= 1","dt and Dt must be int and >= 1")
 
-		if not self._isValidSliderRange(self.slider_range):
-			self.slider_range = 'default'
-			print("\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n")
+		#if not self._isValidSliderRange(self.slider_range):
+		#	self.slider_range = 'default'
+		#	print("\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n")
 
 		if not self._isValidSliderTimesSaleList(self.slider_timescales) and self.slider_timescales is not None:
 			print("\n[Warning] : Given slider timescale list is not valid, or contains invalid timescales")

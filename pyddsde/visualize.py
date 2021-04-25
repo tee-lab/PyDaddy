@@ -368,7 +368,7 @@ class visualize(metrics):
 
 		else:
 			#Time Series
-			M, drift, diff = data
+			M, drift, diff, drift_ebar, diff_ebar = data
 			if timeseries_end > len(M):
 				timeseries_end = len(M)
 			fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(12, 12))
@@ -398,7 +398,8 @@ class visualize(metrics):
 
 			#Drift
 			#p_drift, _ = self._fit_poly(self.op, drift, drift_order)
-			ax[0][1].scatter(self.op, drift, marker='.', label='drift')
+			#ax[0][1].scatter(self.op, drift, marker='.', label='drift')
+			ax[0][1].errorbar(self.op, drift, yerr=drift_ebar,fmt='o', label='drift')
 			"""
 			ax[0][1].plot(self.op,
 							 p_drift(self.op),
@@ -420,7 +421,8 @@ class visualize(metrics):
 			#ax[0][1].legend(loc=1, frameon=False, fontsize=tick_size)
 			#Diffusion
 			#p_diff, _ = self._fit_poly(self.op, diff, diff_order)
-			ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
+			#ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
+			ax[1][1].errorbar(self.op, diff, yerr=diff_ebar, fmt='o', label='diffusion')
 			"""
 			ax[1][1].plot(self.op,
 							 p_diff(self.op),
@@ -773,76 +775,113 @@ class visualize(metrics):
 			return fig, ax
 		return ax
 
-	def _slider_3d(self, slider_data, init_pos=0, prefix='dt', order=None):
+	def _slider_3d(self, slider_data, init_pos=0, prefix='dt', order=None, **plot_text):
 		"""
 		Get slider for analysed vector data.
 		"""
+		slider_texts = {
+		'dt':{
+			'title1' : 'Drift X',
+			'x_label1' : 'mx',
+			'y_label1' : 'my',
+			'z_label1' : 'A1',
+
+			'title2' : 'Drift Y',
+			'x_label2' : 'mx',
+			'y_label2' : 'my',
+			'z_label2' : 'A2' 	},
+
+		'Dt' :{
+			'title1' : 'Diffusion X',
+			'x_label1' : 'mx',
+			'y_label1' : 'my',
+			'z_label1' : 'B11',
+
+			'title2' : 'Diffusion Y',
+			'x_label2' : 'mx',
+			'y_label2' : 'my',
+			'z_label2' : 'B22' 	},
+
+		'c_dt': {
+			'title1' : 'Diffusion XY',
+			'x_label1' : 'mx',
+			'y_label1' : 'my',
+			'z_label1' : 'B12',
+
+			'title2' : 'Diffusion YX',
+			'x_label2' : 'mx',
+			'y_label2' : 'my',
+			'z_label2' : 'B21' 	}
+		}
+
+		text = slider_texts[prefix]
+		text.update(plot_text)
 
 		dt_s = list(slider_data.keys())
 		opt_step = dt_s[init_pos]
 		if prefix == 'Dt':
 			t = 'Drift'
 			t_tex = "\Delta t"
-			sub_titles = ('Drift X', 'Drift Y')
+			sub_titles = (text['title1'], text['title2'])
 			scene1 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
 				zaxis=dict(showbackground=True, ),
-				xaxis_title=r'mx',
-				yaxis_title=r'my',
-				zaxis_title=r'A1',
+				xaxis_title=text['x_label1'],
+				yaxis_title=text['y_label1'],
+				zaxis_title=text['z_label1'],
 			)
 			scene2 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
 				zaxis=dict(showbackground=True, ),
-				xaxis_title=r'mx',
-				yaxis_title=r'my',
-				zaxis_title=r'A2',
+				xaxis_title=text['x_label2'],
+				yaxis_title=text['y_label2'],
+				zaxis_title=text['z_label2'],
 			)
 		elif prefix == 'dt':
 			t = 'Diffusion'
 			t_tex = "\delta t"
-			sub_titles = ('Diffusion X', 'Diffusion Y')
+			sub_titles = (text['title1'], text['title2'])
 			scene1 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
 				zaxis=dict(showbackground=True, ),
-				xaxis_title=r'mx',
-				yaxis_title=r'my',
-				zaxis_title=r'B11',
+				xaxis_title=text['x_label1'],
+				yaxis_title=text['y_label1'],
+				zaxis_title=text['z_label1'],
 			)
 			scene2 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
 				zaxis=dict(showbackground=True, ),
-				xaxis_title=r'mx',
-				yaxis_title=r'my',
-				zaxis_title=r'B22',
+				xaxis_title=text['x_label2'],
+				yaxis_title=text['y_label2'],
+				zaxis_title=text['z_label2'],
 			)
 		else:
 			prefix = 'dt'
 			t = 'Cross Correaltion'
 			t_tex = "\delta t"
-			sub_titles = ('Diffusion XY', 'Diffusion YX')
+			sub_titles = (text['title1'], text['title2'])
 			scene1 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
 				zaxis=dict(showbackground=True, ),
-				xaxis_title=r'mx',
-				yaxis_title=r'my',
-				zaxis_title=r'B12',
+				xaxis_title=text['x_label1'],
+				yaxis_title=text['y_label1'],
+				zaxis_title=text['z_label1'],
 			)
 			scene2 = dict(
 				xaxis=dict(showbackground=True),
 				yaxis=dict(showbackground=True),
 				zaxis=dict(showbackground=True, ),
-				xaxis_title=r'mx',
-				yaxis_title=r'my',
-				zaxis_title=r'B21',
+				xaxis_title=text['x_label2'],
+				yaxis_title=text['y_label2'],
+				zaxis_title=text['z_label2'],
 			)
 		nrows, ncols = 1, 2
-		title_template = r"$\text{{ {0} |  Autocorrelation time (Mx, My, |M|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
+		title_template = r"$\text{{ {0} |  Autocorrelation time (Mx, My, |M^2|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
 		fig = make_subplots(
 			rows=nrows,
 			cols=ncols,
@@ -1002,10 +1041,22 @@ class visualize(metrics):
 
 		return fig
 
-	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', polynomial_order=None):
+	def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', polynomial_order=None, **plot_text):
 		"""
 		Get slider for analysed scalar data
 		"""
+		slider_texts = {
+		'Dt': {
+			'x_label':'m',
+			'y_label':'A1'
+			},
+		'dt': {
+			'x_label':'m',
+			'y_label':'A2'
+			}
+		}
+		text = slider_texts[prefix]
+		text.update(plot_text)
 		data = slider_data
 		title_template = r"$\text{{ {0} |  Auto correlation time : {1} }} | \text{{ Slider switched to }}{2}= {3}$"
 		if prefix == 'Dt':
@@ -1065,6 +1116,8 @@ class visualize(metrics):
 			height=850,
 			width=850,
 			)
+		fig.update_xaxes(title=dict(text=text['x_label']))
+		fig.update_yaxes(title=dict(text=text['y_label']))
 
 		# Create and add slider
 		steps = []

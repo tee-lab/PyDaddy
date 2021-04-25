@@ -308,7 +308,7 @@ class metrics:
 		nan_idx = np.where(np.isnan(x)) and np.where(np.isnan(y))
 		return np.array([np.delete(x, nan_idx), np.delete(y, nan_idx)])
 
-	def _isValidSliderRange(self, r):
+	#def _isValidSliderRange(self, r):
 		"""
 		Checks if the given range for slider is a valid range
 
@@ -323,11 +323,11 @@ class metrics:
 			True if valid, else False
 
 		"""
-		if r is None or r == 'default':
-			return True
-		if isinstance(r, (list, tuple)) and len(r) == 3 and (np.array(r) >= 1).all():
-			return True
-		return False
+	#	if r is None or r == 'default':
+	#		return True
+	#	if isinstance(r, (list, tuple)) and len(r) == 3 and (np.array(r) >= 1).all():
+	#		return True
+	#	return False
 
 	def _isValidSliderTimesSaleList(self, slider_list):
 		"""
@@ -352,7 +352,7 @@ class metrics:
 			return True
 		return False
 
-	def _get_slider_timescales(self, slider_range, slider_scale_list):
+	#def _get_slider_timescales(self, slider_range, slider_scale_list):
 		"""
 		Times scales to generate the drift and diffusion plot slider
 
@@ -373,73 +373,81 @@ class metrics:
 		-----
 		All dublicate values in the list (if any) will be removed
 		"""
-		t_list = []
-		default_range = (1, np.ceil(self.autocorrelation_time) * 2, 8)
-		if self._isValidSliderTimesSaleList(slider_scale_list):
-			t_list = slider_scale_list
+		#t_list = []
+		#default_range = (1, np.ceil(self.autocorrelation_time) * 2, 8)
+		#if self._isValidSliderTimesSaleList(slider_scale_list):
+		#	t_list = slider_scale_list
 
-		if self._isValidSliderRange(slider_range):
-			if slider_range is None:
-				slider_start, slider_stop, n_step = 0, 0, 0
-			elif slider_range == 'default':
-				slider_start, slider_stop, n_step = default_range
-			else:
-				slider_start, slider_stop, n_step = slider_range
-		else:
-			slider_start, slider_stop, n_step = default_range
-			self.slider_range = (slider_start, slider_stop, n_step)
+		#if self._isValidSliderRange(slider_range):
+		#	if slider_range is None:
+		#		slider_start, slider_stop, n_step = 0, 0, 0
+		#	elif slider_range == 'default':
+		#		slider_start, slider_stop, n_step = default_range
+		#	else:
+		#		slider_start, slider_stop, n_step = slider_range
+		#else:
+		#	slider_start, slider_stop, n_step = default_range
+		#	self.slider_range = (slider_start, slider_stop, n_step)
 		#return sorted(set(map(int, np.linspace(slider_start, slider_stop, n_step))))
-		return sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.dt, self.Dt])))
+		#sreturn sorted(set(map(int, np.concatenate((np.linspace(slider_start, slider_stop, n_step), t_list)))).union(set([self.dt, self.Dt])))
 
-	def _closest_time_scale(self, time_scale):
+	def _closest_time_scale(self, time_scale, slider):
 		"""
-		Gives closest matching time scale avaiable from the timescale list.
+		Gives closest matching time scale avaiable from the slider keys.
 		"""
-		i = np.abs(np.array(self._time_scale_list) - time_scale).argmin()
-		return self._time_scale_list[i]
+		timescale = list(slider.keys())
+		i = np.abs(np.array(timescale) - time_scale).argmin()
+		return timescale[i]
 
-	def _get_data_from_slider(self, time_scale=None):
+	def _get_data_from_slider(self, drift_time_scale=None, diff_time_scale=None):
 		"""
 		Get drift and diffusion data from slider data dictionary, if key not valid, returns the data corresponding to closest matching one.
 		"""
 		if self.vector:
-			if time_scale is None:
-				return (
-					self._data_avgdriftX,
-					self._data_avgdriftY,
-					self._data_avgdiffX,
-					self._data_avgdiffY,
-					self._data_avgdiffXY,
-					self._data_avgdiffYX
-				)
-			if time_scale not in self._time_scale_list:
-				print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
-				time_scale = self._closest_time_scale(time_scale)
-				print(
-					"Choosing {}; (closest matching timescale from the avaiable ones)".format(
-						time_scale
-					)
-				)
-			return (
-				self._drift_slider[time_scale][0],
-				self._drift_slider[time_scale][1],
-				self._diff_slider[time_scale][0],
-				self._diff_slider[time_scale][1],
-				self._cross_diff_slider[time_scale][0],
-				self._cross_diff_slider[time_scale][1]
-			)
+			if drift_time_scale is None:
+					drift_x, drift_y = self._data_avgdriftX,self._data_avgdriftY
+			if diff_time_scale is None:
+				diff_x, diff_y, diff_xy, diff_yx = self._data_avgdiffX,	self._data_avgdiffY, self._data_avgdiffXY, self._data_avgdiffYX
+
+			if drift_time_scale is not None:
+				if drift_time_scale not in self._drift_slider.keys():
+					print("\n{} not in list:\n{}".format(drift_time_scale, self._drift_slider.keys()))
+					drift_time_scale = self._closest_time_scale(drift_time_scale, self._drift_slider)
+					print("Choosing {}; (closest matching timescale from the avaiable ones)".format(drift_time_scale))
+				drift_x, drift_y = self._drift_slider[drift_time_scale][0],self._drift_slider[drift_time_scale][1]
+
+			if diff_time_scale is not None:
+				if diff_time_scale not in self._diff_slider.keys():
+					print("\n{} not in list:\n{}".format(diff_time_scale, self._diff_slider.keys()))
+					diff_time_scale = self._closest_time_scale(diff_time_scale, self._diff_slider)
+					print("Choosing {}; (closest matching timescale from the avaiable ones)".format(diff_time_scale))
+				diff_x, diff_y = self._diff_slider[diff_time_scale][0],	self._diff_slider[diff_time_scale][1]
+				diff_xy, diff_yx = self._cross_diff_slider[diff_time_scale][0],	self._cross_diff_slider[diff_time_scale][1]
+
+			return drift_x, drift_y, diff_x, diff_y, diff_xy, diff_yx
 		else:
-			if time_scale is None:
-				return self._data_avgdrift, self._data_avgdiff
-			if time_scale not in self._time_scale_list:
-				print("\n{} not in list:\n{}".format(time_scale, self._time_scale_list))
-				time_scale = self._closest_time_scale(time_scale)
-				print(
-					"Choosing {}; (closest matching timescale from the avaiable ones)".format(
-						time_scale
-					)
-				)
-			return self._drift_slider[time_scale][0], self._diff_slider[time_scale][0]
+			if drift_time_scale is None:
+				drift = self._data_avgdrift
+
+			if diff_time_scale is None:
+				diff = self._data_avgdiff
+
+			if drift_time_scale is not None:
+				if drift_time_scale not in self._drift_slider.keys():
+					print("\n{} not in list:\n{}".format(drift_time_scale, self._drift_slider.keys()))
+					drift_time_scale = self._closest_time_scale(drift_time_scale, self._drift_slider)
+					print("Choosing {}; (closest matching timescale from the avaiable ones)".format(drift_time_scale))
+				drift = self._drift_slider[drift_time_scale][0]
+
+			if diff_time_scale is not None:
+				if diff_time_scale not in self._diff_slider.keys():
+					print("\n{} not in list:\n{}".format(diff_time_scale, self._diff_slider.keys()))
+					diff_time_scale = self._closest_time_scale(diff_time_scale, self._diff_slider)
+					print("Choosing {}; (closest matching timescale from the avaiable ones)".format(diff_time_scale))
+				diff = self._diff_slider[diff_time_scale][0]
+
+			return drift, diff
+		return None
 
 	def _stack_slider_data(self, d, slider_data, index):
 		"""
@@ -449,14 +457,18 @@ class metrics:
 			d = np.column_stack((d, slider_data[i][index].flatten()))
 		return d
 
-	def _csv_header(self, prefix):
+	def _csv_header(self, prefix, file_name):
 		"""
 		Generate headers for CSV file.
 		"""
 		headers = "x,"
 		if self.vector:
 			headers = "x,y,"
-		for i in self._drift_slider:
+		if 'drift' in file_name:
+			timescales = list(self._drift_slider)
+		else:
+			timescales = list(self._diff_slider)
+		for i in timescales:
 			headers = headers + "{}-{},".format(prefix, i)
 		return headers
 
@@ -502,7 +514,7 @@ class metrics:
 			file_name = file_name + ".csv"
 		savepath = os.path.join(dir_path, file_name)
 		prefix = "Dt" if "drift" in file_name else "dt"
-		headers = self._csv_header(prefix) if add_headers else ""
+		headers = self._csv_header(prefix, file_name) if add_headers else ""
 		np.savetxt(savepath, data, fmt=fmt, header=headers, delimiter=",", comments="")
 		return None
 
@@ -519,17 +531,22 @@ class metrics:
 			for i in self._drift_slider:
 				for j in range(2):
 					drift_key = "drift_{}_{}".format(k[j], i)
+					combined_data[drift_key] = self._drift_slider[i][j]
+			for i in self._diff_slider:
+				for j in range(2):
 					diff_key = "diffusion_{}_{}".format(k[j], i)
 					cross_diff_key = "diffusion_{}_{}".format(k_[j], i)
-					combined_data[drift_key] = self._drift_slider[i][j]
 					combined_data[diff_key] = self._diff_slider[i][j]
 					combined_data[cross_diff_key] = self._cross_diff_slider[i][j]
+
 		else:
 			combined_data["x"] = self._data_op
 			for i in self._drift_slider:
 				drift_key = "drift_{}".format(i)
-				diff_key = "diffusion_{}".format(i)
 				combined_data[drift_key] = self._drift_slider[i][0]
+
+			for i in self._diff_slider:
+				diff_key = "diffusion_{}".format(i)
 				combined_data[diff_key] = self._diff_slider[i][0]
 		return combined_data
 
@@ -553,12 +570,6 @@ class metrics:
 		except NameError:
 			return False      # Probably standard Python interpreter
 
-	def _reset_tqdm(self):
-		try:
-			tqdm._instances.clear()
-		except:
-			pass
-		return None
 
 
 class Plane:

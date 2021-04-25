@@ -19,6 +19,7 @@ import statsmodels.stats.diagnostic
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from collections import namedtuple
+from collections import OrderedDict
 
 from pyddsde.preprocessing import preprocessing
 from pyddsde.visualize import visualize
@@ -44,6 +45,8 @@ class output(preprocessing, visualize):
 			#self._data_diff = ddsde._diff_
 			self._data_avgdrift = ddsde._avgdrift_
 			self._data_avgdiff = ddsde._avgdiff_
+			self._data_drift_ebar = ddsde._drift_ebar
+			self._data_diff_ebar = ddsde._diff_ebar
 			self._data_op = ddsde._op_
 			#self.drift_order = ddsde.drift_order
 			#self.diff_order = ddsde.diff_order
@@ -73,7 +76,6 @@ class output(preprocessing, visualize):
 		self._drift_slider = ddsde._drift_slider
 		self._diff_slider = ddsde._diff_slider
 		self._cross_diff_slider = ddsde._cross_diff_slider
-		self._time_scale_list = list(self._drift_slider.keys())
 
 		self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 
@@ -99,13 +101,13 @@ class output(preprocessing, visualize):
 		return None
 
 
-	def export_data(self, dir_path=None, save_mat=True, zip=False):
+	def export_data(self, fname=None, save_mat=True, zip=False):
 		"""
 		Export all drift and diffusion data, to csv and matlab (mat) files
 
 		Args
 		----
-		dir_path : str, optional(default=None)
+		fname : str, optional(default=None)
 			path to save the results, if None, data will be saved in 'results' folder in current working directory
 		save_mat : bool, optional(default=True)
 			If True, export data as mat files also.
@@ -117,29 +119,34 @@ class output(preprocessing, visualize):
 		path : str
 			path where data is exported
 		"""
+		if fname is None:
+			fname = ''
+		base, name = os.path.split(fname)
+		if base == '':
+			base = os.getcwd()
+		if not os.path.exists(base):
+			raise PathNotFound(base, "Entered directory path does not exists.")
 
-		if dir_path != None and not os.path.exists(dir_path):
-			raise PathNotFound(dir_path, "Entered directory path does not exists.")
-
-		self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-		if dir_path is None:
-			dir_path = self._make_directory(os.path.join('pyddsde_exports', self.res_dir))
-			self.res_dir = os.path.join(os.getcwd(), dir_path)
+		if name == '':
+			self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+			name = self._make_directory(os.path.join(base,'pyddsde_exports', self.res_dir))
+			self.res_dir = os.path.join(os.getcwd(), name)
 		else:
-			dir_path = self._make_directory(os.path.join(dir_path, 'pyddsde_exports', self.res_dir))
+			self.res_dir = name
+			name = self._make_directory(os.path.join(base, 'pyddsde_exports', self.res_dir))
 
 		data_dict = self._get_stacked_data()
 		for key in data_dict:
-			self._save_csv(dir_path=dir_path, file_name=key, data=data_dict[key], fmt='%.4f', add_headers=True)
+			self._save_csv(dir_path=name, file_name=key, data=data_dict[key], fmt='%.4f', add_headers=True)
 
 		if save_mat:
 			savedict = self._combined_data_dict()
-			scipy.io.savemat(os.path.join(dir_path, 'drift_diff_data.mat'), savedict)
+			scipy.io.savemat(os.path.join(name, 'drift_diff_data.mat'), savedict)
 
 		if zip:
-			self._zip_dir(dir_path)
+			self._zip_dir(name)
 
-		return "Exported to {}".format(os.path.join(dir_path,self.res_dir))
+		return "Exported to {}".format(name)
 
 
 	def data(self, drift_time_scale=None, diff_time_scale=None):
@@ -161,13 +168,13 @@ class output(preprocessing, visualize):
 		"""
 		if not self.vector:
 			Data = namedtuple('Data', ('drift', 'diff', 'op'))
-			drift , _ = self._get_data_from_slider(drift_time_scale)
-			_ , diff = self._get_data_from_slider(diff_time_scale)
+			drift , diff = self._get_data_from_slider(drift_time_scale, diff_time_scale)
+			#_ , diff = self._get_data_from_slider(diff_time_scale)
 			return Data(drift, diff, self._data_op)
 
 		Data = namedtuple('Data', ('driftX', 'driftY', 'diffX', 'diffY', 'diffXY', 'diffYX' ,'op_x', 'op_y'))
-		driftX, driftY, _, _, _, _ = self._get_data_from_slider(drift_time_scale)
-		_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
+		driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
+		#_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
 		return Data(driftX, driftY, diffX, diffY, diffXY, diffYX, self._data_op_x, self._data_op_y)
 
 	#def kl_div(self, a,b):
@@ -248,10 +255,7 @@ class output(preprocessing, visualize):
 			T = int(np.ceil(len(self._data_X)/self._ddsde.autocorrelation_time))
 		t_span = np.arange(0, T, t_inc)
 
-		if self._isnotebook():
-			pbar = tqdm.tqdm_notebook(total=len(Dt))
-		else:
-			pbar = tqdm.tqdm(total=len(Dt))
+		pbar = tqdm.tqdm(total=len(Dt))
 		_g = self.fit("G", order=diff_order, diff_time_scale=dt)
 		G = lambda x, t: _g(x)
 		m0 = self._data_X[0]
@@ -739,13 +743,13 @@ class output(preprocessing, visualize):
 				summary.append(values[i])
 			summary_format = ("| {:<20} : {:^15}"*1 +"|\n")*int(len(feilds)/1)
 			print(summary_format.format(*summary))
-			data = [self._data_X, self._data_avgdrift, self._data_avgdiff]
+			data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self._data_drift_ebar, self._data_diff_ebar]
 		
 		else:
 			feilds = [	'Mx range', 							'Mx mean', 
 						'My range', 							'My mean', 
 						'|M| range', 							'|M| mean',
-						'Autocorr time (Mx, My, |M|)', 			'(Dt, dt)',
+						'Autocorr time (Mx, My, |M^2|)', 			'(Dt, dt)',
 						]
 			
 			values = [	self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
@@ -855,7 +859,8 @@ class output(preprocessing, visualize):
 					 title_size=14,
 					 label_size=15,
 					 tick_size=12,
-					 label_pad=8):
+					 label_pad=8,
+					 **plot_text):
 		"""
 		Show histogram polt chart
 
@@ -922,11 +927,32 @@ class output(preprocessing, visualize):
 									 title_size=title_size,
 									 label_size=label_size,
 									 tick_size=tick_size,
-									 label_pad=label_pad)
+									 label_pad=label_pad,
+									 **plot_text)
 		plt.show()
 		return fig
 
-	def drift(self, polynomial_order=None):
+	def _update_slider_data(self, slider_timescales):
+		if self._isValidSliderTimesSaleList(slider_timescales):
+			if self._ddsde.slider_timescales is None:
+				self._ddsde.slider_timescales = sorted(map(int,set(slider_timescales)))
+			else:
+				self._ddsde.slider_timescales = sorted(map(int,set(self._ddsde.slider_timescales).union(list(slider_timescales))))
+		else:
+			return None
+
+		if self.vector:
+			self._drift_slider, self._diff_slider, self._cross_diff_slider = self._ddsde._slider_data(self._ddsde._Mx, self._ddsde._My, update=True)
+			self._drift_slider = OrderedDict(sorted(self._drift_slider.items()))
+			self._diff_slider = OrderedDict(sorted(self._diff_slider.items()))
+			self._cross_diff_slider = OrderedDict(self._cross_diff_slider.items())
+		else:
+			self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars = self._ddsde._slider_data(self._ddsde._X, None, update=True)
+			self._drift_slider = OrderedDict(sorted(self._drift_slider.items()))
+			self._diff_slider = OrderedDict(sorted(self._diff_slider.items()))
+		return None
+
+	def drift(self, polynomial_order=None, slider_timescales=None, **plot_text):
 		"""
 		Display drift slider figure
 
@@ -934,23 +960,48 @@ class output(preprocessing, visualize):
 		----
 		polynomial_order : None or int, default=None
 			order of polynomial to fit, if None, no fitting is done.
+		**plot_text:
+			plots' axis and text label
+
+			For scalar analysis
+				x_lable : x axis label
+
+				y_label : y axis label
+
+			For vector analysis
+				title1 : first plot title
+
+				x_label1 : first plot x label
+
+				y_label1 : first plot y label
+
+				z_label1 : first plot z label
+
+				title2 : second plot title
+
+				x_label2 : second plot x label
+
+				y_label2 : seocnd plot y label
+
+				z_label2 : second plot z label
 
 		Returns
 		-------
 		opens drift slider : None
 		"""
+		self._update_slider_data(slider_timescales)
 		dt_s = list(self._drift_slider.keys())
 		if not len(dt_s): # empty slider
 			return None
 		init_pos = np.abs(np.array(dt_s) - self._ddsde.Dt).argmin()
 		if self.vector:
-			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, order=polynomial_order)
+			fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, order=polynomial_order, **plot_text)
 		else:
-			fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, polynomial_order=polynomial_order)
+			fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, polynomial_order=polynomial_order, **plot_text)
 		fig.show()
 		return None
 
-	def diffusion(self, polynomial_order=None):
+	def diffusion(self, polynomial_order=None, slider_timescales=None, **plot_text):
 		"""
 		Display diffusion slider figure
 
@@ -962,17 +1013,18 @@ class output(preprocessing, visualize):
 		-------
 		opens diffusion slider : None
 		"""
+		self._update_slider_data(slider_timescales)
 		dt_s = list(self._diff_slider.keys())
 		if not len(dt_s): # empty slider
 			return None
 		if self.vector:
-			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, order=polynomial_order)
+			fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, order=polynomial_order, **plot_text)
 		else:
-			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, polynomial_order=polynomial_order)
+			fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, polynomial_order=polynomial_order, **plot_text)
 		fig.show()
 		return None
 
-	def diffusion_cross(self, polynomial_order=None):
+	def diffusion_cross(self, polynomial_order=None, slider_timescales=None, **plot_text):
 		"""
 		Display diffusion cross correlation slider figure
 
@@ -984,14 +1036,15 @@ class output(preprocessing, visualize):
 		-------
 		opens diffusion slider : None
 		"""
+		if not self.vector:
+			print("N/A")
+			return None
+		self._update_slider_data(slider_timescales)
 		dt_s = list(self._cross_diff_slider.keys())
 		if not len(dt_s): # empty slider
 			return None
-		if self.vector:
-			fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order)
-			fig.show()
-		else:
-			print('N/A')
+		fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order, **plot_text)
+		fig.show()
 		return None
 
 
@@ -1010,8 +1063,16 @@ class output(preprocessing, visualize):
 			displays plots : None
 		"""
 		if not self.vector:
-			drift, _ = self._get_data_from_slider(drift_time_scale)
-			_, diff = self._get_data_from_slider(diff_time_scale)
+			drift, diff = self._get_data_from_slider(drift_time_scale, diff_time_scale)
+			#_, diff = self._get_data_from_slider(diff_time_scale)
+			if drift_time_scale is None:
+				drift_ebar = self._data_drift_ebar
+			else:
+				drift_ebar = self._ddsde._scalar_drift_ebars[self._closest_time_scale(drift_time_scale, self._ddsde._scalar_drift_ebars)]
+			if diff_time_scale is None:
+				diff_ebar = self._data_diff_ebar
+			else:
+				diff_ebar = self._ddsde._scalar_diff_ebars[self._closest_time_scale(diff_time_scale, self._ddsde._scalar_diff_ebars)]
 
 			#Time series
 			fig1 = plt.figure(dpi=150)
@@ -1037,7 +1098,8 @@ class output(preprocessing, visualize):
 			plt.suptitle("Drift")
 			#p_drift, _ = self._fit_poly(self._data_op, drift,
 			#							self.drift_order)
-			plt.scatter(self._data_op, drift, marker='.')
+			#plt.scatter(self._data_op, drift, marker='.')
+			plt.errorbar(self._data_op, drift, yerr=drift_ebar, fmt='o')
 			"""
 			plt.scatter(self._data_op,
 						p_drift(self._data_op),
@@ -1054,7 +1116,8 @@ class output(preprocessing, visualize):
 			plt.suptitle("Diffusion")
 			#p_diff, _ = self._fit_poly(self._data_op, diff,
 			#						   self.diff_order)
-			plt.scatter(self._data_op, diff, marker='.')
+			#plt.scatter(self._data_op, diff, marker='.')
+			plt.errorbar(self._data_op, diff, yerr=diff_ebar, fmt='o')
 			"""
 			plt.scatter(self._data_op,
 						p_diff(self._data_op),
@@ -1067,8 +1130,8 @@ class output(preprocessing, visualize):
 			plt.ylabel('$G^{2}$')
 
 		else:
-			driftX, driftY, _, _, _, _ = self._get_data_from_slider(drift_time_scale)
-			_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
+			driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
+			#_, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
 			fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF',xlabel="$M_{x}$", tick_size=12, label_size=12, title_size=12, r_fig=True)
 
 			fig5, _ = self._plot_data(driftX,
@@ -1315,7 +1378,11 @@ class output(preprocessing, visualize):
 		displays plots : None
 		"""
 		#print("Noise is gaussian") if self._ddsde.gaussian_noise else print("Noise is not Gaussian")
-		data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.h_lim, self._ddsde.k, self._ddsde.l_lim,self._ddsde._f, self._ddsde._noise_correlation]
+		if not hasattr(self._ddsde, 'gaussian_noise'):
+			inc = self._ddsde.inc_x if self.vector else self._ddsde.inc
+			self._ddsde.gaussian_noise, self._ddsde._noise, self._ddsde._kl_dist, self._ddsde.noise_stat, self._ddsde.noise_l_lim, self._ddsde.noise_h_lim, self._ddsde._noise_correlation = self._ddsde._noise_analysis(
+				self._ddsde._X, self._ddsde.Dt, self._ddsde.dt, self._ddsde.t_int, inc=inc, point=0)
+		data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.noise_h_lim, self._ddsde.noise_stat, self._ddsde.noise_l_lim,self._ddsde._f, self._ddsde._noise_correlation]
 		fig = self._plot_noise_characterstics(data,
 												dpi=150, 
 												kde=True, 

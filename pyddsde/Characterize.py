@@ -39,11 +39,10 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			inc_x=0.1,
 			inc_y=0.1,
 			fft=True,
-			slider_range='defult',
 			slider_timescales = None,
 			n_trials=1,
 			show_summary=True,
-			max_order = 9,
+			max_order = 5,
 			**kwargs):
 
 		self._data = data
@@ -67,7 +66,6 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		self.op_x_range = None
 		self.op_y_range = None
 		self.bins = bins
-		self.slider_range = slider_range
 		self.slider_timescales = slider_timescales
 
 		"""
@@ -88,21 +86,36 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 
 		return None
 
-	def _slider_data(self, Mx, My):
-		drift_data_dict = dict()
-		diff_data_dict = dict()
-		cross_diff_dict = dict()
-		time_scale_list = self._get_slider_timescales(self.slider_range, self.slider_timescales)
+	def _slider_data(self, Mx, My, update=False):
+		if update:
+			drift_data_dict = self._drift_slider
+			diff_data_dict = self._diff_slider
+			cross_diff_dict = self._cross_diff_slider
+			if not self.vector:
+				ebar_drift_dict = self._scalar_drift_ebars
+				ebar_diff_dict = self._scalar_diff_ebars
+		else:
+			drift_data_dict = dict()
+			diff_data_dict = dict()
+			cross_diff_dict = dict()
+			if not self.vector:
+				ebar_drift_dict = dict()
+				ebar_diff_dict = dict()
+		time_scale_list = sorted(map(int,set(self.slider_timescales).union([self.dt, self.Dt])))
 		for time_scale in tqdm.tqdm(time_scale_list, desc='Generating Slider data'):
+			if update and time_scale in self._drift_slider.keys():
+				continue
 			if self.vector:
 				avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, Dt=time_scale, dt=time_scale)
 				drift_data = [avgdriftX/self.n_trials, avgdriftY/self.n_trials, op_x, op_y]
 				diff_data = [avgdiffX/self.n_trials, avgdiffY/self.n_trials, op_x, op_y]
 				cross_diff_data = [avgdiffXY/self.n_trials, avgdiffYX/self.n_trials, op_x, op_y]
 			else:
-				_, _, avgdiff, avgdrift, op = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
+				_, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
 				drift_data = [avgdrift/self.n_trials, op]
 				diff_data = [avgdiff/self.n_trials, op]
+				ebar_drift_dict[time_scale] = drift_ebar
+				ebar_diff_dict[time_scale] = diff_ebar
 
 			drift_data_dict[time_scale] = drift_data
 			diff_data_dict[time_scale] = diff_data
@@ -113,10 +126,9 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		if self.vector:
 			return drift_data_dict, diff_data_dict, cross_diff_dict
 		self._avaiable_timescales = time_scale_list
-		return drift_data_dict, diff_data_dict
+		return drift_data_dict, diff_data_dict, ebar_drift_dict, ebar_diff_dict
 
 	def __call__(self, data, t=1, Dt=None, **kwargs):
-		self._reset_tqdm()
 		self.__dict__.update(kwargs)
 		#if t is None and t_int is None:
 		#	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
@@ -158,10 +170,12 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 										   inc=self.inc_x)
 	   	"""
 		if not self.vector:
-			if self.slider_range is None and self.slider_timescales is None:	
+			if not self._isValidSliderTimesSaleList(self.slider_timescales):	
 				self._drift_slider = dict()
 				self._diff_slider = dict()
-				_, _, self._avgdiff_, self._avgdrift_, self._op_ = self._drift_and_diffusion(
+				self._scalar_drift_ebars = dict()
+				self._scalar_diff_ebars = dict()
+				_, _, self._avgdiff_, self._avgdrift_, self._op_, self._drift_ebar, self._diff_ebar = self._drift_and_diffusion(
 					self._X,
 					self.t_int,
 					Dt=self.Dt,
@@ -171,14 +185,18 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				self._avgdrift_ = self._avgdrift_ / self.n_trials
 				self._drift_slider[self.Dt] = [self._avgdrift_, self._op_]
 				self._diff_slider[self.dt] = [self._avgdiff_, self._op_]
+				self._scalar_drift_ebars[self.Dt] = self._drift_ebar
+				self._scalar_diff_ebars[self.dt] = self._diff_ebar
 			else:
-				self._drift_slider, self._diff_slider = self._slider_data(self._X, None)
+				self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars= self._slider_data(self._X, None)
 				self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
 				self._avgdiff_ = self._diff_slider[self.dt][0]
+				self._drift_ebar = self._scalar_drift_ebars[self.Dt]
+				self._diff_ebar = self._scalar_diff_ebars[self.dt]
 			self._cross_diff_slider = None
 
 		else:
-			if self.slider_range is None and self.slider_timescales is None:
+			if not self._isValidSliderTimesSaleList(self.slider_timescales):
 				self._drift_slider = dict()
 				self._diff_slider = dict()
 				self._cross_diff_slider = dict()
@@ -204,9 +222,9 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 				self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
 				self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
 
-		inc = self.inc_x if self.vector else self.inc
-		self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
-			self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
+		#inc = self.inc_x if self.vector else self.inc
+		#self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
+		#	self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
 		#X, Dt, dt, t_int, inc=0.01, point=0,
 		return output(self)
 
@@ -238,9 +256,6 @@ class Characterize(object):
 		increment in order parameter for vector data x2
 	fft : bool, optional(default=True)
 		if true use fft method to calculate autocorrelation else, use standard method
-	slider_range : tuple, optional(default=None)
-		range of the slider values, (start, stop, n_steps),
-		if None, uses the default range, ie (1, 2*auto_correlation_time, 8)
 	slider_timescales : list, optional(default=None)
 		List of timescale values to include in slider.
 	n_trials : int, optional(default=1)
@@ -266,7 +281,6 @@ class Characterize(object):
 			inc=0.01,
 			inc_x=0.1,
 			inc_y=0.1,
-			slider_range='default',
 			slider_timescales=None,
 			n_trials=1,
 			show_summary=True,
@@ -281,7 +295,6 @@ class Characterize(object):
 			inc=inc,
 			inc_x=inc_x,
 			inc_y=inc_y,
-			slider_range=slider_range,
 			slider_timescales=slider_timescales,
 			n_trials=n_trials,
 			show_summary=show_summary,
