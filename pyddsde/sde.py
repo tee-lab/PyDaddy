@@ -183,7 +183,8 @@ class SDE:
         if not self._isValidRange(r):
             r = (min(X), max(X))
         if self.bins:
-            return np.linspace(min(X), max(X), self.bins)
+            #return np.linspace(min(X), max(X), self.bins)
+            return np.linspace(r[0], r[-1], self.bins)
         return np.arange(min(r), max(r)+inc, inc)
 
 

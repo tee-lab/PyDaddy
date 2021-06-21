@@ -249,14 +249,40 @@ class preprocessing(gaussian_test):
 			self._act_mx = self._act(self._Mx)
 			self._act_my = self._act(self._My)
 
+		if not self._isValidRange(self.op_range):
+			if self.op_range is None:
+				self.op_range = (min(self._X), max(self._X))
+			else:
+				print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
+				self.op_range = (min(self._X), max(self._X))
+
+		if self.vector:
+			if not self._isValidRange(self.op_x_range):
+				if self.op_x_range is None:
+					self.op_x_range = (min(self._Mx), max(self._Mx))
+				else:
+					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
+					self.op_x_range = (min(self._Mx), max(self._Mx))
+
+			if not self._isValidRange(self.op_y_range):
+				if self.op_y_range is None:
+					self.op_y_range = (min(self._My), max(self._My))
+				else:
+					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
+					self.op_y_range = (min(self._My), max(self._My))
+
+
 		if self.bins:
 			if self.vector:
-				r_mx = (min(self._Mx), max(self._Mx))
-				r_my = (min(self._My), max(self._My))
+				#r_mx = (min(self._Mx), max(self._Mx))
+				r_mx = self.op_x_range
+				r_my = self.op_y_range
+				#r_my = (min(self._My), max(self._My))
 				self.inc_x = (r_mx[-1] - r_mx[0])/self.bins
 				self.inc_y = (r_my[-1] - r_my[0])/self.bins
 				self.inc = self.inc_x/10 
-			r = (min(self._X), max(self._X))
+			#r = (min(self._X), max(self._X))
+			r = self.op_range
 			self.inc = (r[-1] - r[0])/self.bins
 		else:
 			try:
@@ -281,28 +307,6 @@ class preprocessing(gaussian_test):
 
 		if not self._isValidSliderTimesSaleList(self.slider_timescales) and self.slider_timescales is not None:
 			print("\n[Warning] : Given slider timescale list is not valid, or contains invalid timescales")
-
-		if not self._isValidRange(self.op_range):
-			if self.op_range is None:
-				self.op_range = (min(self._X), max(self._X))
-			else:
-				print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-				self.op_range = (min(self._X), max(self._X))
-
-		if self.vector:
-			if not self._isValidRange(self.op_x_range):
-				if self.op_x_range is None:
-					self.op_x_range = (min(self._Mx), max(self._Mx))
-				else:
-					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-					self.op_x_range = (min(self._Mx), max(self._Mx))
-
-			if not self._isValidRange(self.op_y_range):
-				if self.op_y_range is None:
-					self.op_y_range = (min(self._My), max(self._My))
-				else:
-					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-					self.op_y_range = (min(self._My), max(self._My))
 
 			return None		
 
