@@ -8,10 +8,10 @@ import seaborn as sns
 import statsmodels.graphics
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from pyddsde.metrics import metrics
+from pyddsde.metrics import Metrics
 
 
-class visualize(metrics):
+class Visualize(Metrics):
 	"""
 	Module to visualize and plot analysed data
 
@@ -23,11 +23,10 @@ class visualize(metrics):
 		self.op = op
 		self.autocorrelation_time = int(autocorrelation_time)
 		self.__dict__.update(kwargs)
-		metrics.__init__(self)
+		Metrics.__init__(self)
 
 		self._c_pallet = sns.color_palette("colorblind", as_cmap=True)
 
-		return None
 
 	def _stylize_axes(self,
 					 ax,
@@ -479,7 +478,7 @@ class visualize(metrics):
 
 			'timeseries3_title' : '',
 			'timeseries3_xlabel' : '',
-			'timeseries3_ylabel' : '|M|'
+			'timeseries3_ylabel' : '$|M|$'
 		}
 		for k in plot_text.keys():
 			if k not in text.keys():
@@ -1108,13 +1107,13 @@ class visualize(metrics):
 						y=poly(op)))
 
 		fig.update_layout(
-			autosize=True,
+			autosize=False,
 			scene_aspectmode='cube',
 			title_text=title_template.format(t, self.autocorrelation_time,
 											 t_tex,
 											 dt_s[init_pos]),
-			height=850,
-			width=850,
+			height=600,
+			width=600,
 			)
 		fig.update_xaxes(title=dict(text=text['x_label']))
 		fig.update_yaxes(title=dict(text=text['y_label']))

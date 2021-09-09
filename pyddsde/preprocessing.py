@@ -2,13 +2,13 @@ import numpy as np
 from tqdm import tqdm
 from scipy.stats import mode
 import matplotlib.pyplot as plt
-from pyddsde.analysis import underlying_noise
+from pyddsde.analysis import UnderlyingNoise
 from pyddsde.analysis import AutoCorrelation
-from pyddsde.analysis import gaussian_test
-from pyddsde.metrics import metrics
+from pyddsde.analysis import GaussianTest
+from pyddsde.metrics import Metrics
 from pyddsde.sde import SDE
 
-class preprocessing(gaussian_test):
+class Preprocessing(GaussianTest):
 	"""
 	pass
 
@@ -16,7 +16,7 @@ class preprocessing(gaussian_test):
 	"""
 	def __init__(self, **kwargs):
 		self.__dict__.update(kwargs)
-		gaussian_test.__init__(self)
+		GaussianTest.__init__(self)
 
 	def _r2_vs_order(self, op1, op2, avgDrift, avgDiff, max_order):
 		"""
@@ -305,7 +305,7 @@ class preprocessing(gaussian_test):
 		#	self.slider_range = 'default'
 		#	print("\n[Warning] : Entered slider range is not in valid format. Using default range.\nValid format <(slider_start, slider_stop, n_steps)>\nAll values must be >= 1\n")
 
-		if not self._isValidSliderTimesSaleList(self.slider_timescales) and self.slider_timescales is not None:
+		if not self._is_valid_slider_timescale_list(self.slider_timescales) and self.slider_timescales is not None:
 			print("\n[Warning] : Given slider timescale list is not valid, or contains invalid timescales")
 
 			return None		

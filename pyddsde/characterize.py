@@ -8,20 +8,20 @@ import tqdm
 import time
 import os
 from pyddsde.sde import SDE
-from pyddsde.analysis import underlying_noise
+from pyddsde.analysis import UnderlyingNoise
 from pyddsde.analysis import AutoCorrelation
-from pyddsde.analysis import gaussian_test
-from pyddsde.preprocessing import preprocessing
+from pyddsde.analysis import GaussianTest
+from pyddsde.preprocessing import Preprocessing
 from pyddsde.preprocessing import InputError
-from pyddsde.metrics import metrics
-from pyddsde.output import output
+from pyddsde.metrics import Metrics
+from pyddsde.output import Output
 
 warnings.filterwarnings("ignore")
 
-__all__ = ['Characterize', 'load_data']
+__all__ = ['Characterize', 'load_sample_data', 'load_sample_dataset']
 
 
-class Main(preprocessing, gaussian_test, AutoCorrelation):
+class Main(Preprocessing, GaussianTest, AutoCorrelation):
 	"""
 	main class
 
@@ -39,7 +39,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			inc_x=0.1,
 			inc_y=0.1,
 			fft=True,
-			slider_timescales = None,
+			slider_timescales=None,
 			n_trials=1,
 			show_summary=True,
 			max_order = 5,
@@ -76,8 +76,8 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		"""
 
 		self.__dict__.update(kwargs)
-		preprocessing.__init__(self)
-		gaussian_test.__init__(self)
+		Preprocessing.__init__(self)
+		GaussianTest.__init__(self)
 		AutoCorrelation.__init__(self)
 		#SDE.__init__(self)
 
@@ -170,7 +170,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 										   inc=self.inc_x)
 	   	"""
 		if not self.vector:
-			if not self._isValidSliderTimesSaleList(self.slider_timescales):	
+			if not self._is_valid_slider_timescale_list(self.slider_timescales):
 				self._drift_slider = dict()
 				self._diff_slider = dict()
 				self._scalar_drift_ebars = dict()
@@ -196,7 +196,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 			self._cross_diff_slider = None
 
 		else:
-			if not self._isValidSliderTimesSaleList(self.slider_timescales):
+			if not self._is_valid_slider_timescale_list(self.slider_timescales):
 				self._drift_slider = dict()
 				self._diff_slider = dict()
 				self._cross_diff_slider = dict()
@@ -226,7 +226,7 @@ class Main(preprocessing, gaussian_test, AutoCorrelation):
 		#self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
 		#	self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
 		#X, Dt, dt, t_int, inc=0.01, point=0,
-		return output(self)
+		return Output(self)
 
 
 class Characterize(object):
@@ -268,7 +268,7 @@ class Characterize(object):
 
 	returns
 	-------
-	output : pyddsde.output.output
+	output : pyddsde.output.Output
 		object to access the analysed data, parameters, plots and save them.
 	"""
 	def __new__(
@@ -357,6 +357,7 @@ def load_sample_dataset(name):
 	t : float, array
 		timescale
 	"""
+
 	data_dict = {
 	'fish-data-etroplus' : 'data/fish_data/ectropus.csv',
 	'model-data-scalar-pairwise' : 'data/model_data/scalar/pairwise.csv',

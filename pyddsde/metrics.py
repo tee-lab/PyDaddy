@@ -8,7 +8,7 @@ from scipy.spatial.distance import jensenshannon
 
 
 
-class metrics:
+class Metrics:
 	"""
 	Helper/utility module
 
@@ -329,7 +329,7 @@ class metrics:
 	#		return True
 	#	return False
 
-	def _isValidSliderTimesSaleList(self, slider_list):
+	def _is_valid_slider_timescale_list(self, slider_list):
 		"""
 		Checks if the given slider timescale lists contains valid entries
 
@@ -346,7 +346,7 @@ class metrics:
 		if slider_list is None:
 			return False
 		if (
-			isinstance(slider_list, (list, tuple))
+			isinstance(slider_list, (list, tuple, range))
 			and (np.array(slider_list) >= 1).all()
 		):
 			return True
