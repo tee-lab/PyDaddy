@@ -388,7 +388,7 @@ class Output(Preprocessing, Visualize):
 		return params
 
 
-	def fit(self, function_name, order, drift_time_scale=None, diff_time_scale=None):
+	def fit(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None):
 		"""
 		Fit a polynomial or plane to the derrived data
 
@@ -425,6 +425,7 @@ class Output(Preprocessing, Visualize):
 		fmap = {
 		'F'   : 'drift',
 		'G'   : 'diff',
+		'Gsquare': 'diff',
 		'A1'  : 'driftX',
 		'A2'  : 'driftY',
 		'B11' : 'diffX',
@@ -437,7 +438,7 @@ class Output(Preprocessing, Visualize):
 			return None
 
 		if self.vector:
-			if function_name not in list(fmap.keys())[2:]:
+			if function_name not in list(fmap.keys())[3:]:
 				print("Invalid function name for vector analysis")
 				return None
 			data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
@@ -447,18 +448,20 @@ class Output(Preprocessing, Visualize):
 			plane = self._fit_plane(x=x, y=y, z=z, order=order)
 			return plane
 
-		if function_name not in list(fmap.keys())[:2]:
+		if function_name not in list(fmap.keys())[:3]:
 			print("Invalid function name for scalar analysis")
 			return None
 
 		data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
 		if function_name in ['G']:
-			# y = np.sqrt(data[fmap[function_name]])
-			y = data[fmap[function_name]]
+			y = np.sqrt(data[fmap[function_name]])
+			# y = data[fmap[function_name]]
 		else:
 			y = data[fmap[function_name]]
-		poly, _ = self._fit_poly(data['op'], y, order)
-		print(poly)
+		# poly, _ = self._fit_poly(data['op'], y, order)
+		# print(poly)
+		# print(y)
+		poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold)
 		return poly
 
 	def simulate(self, sigma=4, dt=None, T=None, **functions):
