@@ -127,7 +127,7 @@ class Metrics:
 		z = np.polyfit(x_, y_, deg)
 		return np.poly1d(z), x_
 
-	def _fit_poly_sparse(self, x, y, deg, threshold=0.05):
+	def _fit_poly_sparse(self, x, y, deg, threshold=0.05, alpha=0):
 		""" Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
 		Parameters:
 			x, y: (np.array) Independent and dependent variables
@@ -151,7 +151,8 @@ class Metrics:
 			if np.sum(keep) == 0:
 				warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
 				break
-			coeffs_, _, _, _ = np.linalg.lstsq(dictionary[:, keep], y_)
+			# coeffs_, _, _, _ = np.linalg.lstsq(dictionary[:, keep], y_)
+			coeffs_ = ridge_regression(dictionary[:, keep], y_, alpha=alpha)
 			coeffs[keep] = coeffs_
 			keep = (np.abs(coeffs) > threshold)
 			coeffs[~keep] = 0

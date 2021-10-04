@@ -387,8 +387,7 @@ class Output(Preprocessing, Visualize):
 				params[keys] = str(self._ddsde.__dict__[keys])
 		return params
 
-
-	def fit(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None):
+	def fit(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0):
 		"""
 		Fit a polynomial or plane to the derrived data
 
@@ -410,6 +409,8 @@ class Output(Preprocessing, Visualize):
 			B21 : diffusionYx
 		order : int
 			order (degree) of the polynomial or plane to fit
+		threshold: Sparsification threshold. In the returned polynomial, all coefficients will be above this threshold.
+		alpha: Regularization parameter for ridge-regression.
 
 		Returns
 		-------
@@ -461,7 +462,7 @@ class Output(Preprocessing, Visualize):
 		# poly, _ = self._fit_poly(data['op'], y, order)
 		# print(poly)
 		# print(y)
-		poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold)
+		poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold, alpha=alpha)
 		return poly
 
 	def simulate(self, sigma=4, dt=None, T=None, **functions):
