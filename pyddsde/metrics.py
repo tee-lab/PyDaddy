@@ -126,7 +126,7 @@ class Metrics:
 		z = np.polyfit(x_, y_, deg)
 		return np.poly1d(z), x_
 
-	def _fit_poly_sparse(self, x, y, deg, threshold=0.05, alpha=0):
+	def _fit_poly_sparse(self, x, y, deg, threshold=0.05, alpha=0, weights=None):
 		""" Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
 		Parameters:
 			x, y: (np.array) Independent and dependent variables
@@ -137,6 +137,7 @@ class Metrics:
 		nan_idx = np.argwhere(np.isnan(y))
 		x_ = np.delete(x, nan_idx)
 		y_ = np.delete(y, nan_idx)
+		weights = np.delete(weights, nan_idx)
 
 		maxiter = deg
 
@@ -151,7 +152,7 @@ class Metrics:
 				warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
 				break
 			# coeffs_, _, _, _ = np.linalg.lstsq(dictionary[:, keep], y_)
-			coeffs_ = ridge_regression(dictionary[:, keep], y_, alpha=alpha)
+			coeffs_ = ridge_regression(dictionary[:, keep], y_, alpha=alpha, sample_weight=weights)
 			coeffs[keep] = coeffs_
 			keep = (np.abs(coeffs) > threshold)
 			coeffs[~keep] = 0
@@ -481,7 +482,31 @@ class Metrics:
 				diff = self._diff_slider[diff_time_scale][0]
 
 			return drift, diff
-		return None
+
+	def _get_variances(self, drift_time_scale, diff_time_scale):
+		if self.vector:
+			raise NotImplementedError('_get_variances() is not implemented for vector data.')
+
+		if drift_time_scale is None:
+			drift_var = self._data_drift_var
+		else:
+			if drift_time_scale not in self._drift_slider.keys():
+				print("\n{} not in list:\n{}".format(drift_time_scale, self._drift_slider.keys()))
+				drift_time_scale = self._closest_time_scale(drift_time_scale, self._drift_slider)
+				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(drift_time_scale))
+			drift_var = self._data_drift_vars[drift_time_scale]
+
+
+		if diff_time_scale is None:
+			diff_var = self._data_diff_var
+		else:
+			if diff_time_scale not in self._diff_slider.keys():
+				print("\n{} not in list:\n{}".format(diff_time_scale, self._diff_slider.keys()))
+				diff_time_scale = self._closest_time_scale(diff_time_scale, self._diff_slider)
+				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(diff_time_scale))
+			diff_var = self._data_diff_vars[diff_time_scale]
+
+		return np.array(drift_var), np.array(diff_var)
 
 	def _stack_slider_data(self, d, slider_data, index):
 		"""

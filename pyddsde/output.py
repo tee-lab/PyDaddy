@@ -40,6 +40,10 @@ class Output(Preprocessing, Visualize):
 			self._data_avgdiff = ddsde._avgdiff_
 			self._data_drift_ebar = ddsde._drift_ebar
 			self._data_diff_ebar = ddsde._diff_ebar
+			self._data_drift_var = ddsde._drift_var
+			self._data_diff_var = ddsde._diff_var
+			self._data_drift_vars = ddsde._scalar_drift_vars
+			self._data_diff_vars = ddsde._scalar_diff_vars
 			self._data_op = ddsde._op_
 			#self.drift_order = ddsde.drift_order
 			#self.diff_order = ddsde.diff_order
@@ -160,10 +164,11 @@ class Output(Preprocessing, Visualize):
 			- else, [avgdrift, avgdiff, op]
 		"""
 		if not self.vector:
-			Data = namedtuple('Data', ('drift', 'diff', 'op'))
-			drift , diff = self._get_data_from_slider(drift_time_scale, diff_time_scale)
+			Data = namedtuple('Data', ('drift', 'diff', 'drift_var', 'diff_var', 'op'))
+			drift, diff = self._get_data_from_slider(drift_time_scale, diff_time_scale)
 			#_ , diff = self._get_data_from_slider(diff_time_scale)
-			return Data(drift, diff, self._data_op)
+			drift_var, diff_var = self._get_variances(drift_time_scale, diff_time_scale)
+			return Data(drift, diff, drift_var, diff_var, self._data_op)
 
 		Data = namedtuple('Data', ('driftX', 'driftY', 'diffX', 'diffY', 'diffXY', 'diffYX' ,'op_x', 'op_y'))
 		driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
@@ -379,7 +384,7 @@ class Output(Preprocessing, Visualize):
 				params[keys] = str(self._ddsde.__dict__[keys])
 		return params
 
-	def fit(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0):
+	def fit(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0, weighted=True):
 		"""
 		Fit a polynomial or plane to the derrived data
 
@@ -403,6 +408,7 @@ class Output(Preprocessing, Visualize):
 			order (degree) of the polynomial or plane to fit
 		threshold: Sparsification threshold. In the returned polynomial, all coefficients will be above this threshold.
 		alpha: Regularization parameter for ridge-regression.
+		weighted: Whether to use weighted regression to fit
 
 		Returns
 		-------
@@ -448,13 +454,22 @@ class Output(Preprocessing, Visualize):
 		data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
 		if function_name in ['G']:
 			y = np.sqrt(data[fmap[function_name]])
-			# y = data[fmap[function_name]]
+			# FIXME: This is not technically correct: var(sqrt(X)) != sqrt(var(X)).
+			#  But as sample weights, this might be good enough.
+			yvar = np.sqrt(data[fmap[function_name] + '_var'])
 		else:
 			y = data[fmap[function_name]]
+			yvar = data[fmap[function_name] + '_var']
 		# poly, _ = self._fit_poly(data['op'], y, order)
 		# print(poly)
 		# print(y)
-		poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold, alpha=alpha)
+		if weighted:
+			weights = 1 / yvar
+			weights[np.isinf(weights)] = 0
+			weights[np.isnan(weights)] = 0
+		else:
+			weights = None
+		poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold, alpha=alpha, weights=weights)
 		return poly
 
 	def simulate(self, sigma=4, dt=None, T=None, **functions):
@@ -945,7 +960,8 @@ class Output(Preprocessing, Visualize):
 			self._diff_slider = OrderedDict(sorted(self._diff_slider.items()))
 			self._cross_diff_slider = OrderedDict(self._cross_diff_slider.items())
 		else:
-			self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars = self._ddsde._slider_data(self._ddsde._X, None, update=True)
+			self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars, \
+				self._scalar_drift_var, self.scalar_diff_var = self._ddsde._slider_data(self._ddsde._X, None, update=True)
 			self._drift_slider = OrderedDict(sorted(self._drift_slider.items()))
 			self._diff_slider = OrderedDict(sorted(self._diff_slider.items()))
 		return None
