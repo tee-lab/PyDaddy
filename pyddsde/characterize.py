@@ -86,8 +86,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             if not self.vector:
                 ebar_drift_dict = self._scalar_drift_ebars
                 ebar_diff_dict = self._scalar_diff_ebars
-                var_drift_dict = self._scalar_diff_vars
-                var_diff_dict = self._scalar_drift_vars
+                num_drift_dict = self._scalar_diff_nums
+                num_diff_dict = self._scalar_drift_nums
         else:
             drift_data_dict = dict()
             diff_data_dict = dict()
@@ -95,8 +95,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             if not self.vector:
                 ebar_drift_dict = dict()
                 ebar_diff_dict = dict()
-                var_drift_dict = dict()
-                var_diff_dict = dict()
+                num_drift_dict = dict()
+                num_diff_dict = dict()
         time_scale_list = sorted(map(int,set(self.slider_timescales).union([self.dt, self.Dt])))
         for time_scale in tqdm.tqdm(time_scale_list, desc='Generating Slider data'):
             if update and time_scale in self._drift_slider.keys():
@@ -107,14 +107,14 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 diff_data = [avgdiffX/self.n_trials, avgdiffY/self.n_trials, op_x, op_y]
                 cross_diff_data = [avgdiffXY/self.n_trials, avgdiffYX/self.n_trials, op_x, op_y]
             else:
-                _, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_var, diff_var \
+                _, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_num, diff_num \
                     = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
                 drift_data = [avgdrift/self.n_trials, op]
                 diff_data = [avgdiff/self.n_trials, op]
                 ebar_drift_dict[time_scale] = drift_ebar
                 ebar_diff_dict[time_scale] = diff_ebar
-                var_drift_dict[time_scale] = drift_var
-                var_diff_dict[time_scale] = diff_var
+                num_drift_dict[time_scale] = drift_num
+                num_diff_dict[time_scale] = diff_num
 
             drift_data_dict[time_scale] = drift_data
             diff_data_dict[time_scale] = diff_data
@@ -125,7 +125,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         if self.vector:
             return drift_data_dict, diff_data_dict, cross_diff_dict
         self._avaiable_timescales = time_scale_list
-        return drift_data_dict, diff_data_dict, ebar_drift_dict, ebar_diff_dict, var_drift_dict, var_diff_dict
+        return drift_data_dict, diff_data_dict, ebar_drift_dict, ebar_diff_dict, num_drift_dict, num_diff_dict
 
     def __call__(self, data, t=1, Dt=None, **kwargs):
         self.__dict__.update(kwargs)
@@ -174,10 +174,10 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._diff_slider = dict()
                 self._scalar_drift_ebars = dict()
                 self._scalar_diff_ebars = dict()
-                self._scalar_drift_vars = dict()
-                self._scalar_diff_vars = dict()
+                self._scalar_drift_nums = dict()
+                self._scalar_diff_nums = dict()
                 _, _, self._avgdiff_, self._avgdrift_, self._op_, self._drift_ebar, self._diff_ebar,\
-                    self._drift_var, self._diff_var = self._drift_and_diffusion(
+                    self._drift_num, self._diff_num = self._drift_and_diffusion(
                     self._X,
                     self.t_int,
                     Dt=self.Dt,
@@ -189,17 +189,17 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._diff_slider[self.dt] = [self._avgdiff_, self._op_]
                 self._scalar_drift_ebars[self.Dt] = self._drift_ebar
                 self._scalar_diff_ebars[self.dt] = self._diff_ebar
-                self._scalar_drift_vars[self.dt] = self._drift_var
-                self._scalar_diff_vars[self.dt] = self._diff_var
+                self._scalar_drift_nums[self.dt] = self._drift_num
+                self._scalar_diff_nums[self.dt] = self._diff_num
             else:
                 self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars, \
-                    self._scalar_drift_vars, self._scalar_diff_vars = self._slider_data(self._X, None)
+                    self._scalar_drift_nums, self._scalar_diff_nums = self._slider_data(self._X, None)
                 self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
                 self._avgdiff_ = self._diff_slider[self.dt][0]
                 self._drift_ebar = self._scalar_drift_ebars[self.Dt]
                 self._diff_ebar = self._scalar_diff_ebars[self.dt]
-                self._drift_var = self._scalar_drift_vars[self.Dt]
-                self._diff_var = self._scalar_diff_vars[self.Dt]
+                self._drift_num = self._scalar_drift_nums[self.Dt]
+                self._diff_num = self._scalar_diff_nums[self.Dt]
             self._cross_diff_slider = None
 
         else:

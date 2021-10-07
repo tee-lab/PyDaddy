@@ -483,30 +483,30 @@ class Metrics:
 
 			return drift, diff
 
-	def _get_variances(self, drift_time_scale, diff_time_scale):
+	def _get_num_points(self, drift_time_scale, diff_time_scale):
 		if self.vector:
-			raise NotImplementedError('_get_variances() is not implemented for vector data.')
+			raise NotImplementedError('_get_num_points() is not implemented for vector data.')
 
 		if drift_time_scale is None:
-			drift_var = self._data_drift_var
+			drift_num = self._data_drift_num
 		else:
 			if drift_time_scale not in self._drift_slider.keys():
 				print("\n{} not in list:\n{}".format(drift_time_scale, self._drift_slider.keys()))
 				drift_time_scale = self._closest_time_scale(drift_time_scale, self._drift_slider)
 				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(drift_time_scale))
-			drift_var = self._data_drift_vars[drift_time_scale]
+			drift_num = self._data_drift_num[drift_time_scale]
 
 
 		if diff_time_scale is None:
-			diff_var = self._data_diff_var
+			diff_num = self._data_diff_num
 		else:
 			if diff_time_scale not in self._diff_slider.keys():
 				print("\n{} not in list:\n{}".format(diff_time_scale, self._diff_slider.keys()))
 				diff_time_scale = self._closest_time_scale(diff_time_scale, self._diff_slider)
 				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(diff_time_scale))
-			diff_var = self._data_diff_vars[diff_time_scale]
+			diff_num = self._data_diff_num[diff_time_scale]
 
-		return np.array(drift_var), np.array(diff_var)
+		return np.array(drift_num), np.array(diff_num)
 
 	def _stack_slider_data(self, d, slider_data, index):
 		"""

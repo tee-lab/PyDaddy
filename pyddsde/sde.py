@@ -224,8 +224,8 @@ class SDE:
         diff = self._diffusion(X, t_int, dt=dt)
         drift_ebar = []
         diff_ebar = []
-        drift_var = []
-        diff_var = []
+        drift_num = []
+        diff_num = []
         X = X[0 : -max(Dt, dt)]
         for b in op:
             i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
@@ -233,9 +233,9 @@ class SDE:
             avgdrift.append(drift[i].mean())
             drift_ebar.append(drift[i].std()/np.sqrt(len(drift[i])))
             diff_ebar.append(diff[i].std()/np.sqrt(len(diff[i])))
-            drift_var.append(drift[i].var())
-            diff_var.append(diff[i].var())
-        return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_var, diff_var
+            drift_num.append(len(drift[i]))
+            diff_num.append(len(diff[i]))
+        return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num
 
     def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, Dt, dt):
         """
