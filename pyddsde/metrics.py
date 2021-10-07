@@ -4,7 +4,6 @@ import numpy as np
 import numpy.linalg
 import scipy.linalg
 import shutil
-import tqdm
 import sympy
 import os
 from scipy.spatial.distance import jensenshannon

@@ -1,9 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib as mpl
 import matplotlib.gridspec as gridspec
-import matplotlib.ticker as mtick
 import seaborn as sns
 import statsmodels.graphics
 import plotly.graph_objects as go

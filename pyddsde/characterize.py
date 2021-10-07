@@ -1,19 +1,11 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import warnings
 import pkg_resources
-import pickle
 import tqdm
-import time
-import os
-from pyddsde.sde import SDE
-from pyddsde.analysis import UnderlyingNoise
 from pyddsde.analysis import AutoCorrelation
 from pyddsde.analysis import GaussianTest
 from pyddsde.preprocessing import Preprocessing
 from pyddsde.preprocessing import InputError
-from pyddsde.metrics import Metrics
 from pyddsde.output import Output
 
 warnings.filterwarnings("ignore")
@@ -188,7 +180,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 				self._scalar_drift_ebars[self.Dt] = self._drift_ebar
 				self._scalar_diff_ebars[self.dt] = self._diff_ebar
 			else:
-				self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars= self._slider_data(self._X, None)
+				self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars = self._slider_data(self._X, None)
 				self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
 				self._avgdiff_ = self._diff_slider[self.dt][0]
 				self._drift_ebar = self._scalar_drift_ebars[self.Dt]
