@@ -494,7 +494,7 @@ class Metrics:
 				print("\n{} not in list:\n{}".format(drift_time_scale, self._drift_slider.keys()))
 				drift_time_scale = self._closest_time_scale(drift_time_scale, self._drift_slider)
 				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(drift_time_scale))
-			drift_num = self._data_drift_num[drift_time_scale]
+			drift_num = self._data_drift_nums[drift_time_scale]
 
 
 		if diff_time_scale is None:
@@ -504,7 +504,7 @@ class Metrics:
 				print("\n{} not in list:\n{}".format(diff_time_scale, self._diff_slider.keys()))
 				diff_time_scale = self._closest_time_scale(diff_time_scale, self._diff_slider)
 				print("Choosing {}; (closest matching timescale from the avaiable ones)".format(diff_time_scale))
-			diff_num = self._data_diff_num[diff_time_scale]
+			diff_num = self._data_diff_nums[diff_time_scale]
 
 		return np.array(drift_num), np.array(diff_num)
 
