@@ -21,12 +21,13 @@ from plotly.subplots import make_subplots
 from collections import namedtuple
 from collections import OrderedDict
 
-from pyddsde.preprocessing import preprocessing
-from pyddsde.visualize import visualize
+from pyddsde.preprocessing import Preprocessing
+from pyddsde.visualize import Visualize
 
-__all__ = ['output']
+__all__ = ['Output']
 
-class output(preprocessing, visualize):
+
+class Output(Preprocessing, Visualize):
 	"""
 	Class to plot and save data and parameters
 	"""
@@ -51,7 +52,7 @@ class output(preprocessing, visualize):
 			#self.drift_order = ddsde.drift_order
 			#self.diff_order = ddsde.diff_order
 
-			visualize.__init__(self, None, None, self._data_op,
+			Visualize.__init__(self, None, None, self._data_op,
 							   self._ddsde.autocorrelation_time)
 		else:
 			self._data_Mx = ddsde._Mx
@@ -70,7 +71,7 @@ class output(preprocessing, visualize):
 			#self._drift_slider = ddsde._drift_slider
 			#self._diff_slider = ddsde._diff_slider
 
-			visualize.__init__(self, self._data_op_x, self._data_op_y, None,
+			Visualize.__init__(self, self._data_op_x, self._data_op_y, None,
 							   self._ddsde.autocorrelation_time, _act_mx=self._ddsde._act_mx, _act_my=self._ddsde._act_my)
 
 		self._drift_slider = ddsde._drift_slider
@@ -81,7 +82,7 @@ class output(preprocessing, visualize):
 
 
 		self.__dict__.update(kwargs)
-		preprocessing.__init__(self)
+		Preprocessing.__init__(self)
 
 		if ddsde._show_summary:
 			return self.summary(ret_fig=False)
@@ -286,7 +287,7 @@ class output(preprocessing, visualize):
 		opt_G = self.fit('G', order=diff_order, diff_time_scale=dt)
 		print(opt_F)
 		print(opt_G)
-		return opt_F, opt_G, M,d
+		return opt_F, opt_G, M
 
 	def plot_data(self,
 					data_in,
@@ -386,8 +387,7 @@ class output(preprocessing, visualize):
 				params[keys] = str(self._ddsde.__dict__[keys])
 		return params
 
-
-	def fit(self, function_name, order, drift_time_scale=None, diff_time_scale=None):
+	def fit(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0):
 		"""
 		Fit a polynomial or plane to the derrived data
 
@@ -409,6 +409,8 @@ class output(preprocessing, visualize):
 			B21 : diffusionYx
 		order : int
 			order (degree) of the polynomial or plane to fit
+		threshold: Sparsification threshold. In the returned polynomial, all coefficients will be above this threshold.
+		alpha: Regularization parameter for ridge-regression.
 
 		Returns
 		-------
@@ -424,6 +426,7 @@ class output(preprocessing, visualize):
 		fmap = {
 		'F'   : 'drift',
 		'G'   : 'diff',
+		'Gsquare': 'diff',
 		'A1'  : 'driftX',
 		'A2'  : 'driftY',
 		'B11' : 'diffX',
@@ -436,7 +439,7 @@ class output(preprocessing, visualize):
 			return None
 
 		if self.vector:
-			if function_name not in list(fmap.keys())[2:]:
+			if function_name not in list(fmap.keys())[3:]:
 				print("Invalid function name for vector analysis")
 				return None
 			data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
@@ -446,17 +449,20 @@ class output(preprocessing, visualize):
 			plane = self._fit_plane(x=x, y=y, z=z, order=order)
 			return plane
 
-		if function_name not in list(fmap.keys())[:2]:
+		if function_name not in list(fmap.keys())[:3]:
 			print("Invalid function name for scalar analysis")
 			return None
 
 		data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
 		if function_name in ['G']:
 			y = np.sqrt(data[fmap[function_name]])
+			# y = data[fmap[function_name]]
 		else:
 			y = data[fmap[function_name]]
-		poly, _ = self._fit_poly(data['op'], y, order)
-		#print(poly)
+		# poly, _ = self._fit_poly(data['op'], y, order)
+		# print(poly)
+		# print(y)
+		poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold, alpha=alpha)
 		return poly
 
 	def simulate(self, sigma=4, dt=None, T=None, **functions):
@@ -725,13 +731,13 @@ class output(preprocessing, visualize):
 		"""
 		if start > end:
 			raise ValueError("'start' sould not be greater than 'end'")
-		
+
 		if not self.vector:
-			feilds = [	'M range', 				'M mean', 
-						'|M| range', 			'|M| mean', 
+			feilds = [	'M range', 				'M mean',
+						'|M| range', 			'|M| mean',
 						'Autocorr time (M)', 	'(Dt, dt)',
 						]
-			
+
 			values = [	self._get_data_range(self._data_X),	round(np.nanmean(self._data_X), 3),
 						self._get_data_range(np.sqrt(self._data_X**2)), round(np.nanmean(np.sqrt(self._data_X**2)), 3),
 						self.autocorrelation_time, (self._ddsde.Dt, self._ddsde.dt),
@@ -744,16 +750,16 @@ class output(preprocessing, visualize):
 			summary_format = ("| {:<20} : {:^15}"*1 +"|\n")*int(len(feilds)/1)
 			print(summary_format.format(*summary))
 			data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self._data_drift_ebar, self._data_diff_ebar]
-		
+
 		else:
-			feilds = [	'Mx range', 							'Mx mean', 
-						'My range', 							'My mean', 
+			feilds = [	'Mx range', 							'Mx mean',
+						'My range', 							'My mean',
 						'|M| range', 							'|M| mean',
 						'Autocorr time (Mx, My, |M^2|)', 			'(Dt, dt)',
 						]
-			
+
 			values = [	self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
-						self._get_data_range(self._data_My), round(np.nanmean(self._data_My), 3),									
+						self._get_data_range(self._data_My), round(np.nanmean(self._data_My), 3),
 						self._get_data_range(self._data_M), round(np.nanmean(np.sqrt(self._data_Mx**2 + self._data_My**2)),3),
 						(self._ddsde._act_mx, self._ddsde._act_my, self.autocorrelation_time), (self._ddsde.Dt, self._ddsde.dt)
 						]
@@ -853,7 +859,7 @@ class output(preprocessing, visualize):
 		plt.show()
 		return fig
 
-	def histogram(self,	 
+	def histogram(self,
 					 kde=False,
 					 dpi=150,
 					 title_size=14,
@@ -920,7 +926,7 @@ class output(preprocessing, visualize):
 			data = [self._data_Mx, self._data_My]
 		else:
 			data = [self._data_X]
-		fig = self._plot_histograms(data, 
+		fig = self._plot_histograms(data,
 									 self.vector,
 									 dpi=dpi,
 									 kde=kde,
@@ -933,7 +939,7 @@ class output(preprocessing, visualize):
 		return fig
 
 	def _update_slider_data(self, slider_timescales):
-		if self._isValidSliderTimesSaleList(slider_timescales):
+		if self._is_valid_slider_timescale_list(slider_timescales):
 			if self._ddsde.slider_timescales is None:
 				self._ddsde.slider_timescales = sorted(map(int,set(slider_timescales)))
 			else:
@@ -1076,7 +1082,7 @@ class output(preprocessing, visualize):
 
 			#Time series
 			fig1 = plt.figure(dpi=150)
-			plt.suptitle("Time_Series")
+			plt.suptitle("Time Series")
 			#l = int(len(self._data_X) / 4)
 			l = 1000
 			try:
@@ -1236,7 +1242,7 @@ class output(preprocessing, visualize):
 			plt.suptitle("$Autocorrealtion\ M$")
 			plt.plot(x_M, acf_M)
 			plt.plot(x_M, exp_M)
-			plt.legend(('acf', 'exp_fit'))
+			plt.legend(('acf', 'exp fit'))
 			plt.xlabel('Time Lag')
 			plt.ylabel('$ACF\ (M)$')
 			print("acf_M : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
@@ -1259,7 +1265,7 @@ class output(preprocessing, visualize):
 		plt.suptitle("$Autocorrealtion\ |M|^{2}$")
 		plt.plot(x_M, acf_M)
 		plt.plot(x_M, exp_M)
-		plt.legend(('acf', 'exp_fit'))
+		plt.legend(('acf', 'exp fit'))
 		plt.xlabel('Time Lag')
 		plt.ylabel('$ACF\ (|M|^{2})$')
 		print("acf_|M|^2 : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
@@ -1268,7 +1274,7 @@ class output(preprocessing, visualize):
 		plt.suptitle("$Autocorrealtion\ M_{x}$")
 		plt.plot(x_Mx, acf_Mx)
 		plt.plot(x_Mx, exp_Mx)
-		plt.legend(('acf', 'exp_fit'))
+		plt.legend(('acf', 'exp fit'))
 		plt.xlabel('Time Lag')
 		plt.ylabel('$ACF\ (M_{x})$')
 		print("acf_M_x : a = {}, tau = {}, c = {}".format(a_Mx, b_Mx, c_Mx))
@@ -1277,7 +1283,7 @@ class output(preprocessing, visualize):
 		plt.suptitle("$Autocorrealtion\ M_{y}$")
 		plt.plot(x_My, acf_My)
 		plt.plot(x_My, exp_My)
-		plt.legend(('acf', 'exp_fit'))
+		plt.legend(('acf', 'exp fit'))
 		plt.xlabel('Time Lag')
 		plt.ylabel('$ACF\ (M_{y})$')
 		print("acf_My : a = {}, tau = {}, c = {}".format(a_My, b_My, c_My))
@@ -1361,10 +1367,10 @@ class output(preprocessing, visualize):
 		return None
 
 	def noise_diagnostic(self,
-								dpi=150, 
-								kde=True, 
-								title_size=14, 
-								tick_size=15, 
+								dpi=150,
+								kde=True,
+								title_size=14,
+								tick_size=15,
 								label_size=15,
 								label_pad=8):
 		"""
@@ -1384,10 +1390,10 @@ class output(preprocessing, visualize):
 				self._ddsde._X, self._ddsde.Dt, self._ddsde.dt, self._ddsde.t_int, inc=inc, point=0)
 		data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.noise_h_lim, self._ddsde.noise_stat, self._ddsde.noise_l_lim,self._ddsde._f, self._ddsde._noise_correlation]
 		fig = self._plot_noise_characterstics(data,
-												dpi=150, 
-												kde=True, 
-												title_size=14, 
-												tick_size=15, 
+												dpi=150,
+												kde=True,
+												title_size=14,
+												tick_size=15,
 												label_size=15,
 												label_pad=8)
 

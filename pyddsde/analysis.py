@@ -6,7 +6,7 @@ import statsmodels.stats.diagnostic
 from statsmodels.stats import weightstats as stests
 from tqdm import tqdm
 from pyddsde.sde import SDE
-from pyddsde.metrics import metrics
+from pyddsde.metrics import Metrics
 
 
 class AutoCorrelation:
@@ -135,7 +135,7 @@ class AutoCorrelation:
 
 
 
-class underlying_noise(SDE):
+class UnderlyingNoise(SDE):
 	"""
 	Extract noise from time series
 
@@ -203,15 +203,15 @@ class underlying_noise(SDE):
 
 
 
-class gaussian_test(underlying_noise, metrics, AutoCorrelation):
+class GaussianTest(UnderlyingNoise, Metrics, AutoCorrelation):
 	"""
 	Used to check if the noise is gaussian in nature
 
     :meta private:
 	"""
 	def __init__(self, **kwargs):
-		underlying_noise.__init__(self)
-		metrics.__init__(self)
+		UnderlyingNoise.__init__(self)
+		Metrics.__init__(self)
 		AutoCorrelation.__init__(self)
 		self.__dict__.update(kwargs)
 

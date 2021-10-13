@@ -1,14 +1,17 @@
+import warnings
+
 import numpy as np
+import numpy.linalg
 import scipy.linalg
 import shutil
 import tqdm
 import sympy
 import os
 from scipy.spatial.distance import jensenshannon
+from sklearn.linear_model import ridge_regression
 
 
-
-class metrics:
+class Metrics:
 	"""
 	Helper/utility module
 
@@ -124,6 +127,38 @@ class metrics:
 		z = np.polyfit(x_, y_, deg)
 		return np.poly1d(z), x_
 
+	def _fit_poly_sparse(self, x, y, deg, threshold=0.05, alpha=0):
+		""" Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
+		Parameters:
+			x, y: (np.array) Independent and dependent variables
+			deg: (int) Maximum degree of the polynomial
+			threshold: (float) Threshold for sparse fit.
+		"""
+
+		nan_idx = np.argwhere(np.isnan(y))
+		x_ = np.delete(x, nan_idx)
+		y_ = np.delete(y, nan_idx)
+
+		maxiter = deg
+
+		dictionary = np.zeros((x_.shape[0], deg + 1))
+		for d in range(deg + 1):
+			dictionary[:, d] = x_ ** d
+
+		coeffs = np.zeros(deg + 1)
+		keep = np.ones_like(coeffs, dtype=np.bool)
+		for it in range(maxiter):
+			if np.sum(keep) == 0:
+				warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
+				break
+			# coeffs_, _, _, _ = np.linalg.lstsq(dictionary[:, keep], y_)
+			coeffs_ = ridge_regression(dictionary[:, keep], y_, alpha=alpha)
+			coeffs[keep] = coeffs_
+			keep = (np.abs(coeffs) > threshold)
+			coeffs[~keep] = 0
+
+		return np.poly1d(np.flipud(coeffs)), x_
+
 	def _nan_helper(self, x):
 		"""
 		Helper function used to handle missing data
@@ -236,13 +271,13 @@ class metrics:
 		x = x[~np.isnan(z)]
 		y = y[~np.isnan(z)]
 		z = z[~np.isnan(z)]
-		
+
 		A = np.c_[np.ones(x.shape[0]), x.flatten(), y.flatten()]
 		n = order
-		
+
 		for k in range(n+1):
 			A = np.column_stack((A, x**(n-k)*y**k))
-		
+
 		try:
 			C, _, _, _ = scipy.linalg.lstsq(A, z)
 		except Exception as e:
@@ -329,7 +364,7 @@ class metrics:
 	#		return True
 	#	return False
 
-	def _isValidSliderTimesSaleList(self, slider_list):
+	def _is_valid_slider_timescale_list(self, slider_list):
 		"""
 		Checks if the given slider timescale lists contains valid entries
 
@@ -346,7 +381,7 @@ class metrics:
 		if slider_list is None:
 			return False
 		if (
-			isinstance(slider_list, (list, tuple))
+			isinstance(slider_list, (list, tuple, range))
 			and (np.array(slider_list) >= 1).all()
 		):
 			return True

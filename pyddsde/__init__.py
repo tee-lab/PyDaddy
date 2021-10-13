@@ -24,15 +24,15 @@ __copyright__ = "Copyright (C) 2020 Theoritical Evolution and Ecology Lab (TEE L
 __version__ = '1.0.0'
 
 from pyddsde.sde import SDE
-from pyddsde.analysis import underlying_noise
+from pyddsde.analysis import UnderlyingNoise
 from pyddsde.analysis import AutoCorrelation
-from pyddsde.analysis import gaussian_test
-from pyddsde.preprocessing import preprocessing
-from pyddsde.metrics import metrics
-from pyddsde.output import output
-from pyddsde.visualize import visualize
-from pyddsde.Characterize import Characterize
-from pyddsde.Characterize import load_sample_dataset
+from pyddsde.analysis import GaussianTest
+from pyddsde.preprocessing import Preprocessing
+from pyddsde.metrics import Metrics
+from pyddsde.output import Output
+from pyddsde.visualize import Visualize
+from pyddsde.characterize import Characterize
+from pyddsde.characterize import load_sample_dataset
 #from pyddsde.Characterize import editFigure
 
 __all__ = ['Characterize']
