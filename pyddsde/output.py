@@ -15,7 +15,7 @@ import sdeint
 import seaborn as sns
 import tqdm
 
-from pyddsde.metrics import PolyFit
+from pyddsde.fitters import PolyFit
 from pyddsde.preprocessing import Preprocessing
 from pyddsde.visualize import Visualize
 
