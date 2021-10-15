@@ -2,6 +2,7 @@ import numpy as np
 import warnings
 import pkg_resources
 import tqdm
+from scipy.stats import iqr
 from pyddsde.analysis import AutoCorrelation
 from pyddsde.analysis import GaussianTest
 from pyddsde.preprocessing import Preprocessing
@@ -26,7 +27,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             Dt=None,
             dt=1,
             t_lag=1000,
-            bins=20,
+            bins=None,
             inc=0.01,
             inc_x=0.1,
             inc_y=0.1,
@@ -57,7 +58,10 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.op_range = None
         self.op_x_range = None
         self.op_y_range = None
-        self.bins = bins
+        if bins:
+            self.bins = bins
+        else:
+            self.bins = self._autobins()
         self.slider_timescales = slider_timescales
 
         """
@@ -77,6 +81,18 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         #	raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
 
         return None
+
+    def _autobins(self):
+        """ Optimal number of bins using Freedman-Diaconis rule. """
+
+        binwidth_x = 2 * iqr(self._data[0], nan_policy='omit') / np.cbrt(len(self._data[0]))
+        n = int((np.nanmax(self._data[0]) - np.nanmin(self._data[0])) / binwidth_x)
+        if len(self._data) > 1:  # Vector
+            binwidth_y = 2 * iqr(self._data[1], nan_policy='omit') / np.cbrt(len(self._data[1]))
+            n_y = int((np.nanmax(self._data[1]) - np.nanmin(self._data[1])) / binwidth_y)
+            n = max(n, n_y)
+        print(f'Number of bins chosen: {n}')
+        return n
 
     def _slider_data(self, Mx, My, update=False):
         if update:
@@ -284,7 +300,7 @@ class Characterize(object):
             t=1.0,
             Dt=None,
             dt=1,
-            bins=20,
+            bins=None,
             inc=0.01,
             inc_x=0.1,
             inc_y=0.1,

@@ -432,7 +432,7 @@ class Output(Preprocessing, Visualize):
                 thresh_max = np.max(np.abs(p))
                 thresholds = np.linspace(0, thresh_max, 20)
 
-            fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=True)
+            fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
         return fitter.fit(x, y)
 
     def fit__old(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0,

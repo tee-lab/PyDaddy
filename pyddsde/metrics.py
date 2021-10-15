@@ -731,7 +731,8 @@ class PolyFit:
 			bic = self._get_bic(p, x, y)
 			bics.append(bic)
 			nparams.append(np.count_nonzero(p))
-			# print(f'Threshold: {thresh}, BIC: {bic}')
+			# print(f'poly: {p}')
+			# print(f'degree = {degree}, threshold: {thresh}, BIC: {bic}')
 			if bic <= best_bic:
 				best_bic = bic
 				best_thresh = thresh
@@ -742,8 +743,7 @@ class PolyFit:
 			ax[1].plot(thresholds, nparams)
 			ax[1].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
 			plt.show()
-
-		print(f'Model selection complete. Chosen threshold = {best_thresh}, BIC = {best_bic}')
+		print(f'Model selection complete. Chosen threshold = {best_thresh}')
 		self.threshold = best_thresh
 
 	@staticmethod
@@ -754,5 +754,6 @@ class PolyFit:
 		n_samples = len(x)         					# Number of samples
 		mse = np.mean((y - p(x)) ** 2) / np.var(y)  # Normalized mean-squared error
 		bic = np.log(n_samples) * dof + n_samples * np.log(mse)
+		# bic = 2 * dof + n_samples * np.log(mse)
 		return bic
 
