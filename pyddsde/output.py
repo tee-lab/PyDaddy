@@ -15,7 +15,7 @@ import sdeint
 import seaborn as sns
 import tqdm
 
-from pyddsde.fitters import PolyFit
+from pyddsde.fitters import PolyFit1D, PolyFit2D
 from pyddsde.preprocessing import Preprocessing
 from pyddsde.visualize import Visualize
 
@@ -403,36 +403,63 @@ class Output(Preprocessing, Visualize):
 
         if self.vector:
             warnings.warn('Sparse fitting is not implemented for 2D. Using simple polynomial regression.')
-            if function_name not in list(fmap.keys())[3:]:
-                print("Invalid function name for vector analysis")
-                return None
-            data = self.data(drift_time_scale=1, diff_time_scale=1)._asdict()
+            # if function_name not in list(fmap.keys())[3:]:
+            #     print("Invalid function name for vector analysis")
+            #     return None
+            # data = self.data(drift_time_scale=1, diff_time_scale=1)._asdict()
 
-            x, y = np.meshgrid(data['op_x'], data['op_y'])
-            z = data[fmap[function_name]]
-            plane = self._fit_plane(x=x, y=y, z=z, order=order)
-            return plane
+            # x, y = np.meshgrid(self._data_Mx, self._data_My)
+            x = [self._data_Mx[:-1], self._data_My[:-1]]
+            if function_name == 'A1':
+                y = self._drift(self._data_Mx, t_int=self._ddsde.t_int, Dt=1)
+            elif function_name == 'A2':
+                y = self._drift(self._data_My, t_int=self._ddsde.t_int, Dt=1)
+            elif function_name == 'B11':
+                y = self._diffusion(self._data_Mx, t_int=self._ddsde.t_int, dt=1)
+            elif function_name == 'B22':
+                y = self._diffusion(self._data_My, t_int=self._ddsde.t_int, dt=1)
+            elif function_name == 'B12':
+                y = self._diffusion_xy(self._data_Mx, self._data_My, t_int=self._ddsde.t_int, dt=1)
+            elif function_name == 'B21':
+                y = self._diffusion_yx(self._data_Mx, self._data_My, t_int=self._ddsde.t_int, dt=1)
+            else:
+                raise TypeError('Invalid function name for vector analysis')
 
-        x = self._data_X[:-1]
-        if function_name == 'G':
-            y = np.sqrt(self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1))
-        elif function_name == 'Gsquare':
-            y = self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1)
-        elif function_name == 'F':
-            y = self._drift(self._data_X, t_int=self._ddsde.t_int, Dt=1)
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x[0]) | np.isnan(x[1]) | np.isnan(y)
+            x[0] = np.delete(x[0], nan_idx)
+            x[1] = np.delete(x[1], nan_idx)
+            y = np.delete(y, nan_idx)
+
+            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha)
         else:
-            print("Invalid function name for scalar analysis.")
-            return None
+            x = self._data_X[:-1]
+            if function_name == 'G':  #FIXME Might be incorrect: how to fix?
+                y = np.sqrt(self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1))
+            elif function_name == 'Gsquare':
+                y = self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1)
+            elif function_name == 'F':
+                y = self._drift(self._data_X, t_int=self._ddsde.t_int, Dt=1)
+            else:
+                raise TypeError('Invalid function name for scalar analysis')
 
-        fitter = PolyFit(max_degree=order, threshold=threshold, alpha=alpha)
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x) | np.isnan(y)
+            x = np.delete(x, nan_idx)
+            y = np.delete(y, nan_idx)
+
+            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha)
+
         if tune:
             if thresholds is None:
-                fitter = PolyFit(max_degree=order, threshold=0, alpha=alpha)
+                # fitter = PolyFit1D(max_degree=order, threshold=0, alpha=alpha)
+                fitter.threshold = 0
                 p = np.array(fitter.fit(x, y))
                 thresh_max = np.max(np.abs(p))
                 thresholds = np.linspace(0, thresh_max, 20)
 
             fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
+
         return fitter.fit(x, y)
 
     def fit__old(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0,

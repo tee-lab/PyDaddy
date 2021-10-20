@@ -2,10 +2,43 @@
 
 import warnings
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.linear_model import ridge_regression
 
 
-class PolyFit:
+class Poly2D:
+    """ A rudimentary 2D polynomial class. Returns polynomial objects that can be called or pretty-printed. """
+
+    def __init__(self, coeffs, degree):
+        assert len(coeffs) == (degree + 1) ** 2, 'Number of coefficients must be (degree + 1) ** 2.'
+        self.coeffs = coeffs
+        self.degree = degree
+
+    def __call__(self, x, y):
+        # x, y = x
+        terms = np.array([self.coeffs[m + n] * (x ** m) * (y ** n)
+                          for m in range(self.degree + 1)
+                          for n in range(self.degree + 1)])
+        return terms.sum()
+
+    def __str__(self):
+        def term(m, n):
+            if m == 0: xterm = ''
+            elif m == 1: xterm = 'x'
+            else: xterm = f'x^{m}'
+
+            if n == 0: yterm = ''
+            elif n == 1: yterm = 'y'
+            else: yterm = f'y^{n}'
+
+            return xterm + yterm
+
+        terms = [term(m, n) for m in range(self.degree + 1) for n in range(self.degree + 1)]
+        terms_with_coeffs = [f'{c}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+        return ' + '.join(terms_with_coeffs)
+
+
+class PolyFitBase:
     """ Fits polynomial to estimated drift and diffusion functions with sparse regression. """
 
     def __init__(self, threshold=0, max_degree=5, alpha=0, library=None):
@@ -28,22 +61,26 @@ class PolyFit:
             y (np.array): Dependent variable
             weights (np.array): Sample weights for regression.
                 If None (default), simple unweighted ridge regression will be performed.
+        Returns:
+
         """
 
-        nan_idx = np.argwhere(np.isnan(y))
-        x = np.delete(x, nan_idx)
-        y = np.delete(y, nan_idx)
-        if weights is not None:
-            weights = np.delete(weights, nan_idx)
+        # nan_idx = np.argwhere(np.isnan(y))
+        # x = np.delete(x, nan_idx)
+        # y = np.delete(y, nan_idx)
+        # if weights is not None:
+        #     weights = np.delete(weights, nan_idx)
 
         maxiter = self.max_degree
 
         if self.library:
             dictionary = np.array([f(x) for f in self.library])
+            ispoly = False
         else:  # Default polynomial dictionary
-            dictionary = np.array([x ** d for d in range(self.max_degree + 1)]).T
+            dictionary = self._get_poly_dictionary(x)
+            ispoly = True
 
-        coeffs = np.zeros(self.max_degree + 1)
+        coeffs = self._get_coeffs()
         keep = np.ones_like(coeffs, dtype=np.bool)
         for it in range(maxiter):
             if np.sum(keep) == 0:
@@ -54,8 +91,10 @@ class PolyFit:
             coeffs[keep] = coeffs_
             keep = (np.abs(coeffs) > self.threshold)
             coeffs[~keep] = 0
-
-        return np.poly1d(np.flipud(coeffs))
+        if ispoly:
+            return self._get_callable_poly(coeffs)
+        else:
+            return coeffs
 
     def model_selection(self, thresholds, x, y, weights=None, plot=False):
         """ Automatically choose the best threshold using BIC.
@@ -102,3 +141,44 @@ class PolyFit:
         bic = np.log(n_samples) * dof + n_samples * np.log(mse)
         # bic = 2 * dof + n_samples * np.log(mse)
         return bic
+
+    def _get_poly_dictionary(self, x):
+        raise NotImplementedError
+
+    def _get_callable_poly(self, coeffs):
+        raise NotImplementedError
+
+    def _get_coeffs(self):
+        raise NotImplementedError
+
+
+class PolyFit1D(PolyFitBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def _get_poly_dictionary(self, x):
+        return np.array([x ** d for d in range(self.max_degree + 1)]).T
+
+    def _get_callable_poly(self, coeffs):
+        """ Construct a callable polynomial from a given coefficient array. """
+        return np.poly1d(np.flipud(coeffs))
+
+    def _get_coeffs(self):
+        return np.zeros(self.max_degree + 1)
+
+
+class PolyFit2D(PolyFitBase):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def _get_poly_dictionary(self, x):
+        x, y = x
+        return np.array([(x ** m) * (y ** n)
+                         for m in range(self.max_degree + 1)
+                         for n in range(self.max_degree + 1)]).T
+
+    def _get_callable_poly(self, coeffs):
+        return Poly2D(coeffs, self.max_degree)
+
+    def _get_coeffs(self):
+        return np.zeros((self.max_degree + 1) ** 2)

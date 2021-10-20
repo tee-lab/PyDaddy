@@ -298,7 +298,7 @@ class Characterize(object):
             cls,
             data,
             t=1.0,
-            Dt=None,
+            Dt=1,
             dt=1,
             bins=None,
             inc=0.01,
