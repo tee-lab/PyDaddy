@@ -11,15 +11,23 @@ class Poly2D:
 
     def __init__(self, coeffs, degree):
         assert len(coeffs) == (degree + 1) ** 2, 'Number of coefficients must be (degree + 1) ** 2.'
-        self.coeffs = coeffs
+        self.coeffs = np.array(coeffs)
         self.degree = degree
 
-    def __call__(self, x, y):
-        # x, y = x
-        terms = np.array([self.coeffs[m + n] * (x ** m) * (y ** n)
+    def __call__(self, x):
+        x, y = x
+        terms = np.array([(x ** m) * (y ** n)
                           for m in range(self.degree + 1)
                           for n in range(self.degree + 1)])
-        return terms.sum()
+        try:
+            terms_with_coeffs = self.coeffs * terms
+        except ValueError:  # FIXME: Is there a better way to do this?
+            terms_with_coeffs = self.coeffs[:, None] * terms
+
+        return terms_with_coeffs.sum()
+
+    def __array__(self):
+        return self.coeffs
 
     def __str__(self):
         def term(m, n):
@@ -35,7 +43,10 @@ class Poly2D:
 
         terms = [term(m, n) for m in range(self.degree + 1) for n in range(self.degree + 1)]
         terms_with_coeffs = [f'{c}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
-        return ' + '.join(terms_with_coeffs)
+        if terms_with_coeffs:
+            return ' + '.join(terms_with_coeffs)
+        else:
+            return '0'
 
 
 class PolyFitBase:
@@ -88,6 +99,7 @@ class PolyFitBase:
                 break
             # coeffs_, _, _, _ = np.linalg.lstsq(dictionary[:, keep], y_)
             coeffs_ = ridge_regression(dictionary[:, keep], y, alpha=self.alpha, sample_weight=weights)
+            print(f'coeffs: {coeffs_}')
             coeffs[keep] = coeffs_
             keep = (np.abs(coeffs) > self.threshold)
             coeffs[~keep] = 0
@@ -136,9 +148,11 @@ class PolyFitBase:
         """ Compute the BIC for a fitted polynomial with given data x, y. """
 
         dof = np.count_nonzero(p)  # Degrees of freedom
-        n_samples = len(x)  # Number of samples
+        # n_samples = len(x)  # Number of samples
+        n_samples = len(y)
         mse = np.mean((y - p(x)) ** 2) / np.var(y)  # Normalized mean-squared error
         bic = np.log(n_samples) * dof + n_samples * np.log(mse)
+        print(f'dof: {dof}, n_samples: {n_samples}, mse: {mse}, bic: {bic}')
         # bic = 2 * dof + n_samples * np.log(mse)
         return bic
 
