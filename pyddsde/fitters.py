@@ -10,15 +10,16 @@ class Poly2D:
     """ A rudimentary 2D polynomial class. Returns polynomial objects that can be called or pretty-printed. """
 
     def __init__(self, coeffs, degree):
-        assert len(coeffs) == (degree + 1) ** 2, 'Number of coefficients must be (degree + 1) ** 2.'
+        assert len(coeffs) == (degree + 1) * (degree + 2) / 2, \
+            f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
         self.coeffs = np.array(coeffs)
         self.degree = degree
 
     def __call__(self, x):
         x, y = x
-        terms = np.array([(x ** m) * (y ** n)
+        terms = np.array([(x ** n) * (y ** m)
                           for m in range(self.degree + 1)
-                          for n in range(self.degree + 1)])
+                          for n in range(self.degree - m + 1)])
         try:
             # The following statement gives a ValueError (broadcast dimensions error) if
             #  being called with np.arrays as arguments. In this case, we need an appropriate
@@ -44,7 +45,7 @@ class Poly2D:
 
             return xterm + yterm
 
-        terms = [term(m, n) for m in range(self.degree + 1) for n in range(self.degree + 1)]
+        terms = [term(n, m) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
         terms_with_coeffs = [f'{c}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
         if terms_with_coeffs:
             return ' + '.join(terms_with_coeffs)
@@ -183,12 +184,12 @@ class PolyFit2D(PolyFitBase):
 
     def _get_poly_dictionary(self, x):
         x, y = x
-        return np.array([(x ** m) * (y ** n)
+        return np.array([(x ** n) * (y ** m)
                          for m in range(self.max_degree + 1)
-                         for n in range(self.max_degree + 1)]).T
+                         for n in range(self.max_degree - m + 1)]).T
 
     def _get_callable_poly(self, coeffs):
         return Poly2D(coeffs, self.max_degree)
 
     def _get_coeffs(self):
-        return np.zeros((self.max_degree + 1) ** 2)
+        return np.zeros(int((self.max_degree + 1) * (self.max_degree + 2) / 2))
