@@ -20,11 +20,14 @@ class Poly2D:
                           for m in range(self.degree + 1)
                           for n in range(self.degree + 1)])
         try:
+            # The following statement gives a ValueError (broadcast dimensions error) if
+            #  being called with np.arrays as arguments. In this case, we need an appropriate
+            #  reshaping -- see except clause.
             terms_with_coeffs = self.coeffs * terms
-        except ValueError:  # FIXME: Is there a better way to do this?
+        except ValueError:
             terms_with_coeffs = self.coeffs[:, None] * terms
 
-        return terms_with_coeffs.sum()
+        return terms_with_coeffs.sum(axis=0)
 
     def __array__(self):
         return self.coeffs
@@ -68,19 +71,14 @@ class PolyFitBase:
     def fit(self, x, y, weights=None):
         """ Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
         Parameters:
-            x (np.array): Independent variable
+            x (np.array or list): Independent variable. Could either be an array (for 1D case) or
+                a list of two arrays (for 2D case).
             y (np.array): Dependent variable
             weights (np.array): Sample weights for regression.
                 If None (default), simple unweighted ridge regression will be performed.
         Returns:
-
+            np.poly1d object for 1D case, Poly2D object for 2D case.
         """
-
-        # nan_idx = np.argwhere(np.isnan(y))
-        # x = np.delete(x, nan_idx)
-        # y = np.delete(y, nan_idx)
-        # if weights is not None:
-        #     weights = np.delete(weights, nan_idx)
 
         maxiter = self.max_degree
 
@@ -97,9 +95,8 @@ class PolyFitBase:
             if np.sum(keep) == 0:
                 warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
                 break
-            # coeffs_, _, _, _ = np.linalg.lstsq(dictionary[:, keep], y_)
             coeffs_ = ridge_regression(dictionary[:, keep], y, alpha=self.alpha, sample_weight=weights)
-            print(f'coeffs: {coeffs_}')
+            # print(f'coeffs: {coeffs_}')
             coeffs[keep] = coeffs_
             keep = (np.abs(coeffs) > self.threshold)
             coeffs[~keep] = 0
@@ -148,11 +145,10 @@ class PolyFitBase:
         """ Compute the BIC for a fitted polynomial with given data x, y. """
 
         dof = np.count_nonzero(p)  # Degrees of freedom
-        # n_samples = len(x)  # Number of samples
         n_samples = len(y)
         mse = np.mean((y - p(x)) ** 2) / np.var(y)  # Normalized mean-squared error
         bic = np.log(n_samples) * dof + n_samples * np.log(mse)
-        print(f'dof: {dof}, n_samples: {n_samples}, mse: {mse}, bic: {bic}')
+        # print(f'dof: {dof}, n_samples: {n_samples}, mse: {mse}, bic: {bic}')
         # bic = 2 * dof + n_samples * np.log(mse)
         return bic
 
