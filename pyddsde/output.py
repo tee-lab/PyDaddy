@@ -385,7 +385,14 @@ class Output(Preprocessing, Visualize):
                 params[keys] = str(self._ddsde.__dict__[keys])
         return params
 
-    def fit(self, function_name, order, threshold=0.05, alpha=0, tune=False, thresholds=None):
+    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None):
+
+        if not (order or library):
+            raise TypeError('You should either specify the order of the polynomial, or provide a library.')
+
+        if library:
+            order = 1
+
         fmap = {
             'F': 'drift',
             'G': 'diff',
@@ -431,7 +438,7 @@ class Output(Preprocessing, Visualize):
             x[1] = np.delete(x[1], nan_idx)
             y = np.delete(y, nan_idx)
 
-            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha)
+            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         else:
             x = self._data_X[:-1]
             if function_name == 'G':  #FIXME Might be incorrect: how to fix?
@@ -448,7 +455,7 @@ class Output(Preprocessing, Visualize):
             x = np.delete(x, nan_idx)
             y = np.delete(y, nan_idx)
 
-            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha)
+            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
 
         if tune:
             if thresholds is None:

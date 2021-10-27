@@ -84,14 +84,17 @@ class PolyFitBase:
         maxiter = self.max_degree
 
         if self.library:
-            dictionary = np.array([f(x) for f in self.library])
+            dictionary = np.vstack([f(x) for f in self.library]).T
+            coeffs = np.zeros(len(self.library))
+            keep = np.ones_like(coeffs, dtype=np.bool)
             ispoly = False
         else:  # Default polynomial dictionary
             dictionary = self._get_poly_dictionary(x)
+            coeffs = self._get_coeffs()
+            keep = np.ones_like(coeffs, dtype=np.bool)
             ispoly = True
 
-        coeffs = self._get_coeffs()
-        keep = np.ones_like(coeffs, dtype=np.bool)
+
         for it in range(maxiter):
             if np.sum(keep) == 0:
                 warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
