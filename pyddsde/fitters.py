@@ -94,7 +94,6 @@ class PolyFitBase:
             keep = np.ones_like(coeffs, dtype=np.bool)
             ispoly = True
 
-
         for it in range(maxiter):
             if np.sum(keep) == 0:
                 warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
@@ -144,13 +143,12 @@ class PolyFitBase:
         print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
 
-    @staticmethod
-    def _get_bic(p, x, y):
+    def _get_bic(self, p, x, y):
         """ Compute the BIC for a fitted polynomial with given data x, y. """
 
         dof = np.count_nonzero(p)  # Degrees of freedom
         n_samples = len(y)
-        mse = np.mean((y - p(x)) ** 2) / np.var(y)  # Normalized mean-squared error
+        mse = np.mean((y - self._evaluate(p, x)) ** 2) / np.var(y)  # Normalized mean-squared error
         bic = np.log(n_samples) * dof + n_samples * np.log(mse)
         # print(f'dof: {dof}, n_samples: {n_samples}, mse: {mse}, bic: {bic}')
         # bic = 2 * dof + n_samples * np.log(mse)
@@ -164,6 +162,15 @@ class PolyFitBase:
 
     def _get_coeffs(self):
         raise NotImplementedError
+
+    def _evaluate(self, c, x):
+        if self.library:  # Fitting with custom library
+            # In this case, c is an array of coefficients.
+            dictionary = np.vstack([f(x) for f in self.library]).T
+            return np.sum(c * dictionary, axis=1)
+        else:  # Fitting with default polynomial library
+            # In this case, c is a callable polynomial.
+            return c(x)
 
 
 class PolyFit1D(PolyFitBase):
