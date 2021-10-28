@@ -60,8 +60,10 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.op_y_range = None
         if bins:
             self.bins = bins
-        else:
+        elif not (self.inc or (self.inc_x and self.inc_y)):
             self.bins = self._autobins()
+        else:
+            self.bins = None
         self.slider_timescales = slider_timescales
 
         """
