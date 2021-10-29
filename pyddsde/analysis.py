@@ -1,9 +1,6 @@
 import numpy as np
 import scipy.optimize
 import scipy.stats
-import statsmodels.api as sm
-import statsmodels.stats.diagnostic
-from statsmodels.stats import weightstats as stests
 from tqdm import tqdm
 from pyddsde.sde import SDE
 from pyddsde.metrics import Metrics

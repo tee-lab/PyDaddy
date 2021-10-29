@@ -1,12 +1,6 @@
 import numpy as np
-from tqdm import tqdm
-from scipy.stats import mode
-import matplotlib.pyplot as plt
-from pyddsde.analysis import UnderlyingNoise
-from pyddsde.analysis import AutoCorrelation
 from pyddsde.analysis import GaussianTest
-from pyddsde.metrics import Metrics
-from pyddsde.sde import SDE
+
 
 class Preprocessing(GaussianTest):
 	"""
@@ -58,7 +52,7 @@ class Preprocessing(GaussianTest):
 		N = 8
 		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))).union(set([self.Dt])))
 		for time_scale in time_scale_list:
-			drift, diff, avgDiff, avgDrift, op, drift_ebar, diff_ebar = self._drift_and_diffusion(
+			drift, diff, avgDiff, avgDrift, op, drift_ebar, diff_ebar, _, _ = self._drift_and_diffusion(
 				X, t_int, Dt=time_scale, dt=time_scale, inc=inc)
 			op1, avgDrift = self._remove_nan(op, avgDrift)
 			op2, avgDiff = self._remove_nan(op, avgDiff)
