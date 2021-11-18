@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ridge_regression
-
+from sklearn.model_selection import KFold
 
 class Poly2D:
     """ A rudimentary 2D polynomial class. Returns polynomial objects that can be called or pretty-printed. """
@@ -108,7 +108,7 @@ class PolyFitBase:
         else:
             return coeffs
 
-    def model_selection(self, thresholds, x, y, weights=None, plot=False):
+    def model_selection_bic(self, thresholds, x, y, weights=None, plot=False):
         """ Automatically choose the best threshold using BIC.
         Parameters:
             thresholds: List of thresholds to search over.
@@ -142,6 +142,50 @@ class PolyFitBase:
             plt.show()
         print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
+
+    def model_selection(self, thresholds, x, y, weights=None, folds=5, plot=False):
+        """ Automatically choose the best threshold using BIC.
+        Parameters:
+            thresholds: List of thresholds to search over.
+            x, y: Data to be used for parameter tuning.
+            weights: (Optional) weights for fitting.
+        """
+
+        print('Finding best threshold for polynomial fit ...')
+
+        best_thresh = 0
+        best_cv_error = np.inf
+
+        cv_errors = []
+        # nparams = []
+        for thresh in thresholds:
+            self.threshold = thresh
+            cv_error = self._get_cv_error(x, y, folds)
+            p = self.fit(x, y)
+            # print(f'Threshold: {thresh}, CV Error: {cv_error}, poly:\n {p}')
+            cv_errors.append(cv_error)
+            if cv_error <= best_cv_error:
+                best_cv_error = cv_error
+                best_thresh = thresh
+
+        print(f'Model selection complete. Chosen threshold = {best_thresh}')
+        self.threshold = best_thresh
+
+        if plot:
+            fig, ax = plt.subplots(figsize=(16, 7))
+            ax.plot(thresholds, cv_errors)
+            ax.set(xlabel='Sparsity Threshold', ylabel='CV Error')
+            plt.show()
+
+    def _get_cv_error(self, x, y, folds):
+        kf = KFold(n_splits=folds)
+        cv_errors = []
+        for train, test in kf.split(x, y):
+            p = self.fit(x[train], y[train])
+            mse = np.mean((y - self._evaluate(p, x)) ** 2) / np.var(y)
+            cv_errors.append(mse)
+
+        return np.mean(cv_errors)
 
     def _get_bic(self, p, x, y):
         """ Compute the BIC for a fitted polynomial with given data x, y. """

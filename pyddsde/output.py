@@ -442,9 +442,12 @@ class Output(Preprocessing, Visualize):
         else:
             x = self._data_X[:-1]
             if function_name == 'G':  #FIXME Might be incorrect: how to fix?
-                y = np.sqrt(self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1))
+                # y = np.sqrt(self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1))
+                raise NotImplementedError
             elif function_name == 'Gsquare':
-                y = self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1)
+                # y = self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1)
+                F = self.fit('F', order=5, tune=True)
+                y = self._diffusion_from_residual(self._data_X, F=F, t_int=self._ddsde.t_int, dt=1)
             elif function_name == 'F':
                 y = self._drift(self._data_X, t_int=self._ddsde.t_int, Dt=1)
             else:

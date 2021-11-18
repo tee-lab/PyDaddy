@@ -75,6 +75,21 @@ class SDE:
         res = (X[dt:] - X[:-dt])[:p]
         return res - drift*(t_int*dt)
 
+    def _diffusion_from_residual(self, X, F, t_int, dt=1):
+        """
+        Get diffusion using residuals about drift function.
+
+        Parameters
+        ----------
+        X (np.array): Time-series
+        t_int (float): Time-step
+        F (Callable): Drift function
+        """
+        drift = F(X[:-dt])
+        finite_diff = X[dt:] - X[:-dt]
+        residual = finite_diff - drift * t_int
+        return residual ** 2 / t_int
+
     def _diffusion(self, X, t_int, dt=1):
         """
         Get Diffusion coefficient vector of data
