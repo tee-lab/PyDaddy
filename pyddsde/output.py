@@ -459,16 +459,16 @@ class Output(Preprocessing, Visualize):
             y = np.delete(y, nan_idx)
 
             fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
-
-        if tune:
-            if thresholds is None:
-                # fitter = PolyFit1D(max_degree=order, threshold=0, alpha=alpha)
-                fitter.threshold = 0
-                p = np.array(fitter.fit(x, y))
-                thresh_max = np.max(np.abs(p))
-                thresholds = np.linspace(0, thresh_max, 20)
-
-            fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
+        #
+        # if tune:
+        #     if thresholds is None:
+        #         # fitter = PolyFit1D(max_degree=order, threshold=0, alpha=alpha)
+        #         fitter.threshold = 0
+        #         p = np.array(fitter.fit(x, y))
+        #         thresh_max = np.max(np.abs(p))
+        #         thresholds = np.linspace(0, thresh_max, 20)
+        #
+        #     fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=True)
 
         return fitter.fit(x, y)
 
