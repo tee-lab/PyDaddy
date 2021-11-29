@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import ridge_regression
 from sklearn.model_selection import KFold
 
+
 class Poly2D:
     """ A rudimentary 2D polynomial class. Returns polynomial objects that can be called or pretty-printed. """
 
@@ -69,7 +70,7 @@ class PolyFitBase:
         self.alpha = alpha
         self.library = library
 
-    def fit_stlsq(self, x, y, weights=None):
+    def fit(self, x, y, weights=None):
         """ Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
         Parameters:
             x (np.array or list): Independent variable. Could either be an array (for 1D case) or
@@ -81,7 +82,7 @@ class PolyFitBase:
             np.poly1d object for 1D case, Poly2D object for 2D case.
         """
 
-        maxiter = self.max_degree
+
 
         if self.library:
             dictionary = np.vstack([f(x) for f in self.library]).T
@@ -93,6 +94,8 @@ class PolyFitBase:
             coeffs = self._get_coeffs()
             keep = np.ones_like(coeffs, dtype=np.bool)
             ispoly = True
+
+        maxiter = dictionary.shape[1]
 
         for it in range(maxiter):
             if np.sum(keep) == 0:
@@ -108,7 +111,7 @@ class PolyFitBase:
         else:
             return coeffs
 
-    def fit(self, x, y, weights=None, plot=True, model_selection='cv'):
+    def fit_ssr(self, x, y, weights=None, plot=True, model_selection='cv'):
         """ Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
         Parameters:
             x (np.array or list): Independent variable. Could either be an array (for 1D case) or
@@ -139,16 +142,11 @@ class PolyFitBase:
         for it in range(len(coeffs)):
             coeffs_ = ridge_regression(dictionary[:, keep], y, alpha=self.alpha, sample_weight=weights)
             coeffs[keep] = coeffs_
-            # Drop term with smallest magnitude
-            keep[np.abs(coeffs) == np.min(np.abs(coeffs_))] = False
-            # keep[np.argmin(np.abs(coeffs))] = False
-            coeffs[~keep] = 0
-            # bic = self._get_bic(coeffs, x, y)
             if model_selection == 'cv':
-                metric = self._get_cv_error(coeffs, x, y, folds=5)
+                metric = self._get_cv_error_2(keep, x, y, dictionary, folds=5)
             else:
                 metric = self._get_bic(coeffs, x, y)
-            print(f'Iteration: {it}, Best Error: {best_metric}, Metric: {metric}, Coeffs: {coeffs}')
+            print(f'Iteration: {it}, Best Metric: {best_metric}, Metric: {metric}, Coeffs: {coeffs}')
             metrics.append(metric)
 
             if metric <= best_metric + 0.05:
@@ -156,12 +154,16 @@ class PolyFitBase:
             if metric <= best_metric:
                 best_metric = metric
 
+            keep[np.abs(coeffs) == np.min(np.abs(coeffs_))] = False
+            coeffs[~keep] = 0
+
             # print(f'Best BIC: {best_bic}, Best coeffs: {best_model}')
 
         if plot:
             fig, ax = plt.subplots(figsize=(7, 7))
             ax.plot(metrics)
-            ax.set(xlabel='Iteration', ylabel='CV Error')
+            ylabel = {'cv': 'CV Error', 'bic': 'BIC'}
+            ax.set(xlabel='Iteration', ylabel=ylabel[model_selection])
             plt.show()
 
         if ispoly:
@@ -169,80 +171,89 @@ class PolyFitBase:
         else:
             return best_model  # FIXME Return callable function?
 
-    def model_selection_bic(self, thresholds, x, y, weights=None, plot=False):
+    def model_selection(self, thresholds, x, y, weights=None, method='cv', plot=False):
         """ Automatically choose the best threshold using BIC.
         Parameters:
             thresholds: List of thresholds to search over.
             x, y: Data to be used for parameter tuning.
             weights: (Optional) weights for fitting.
+            method: {'bic', 'cv'} The metric used for model selection
+            plot: If true, plot the model selection curves
         """
 
-        print('Finding best threshold for polynomial fit ...')
-        best_thresh = 0
-        best_bic = np.inf
+        assert method in ['bic', 'cv'], "Parameter 'model_selection' should be 'bic' or 'cv'."
+        metric_name = {'bic': 'BIC', 'cv': 'CV Error'}
 
-        bics = []
+        print('Finding best threshold for polynomial fit ...')
+        # best_thresh = 0
+        # best_metric = np.inf
+
+        metrics = []
         nparams = []
         for thresh in thresholds:
             self.threshold = thresh
             p = self.fit(x, y, weights)
-            bic = self._get_bic(p, x, y)
-            bics.append(bic)
+            if method == 'bic':
+                metric = self._get_bic(p, x, y)
+            else:
+                metric = self._get_cv_error(x, y, folds=5)
+
+            metrics.append(metric)
             nparams.append(np.count_nonzero(p))
             # print(f'poly: {p}')
             # print(f'degree = {degree}, threshold: {thresh}, BIC: {bic}')
-            if bic <= best_bic:
-                best_bic = bic
-                best_thresh = thresh
+            print(f'threshold: {thresh}, {metric_name[method]}: {metric}, coeffs: {list(p)}')
+            # if metric <= best_metric:
+            #     best_metric = metric
+            #     best_thresh = thresh
+
+        metrics = np.array(metrics)
+        errordelta = metrics[1:] - metrics[:-1]
+        best_thresh = thresholds[:-1][np.argmax(errordelta)]
         if plot:
-            fig, ax = plt.subplots(1, 2, figsize=(16, 7))
-            ax[0].plot(thresholds, bics)
-            ax[0].set(xlabel='Sparsity Threshold', ylabel='BIC')
-            ax[1].plot(thresholds, nparams)
-            ax[1].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
+            fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+            ax[0].plot(thresholds, metrics, '.-')
+            ax[0].set(xlabel='Sparsity Threshold', ylabel=metric_name[method])
+
+            metrics = np.array(metrics)
+            errordelta = metrics[1:] - metrics[:-1]
+            print(errordelta)
+            print(thresholds[:-1])
+            ax[1].plot(thresholds[:-1], errordelta, '.-')
+            ax[2].set(xlabel='Sparsity Threshold', ylabel=f'Change in {metric_name[method]}')
+
+            ax[2].plot(thresholds, nparams, '.-')
+            ax[2].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
             plt.show()
         print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
 
-    def model_selection(self, thresholds, x, y, weights=None, folds=5, plot=False):
-        """ Automatically choose the best threshold using BIC.
-        Parameters:
-            thresholds: List of thresholds to search over.
-            x, y: Data to be used for parameter tuning.
-            weights: (Optional) weights for fitting.
+    def _get_cv_error_2(self, keep, x, y, dictionary, folds):
         """
-
-        print('Finding best threshold for polynomial fit ...')
-
-        best_thresh = 0
-        best_metric = np.inf
-
+        Parameters:
+            keep: Bit-vector denoting which coefficients to keep
+        """
+        kf = KFold(n_splits=folds, shuffle=False)
         cv_errors = []
-        # nparams = []
-        for thresh in thresholds:
-            self.threshold = thresh
-            cv_error = self._get_cv_error(x, y, folds)
-            p = self.fit(x, y)
-            # print(f'Threshold: {thresh}, CV Error: {cv_error}, poly:\n {p}')
-            cv_errors.append(cv_error)
-            if cv_error <= best_metric:
-                best_metric = cv_error
-                best_thresh = thresh
+        coeffs = np.zeros_like(keep)
+        for train, test in kf.split(x, y):
+            # Fit on train data
+            coeffs_ = ridge_regression(dictionary[train][:, keep], y[train], alpha=self.alpha)
+            coeffs[keep] = coeffs_
+            coeffs[~keep] = 0
 
-        print(f'Model selection complete. Chosen threshold = {best_thresh}')
-        self.threshold = best_thresh
+            # Evaluate on held-out test-data
+            mse = np.mean((y[test] - self._evaluate(coeffs, x[test])) ** 2)
+            cv_errors.append(mse)
 
-        if plot:
-            fig, ax = plt.subplots(figsize=(16, 7))
-            ax.plot(thresholds, cv_errors)
-            ax.set(xlabel='Sparsity Threshold', ylabel='CV Error')
-            plt.show()
+        return np.mean(cv_errors)
 
-    def _get_cv_error(self, coeffs, x, y, folds):
+    def _get_cv_error(self, x, y, folds):
         kf = KFold(n_splits=folds)
         cv_errors = []
         for train, test in kf.split(x, y):
-            mse = np.var((y - self._evaluate(coeffs, x))) / np.var(y)#/ np.var(y)
+            p = self.fit(x[train], y[train])
+            mse = np.mean((y[test] - self._evaluate(p, x[test])) ** 2)
             cv_errors.append(mse)
 
         return np.mean(cv_errors)
@@ -252,10 +263,10 @@ class PolyFitBase:
 
         dof = np.count_nonzero(p)  # Degrees of freedom
         n_samples = len(y)
-        mse = np.mean((y - self._evaluate(p, x)) ** 2) / np.mean(y ** 2)  # Normalized mean-squared error
-        bic = np.log(n_samples) * dof + n_samples * np.log(mse)
+        mse = np.mean((y - self._evaluate(p, x)) ** 2)#np.mean(y ** 2)  # Normalized mean-squared error
+        # bic = np.log(n_samples) * dof + n_samples * np.log(mse / n_samples)
         # print(f'dof: {dof}, n_samples: {n_samples}, mse: {mse}, bic: {bic}')
-        # bic = 2 * dof + n_samples * np.log(mse)
+        bic = 2 * dof + n_samples * np.log(mse / n_samples)
         return bic
 
     def _get_poly_dictionary(self, x):
@@ -274,7 +285,7 @@ class PolyFitBase:
             return np.sum(c * dictionary, axis=1)
         else:  # Fitting with default polynomial library
             # In this case, c is a callable polynomial.
-            c = self._get_callable_poly(c)
+            # c = self._get_callable_poly(c)
             return c(x)
 
 
