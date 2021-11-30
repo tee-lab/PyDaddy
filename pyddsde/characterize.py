@@ -8,6 +8,7 @@ from pyddsde.analysis import GaussianTest
 from pyddsde.preprocessing import Preprocessing
 from pyddsde.preprocessing import InputError
 from pyddsde.output import Output
+from pyddsde.fitters import PolyFit1D, PolyFit2D
 
 warnings.filterwarnings("ignore")
 
@@ -20,6 +21,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
     :meta private:
     """
+
     def __init__(
             self,
             data,
@@ -35,7 +37,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             slider_timescales=None,
             n_trials=1,
             show_summary=True,
-            max_order = 5,
+            max_order=5,
             **kwargs):
 
         self._data = data
@@ -52,8 +54,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.n_trials = n_trials
         self._show_summary = show_summary
 
-        #self.drift_order = None
-        #self.diff_order = None
+        # self.drift_order = None
+        # self.diff_order = None
 
         self.op_range = None
         self.op_x_range = None
@@ -77,9 +79,9 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         Preprocessing.__init__(self)
         GaussianTest.__init__(self)
         AutoCorrelation.__init__(self)
-        #SDE.__init__(self)
+        # SDE.__init__(self)
 
-        #if t is None and t_int is None:
+        # if t is None and t_int is None:
         #	raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
 
         return None
@@ -115,20 +117,27 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 ebar_diff_dict = dict()
                 num_drift_dict = dict()
                 num_diff_dict = dict()
-        time_scale_list = sorted(map(int,set(self.slider_timescales).union([self.dt, self.Dt])))
+        time_scale_list = sorted(map(int, set(self.slider_timescales).union([self.dt, self.Dt])))
         for time_scale in tqdm.tqdm(time_scale_list, desc='Generating Slider data'):
             if update and time_scale in self._drift_slider.keys():
                 continue
             if self.vector:
-                avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = self._vector_drift_diff(Mx,My,inc_x=self.inc_x,inc_y=self.inc_y,t_int=self.t_int, Dt=time_scale, dt=time_scale)
-                drift_data = [avgdriftX/self.n_trials, avgdriftY/self.n_trials, op_x, op_y]
-                diff_data = [avgdiffX/self.n_trials, avgdiffY/self.n_trials, op_x, op_y]
-                cross_diff_data = [avgdiffXY/self.n_trials, avgdiffYX/self.n_trials, op_x, op_y]
+                avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = \
+                    self._vector_drift_diff(Mx,
+                                            My,
+                                            inc_x=self.inc_x,
+                                            inc_y=self.inc_y,
+                                            t_int=self.t_int,
+                                            Dt=time_scale,
+                                            dt=time_scale)
+                drift_data = [avgdriftX / self.n_trials, avgdriftY / self.n_trials, op_x, op_y]
+                diff_data = [avgdiffX / self.n_trials, avgdiffY / self.n_trials, op_x, op_y]
+                cross_diff_data = [avgdiffXY / self.n_trials, avgdiffYX / self.n_trials, op_x, op_y]
             else:
-                _, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_num, diff_num \
+                _, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_num, diff_num, _, _ \
                     = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
-                drift_data = [avgdrift/self.n_trials, op]
-                diff_data = [avgdiff/self.n_trials, op]
+                drift_data = [avgdrift / self.n_trials, op]
+                diff_data = [avgdiff / self.n_trials, op]
                 ebar_drift_dict[time_scale] = drift_ebar
                 ebar_diff_dict[time_scale] = diff_ebar
                 num_drift_dict[time_scale] = drift_num
@@ -145,9 +154,90 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self._avaiable_timescales = time_scale_list
         return drift_data_dict, diff_data_dict, ebar_drift_dict, ebar_diff_dict, num_drift_dict, num_diff_dict
 
+    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None):
+
+        if not (order or library):
+            raise TypeError('You should either specify the order of the polynomial, or provide a library.')
+
+        if library:
+            order = 1
+
+        fmap = {
+            'F': 'drift',
+            'G': 'diff',
+            'Gsquare': 'diff',
+            'A1': 'driftX',
+            'A2': 'driftY',
+            'B11': 'diffX',
+            'B12': 'diffXY',
+            'B21': 'diffYX',
+            'B22': 'diffY'
+        }
+        if function_name not in fmap.keys():
+            print("Invalid function name")
+            return None
+
+        if self.vector:
+
+            x = [self._Mx[:-1], self._My[:-1]]
+            if function_name == 'A1':
+                y = self._drift(self._Mx, t_int=self.t_int, Dt=1)
+            elif function_name == 'A2':
+                y = self._drift(self._My, t_int=self.t_int, Dt=1)
+            elif function_name == 'B11':
+                y = self._diffusion(self._Mx, t_int=self.t_int, dt=1)
+            elif function_name == 'B22':
+                y = self._diffusion(self._My, t_int=self.t_int, dt=1)
+            elif function_name == 'B12':
+                y = self._diffusion_xy(self._Mx, self._My, t_int=self.t_int, dt=1)
+            elif function_name == 'B21':
+                y = self._diffusion_yx(self._Mx, self._My, t_int=self.t_int, dt=1)
+            else:
+                raise TypeError('Invalid function name for vector analysis')
+
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x[0]) | np.isnan(x[1]) | np.isnan(y)
+            x[0] = np.delete(x[0], nan_idx)
+            x[1] = np.delete(x[1], nan_idx)
+            y = np.delete(y, nan_idx)
+
+            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+        else:
+            x = self._X[:-1]
+            if function_name == 'G':  #FIXME Might be incorrect: how to fix?
+                # y = np.sqrt(self._diffusion(self._X, t_int=self.t_int, dt=1))
+                raise NotImplementedError
+            elif function_name == 'Gsquare':
+                # y = self._diffusion(self._X, t_int=self.t_int, dt=1)
+                F = self.fit('F', order=5, tune=True)
+                y = self._diffusion_from_residual(self._X, F=F, t_int=self.t_int, dt=1)
+            elif function_name == 'F':
+                y = self._drift(self._X, t_int=self.t_int, Dt=1)
+            else:
+                raise TypeError('Invalid function name for scalar analysis')
+
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x) | np.isnan(y)
+            x = np.delete(x, nan_idx)
+            y = np.delete(y, nan_idx)
+
+            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+        #
+        if tune:
+            if thresholds is None:
+                # fitter = PolyFit1D(max_degree=order, threshold=0, alpha=alpha)
+                fitter.threshold = 0
+                p = np.array(fitter.fit(x, y))
+                thresh_max = np.max(np.abs(p))
+                thresholds = np.linspace(0, thresh_max, 50, endpoint=False)
+
+            fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=True)
+
+        return fitter.fit(x, y)
+    
     def __call__(self, data, t=1, Dt=None, **kwargs):
         self.__dict__.update(kwargs)
-        #if t is None and t_int is None:
+        # if t is None and t_int is None:
         #	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
         self._t = t
         """
@@ -194,13 +284,13 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._scalar_diff_ebars = dict()
                 self._scalar_drift_nums = dict()
                 self._scalar_diff_nums = dict()
-                _, _, self._avgdiff_, self._avgdrift_, self._op_, self._drift_ebar, self._diff_ebar,\
-                    self._drift_num, self._diff_num = self._drift_and_diffusion(
-                    self._X,
-                    self.t_int,
-                    Dt=self.Dt,
-                    dt=self.dt,
-                    inc=self.inc)
+
+                _, _, self._avgdiff_, self._avgdrift_, self._op_, self._drift_ebar, self._diff_ebar, \
+                    self._drift_num, self._diff_num, F, G = self._drift_and_diffusion(self._X,
+                                                                                      self.t_int,
+                                                                                      Dt=self.Dt,
+                                                                                      dt=self.dt,
+                                                                                      inc=self.inc)
                 self._avgdiff_ = self._avgdiff_ / self.n_trials
                 self._avgdrift_ = self._avgdrift_ / self.n_trials
                 self._drift_slider[self.Dt] = [self._avgdrift_, self._op_]
@@ -209,6 +299,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._scalar_diff_ebars[self.dt] = self._diff_ebar
                 self._scalar_drift_nums[self.dt] = self._drift_num
                 self._scalar_diff_nums[self.dt] = self._diff_num
+                self.F = F
+                self.G = G
             else:
                 self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars, \
                     self._scalar_drift_nums, self._scalar_diff_nums = self._slider_data(self._X, None)
@@ -247,10 +339,10 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
                 self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
 
-        #inc = self.inc_x if self.vector else self.inc
-        #self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
+        # inc = self.inc_x if self.vector else self.inc
+        # self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
         #	self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
-        #X, Dt, dt, t_int, inc=0.01, point=0,
+        # X, Dt, dt, t_int, inc=0.01, point=0,
         return Output(self)
 
 
@@ -296,6 +388,7 @@ class Characterize(object):
     output : pyddsde.output.Output
         object to access the analysed data, parameters, plots and save them.
     """
+
     def __new__(
             cls,
             data,
@@ -310,7 +403,6 @@ class Characterize(object):
             n_trials=1,
             show_summary=True,
             **kwargs):
-
         ddsde = Main(
             data=data,
             t=t,
@@ -327,17 +419,18 @@ class Characterize(object):
 
         return ddsde(data=data, t=t, Dt=Dt)
 
+
 def load_sample_data(data_path):
     r"""
     Load the sample distrubuted data
 
     data
     ├── fish_data
-    │   └── ectropus.csv
+    │   └── ectropus.csv
     └── model_data
         ├── scalar
-        │   ├── pairwise.csv
-        │   └── ternary.csv
+        │   ├── pairwise.csv
+        │   └── ternary.csv
         └── vector
             ├── pairwise.csv
             └── ternary.csv
@@ -353,6 +446,7 @@ def load_sample_data(data_path):
         return np.loadtxt(stream, delimiter=',')
     except:
         return np.loadtxt(stream)
+
 
 def load_sample_dataset(name):
     r"""
@@ -384,20 +478,18 @@ def load_sample_dataset(name):
     """
 
     data_dict = {
-    'fish-data-etroplus' : 'data/fish_data/ectropus.csv',
-    'model-data-scalar-pairwise' : 'data/model_data/scalar/pairwise.csv',
-    'model-data-scalar-ternary' : 'data/model_data/scalar/ternary.csv',
-    'model-data-vector-pairwise' : 'data/model_data/vector/pairwise.csv',
-    'model-data-vector-ternary' : 'data/model_data/vector/ternary.csv'
+        'fish-data-etroplus': 'data/fish_data/ectropus.csv',
+        'model-data-scalar-pairwise': 'data/model_data/scalar/pairwise.csv',
+        'model-data-scalar-ternary': 'data/model_data/scalar/ternary.csv',
+        'model-data-vector-pairwise': 'data/model_data/vector/pairwise.csv',
+        'model-data-vector-ternary': 'data/model_data/vector/ternary.csv'
     }
     if name not in data_dict.keys():
         print('Invalid data set name\nAvaiable data set\n{}'.format(list(data_dict.keys())))
-        raise InputError('','Invalid data set name')
+        raise InputError('', 'Invalid data set name')
 
     if 'scalar' in name:
         M, t = load_sample_data(data_dict[name]).T
         return [M], t
     Mx, My = load_sample_data(data_dict[name]).T
     return [Mx, My], 0.12
-
-

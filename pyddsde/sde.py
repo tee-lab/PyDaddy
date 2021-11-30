@@ -1,4 +1,6 @@
+from collections import namedtuple
 import numpy as np
+from .fitters import PolyFit1D, PolyFit2D
 
 class SDE:
     """
@@ -202,7 +204,6 @@ class SDE:
             return np.linspace(r[0], r[-1], self.bins)
         return np.arange(min(r), max(r)+inc, inc)
 
-
     def _drift_and_diffusion(self, X, t_int, Dt, dt, inc):
         """
         Get drift and diffusion coefficients for a given timeseries data
@@ -236,7 +237,12 @@ class SDE:
         op = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []
         drift = self._drift(X, t_int, Dt)
-        diff = self._diffusion(X, t_int, dt=dt)
+
+        fitter = PolyFit1D()
+        F = fitter.tune_and_fit(X[:-Dt], drift)
+        diff = self._diffusion_from_residual(X, F, t_int, dt=dt)
+        G = fitter.tune_and_fit(X[:-dt], diff)
+
         drift_ebar = []
         diff_ebar = []
         drift_num = []
@@ -250,7 +256,15 @@ class SDE:
             diff_ebar.append(diff[i].std()/np.sqrt(len(diff[i])))
             drift_num.append(len(drift[i]))
             diff_num.append(len(diff[i]))
-        return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num
+        # return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num, F, G
+        DD = namedtuple('DD', 'diff drift avgdiff avgdrift op drift_ebar diff_ebar drift_num diff_num F G')
+        return DD(
+            diff=diff, drift=drift,
+            avgdiff=np.array(avgdiff), avgdrift=np.array(avgdrift), op=op,
+            drift_ebar=drift_ebar, diff_ebar=diff_ebar,
+            drift_num=drift_num, diff_num=diff_num,
+            F=F, G=G
+        )
 
     def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, Dt, dt):
         """

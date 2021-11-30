@@ -82,8 +82,6 @@ class PolyFitBase:
             np.poly1d object for 1D case, Poly2D object for 2D case.
         """
 
-
-
         if self.library:
             dictionary = np.vstack([f(x) for f in self.library]).T
             coeffs = np.zeros(len(self.library))
@@ -184,7 +182,7 @@ class PolyFitBase:
         assert method in ['bic', 'cv'], "Parameter 'model_selection' should be 'bic' or 'cv'."
         metric_name = {'bic': 'BIC', 'cv': 'CV Error'}
 
-        print('Finding best threshold for polynomial fit ...')
+        # print('Finding best threshold for polynomial fit ...')
         # best_thresh = 0
         # best_metric = np.inf
 
@@ -202,7 +200,7 @@ class PolyFitBase:
             nparams.append(np.count_nonzero(p))
             # print(f'poly: {p}')
             # print(f'degree = {degree}, threshold: {thresh}, BIC: {bic}')
-            print(f'threshold: {thresh}, {metric_name[method]}: {metric}, coeffs: {list(p)}')
+            # print(f'threshold: {thresh}, {metric_name[method]}: {metric}, coeffs: {list(p)}')
             # if metric <= best_metric:
             #     best_metric = metric
             #     best_thresh = thresh
@@ -225,8 +223,23 @@ class PolyFitBase:
             ax[2].plot(thresholds, nparams, '.-')
             ax[2].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
             plt.show()
-        print(f'Model selection complete. Chosen threshold = {best_thresh}')
+        # print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
+
+    def tune_and_fit(self, x, y, thresholds=None, steps=50):
+        """
+        Args:
+            x, y: Data to fit
+            thresholds: List of thresholds to try, will be automatically chosen if None
+            steps: When auto-choosing thesholds, the number of steps to take in the threshold range.
+        """
+        if thresholds is None:
+            self.threshold = 0
+            p = np.array(self.fit(x, y))
+            thresholds = np.linspace(0, np.max(np.abs(p)), steps, endpoint=False)
+
+        self.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
+        return self.fit(x, y)
 
     def _get_cv_error_2(self, keep, x, y, dictionary, folds):
         """
