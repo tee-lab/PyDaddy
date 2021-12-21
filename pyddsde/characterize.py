@@ -179,7 +179,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
         if self.vector:
 
-            x = [self._Mx[:-1], self._My[:-1]]
+            # x = [self._Mx[:-1], self._My[:-1]]
+            x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
             if function_name == 'A1':
                 y = self._drift(self._Mx, t_int=self.t_int, Dt=1)
             elif function_name == 'A2':
@@ -196,10 +197,13 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 raise TypeError('Invalid function name for vector analysis')
 
             # Handle missing values (NaNs) if present
-            nan_idx = np.isnan(x[0]) | np.isnan(x[1]) | np.isnan(y)
-            x[0] = np.delete(x[0], nan_idx)
-            x[1] = np.delete(x[1], nan_idx)
-            y = np.delete(y, nan_idx)
+            # nan_idx = np.isnan(x[0]) | np.isnan(x[1]) | np.isnan(y)
+            # x[0] = np.delete(x[0], nan_idx)
+            # x[1] = np.delete(x[1], nan_idx)
+            # y = np.delete(y, nan_idx)
+            nan_idx = np.isnan(x).any(axis=1) | np.isnan(y)
+            x = x[~nan_idx]
+            y = y[~nan_idx]
 
             fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         else:
@@ -218,8 +222,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
             # Handle missing values (NaNs) if present
             nan_idx = np.isnan(x) | np.isnan(y)
-            x = np.delete(x, nan_idx)
-            y = np.delete(y, nan_idx)
+            x = x[~nan_idx]
+            y = y[~nan_idx]
 
             fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         #

@@ -114,6 +114,25 @@ class SDE:
         # return np.square(np.array([b - a for a, b in zip(X, X[dt:])])) / (t_int * dt)
         return np.square(X[dt:] - X[:-dt]) / (t_int * dt)
 
+    def _diffusion_x_from_residual(self, x, y, A1, t_int, dt):
+        drift = A1(np.stack((x[:-dt], y[:-dt]), axis=1))
+        finite_diff = x[dt:] - x[:-dt]
+        residual = finite_diff - drift * t_int
+        return residual ** 2 / t_int
+
+    def _diffusion_y_from_residual(self, x, y, A2, t_int, dt):
+        drift = A2(np.stack((x[:-dt], y[:-dt]), axis=1))
+        finite_diff = y[dt:] - y[:-dt]
+        residual = finite_diff - drift * t_int
+        return residual ** 2 / t_int
+
+    def _diffusion_xy_from_residual(self, x, y, A1, A2, t_int, dt):
+        drift_x = A1(np.stack((x[:-dt], y[:-dt]), axis=1))
+        drift_y = A2(np.stack((x[:-dt], y[:-dt]), axis=1))
+        residual_x = (x[dt:] - x[:dt]) - drift_x
+        residual_y = (y[dt:] - y[:dt]) - drift_y
+        return residual_x * residual_y / dt * t_int
+
     def _diffusion_xy(self, x, y, t_int, dt):
         """
         Get cross-correlation coefficients between x and y arrays.
@@ -291,17 +310,27 @@ class SDE:
             [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
         """
 
+        fitter = PolyFit2D()
+
         op_x = self._order_parameter(x, inc_x, self.op_x_range)
         op_y = self._order_parameter(y, inc_y, self.op_y_range)
 
         driftX = self._drift(x, t_int, Dt)
         driftY = self._drift(y, t_int, Dt)
 
-        diffusionX = self._diffusion(x, t_int, dt)
-        diffusionY = self._diffusion(y, t_int, dt)
+        v = np.stack((x[:-Dt], y[:-Dt]), axis=1)
+        A1 = fitter.tune_and_fit(v, driftX)
+        A2 = fitter.tune_and_fit(v, driftY)
 
-        diffusionXY = self._diffusion_xy(x, y, t_int, dt)
-        diffusionYX = self._diffusion_yx(x, y, t_int, dt)
+        diffusionX = self._diffusion_x_from_residual(x, y, A1, t_int, dt)
+        diffusionY = self._diffusion_y_from_residual(x, y, A1, t_int, dt)
+        # diffusionX = self._diffusion(x, t_int, dt)
+        # diffusionY = self._diffusion(y, t_int, dt)
+
+        diffusionXY = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
+        diffusionYX = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
+        # diffusionXY = self._diffusion_xy(x, y, t_int, dt)
+        # diffusionYX = self._diffusion_yx(x, y, t_int, dt)
 
         avgdriftX = np.zeros((len(op_x), len(op_y)))
         avgdriftY = np.zeros((len(op_x), len(op_y)))

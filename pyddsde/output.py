@@ -121,6 +121,9 @@ class Output(Preprocessing, Visualize):
         path : str
             path where data is exported
         """
+
+        #FIXME: Saving as one CSV with multiple columns may be more useful than many different files.
+
         if fname is None:
             fname = ''
         base, name = os.path.split(fname)

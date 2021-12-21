@@ -17,7 +17,14 @@ class Poly2D:
         self.degree = degree
 
     def __call__(self, x):
-        x, y = x
+        x = np.array(x)
+        if x.ndim == 1:
+            x, y = x[0], x[1]
+        elif x.ndim == 2:
+            x, y = x[:, 0], x[:, 1]
+        else:
+            raise ValueError('Incompatible dimensions for Poly2D call. Poly2D objects can be called with a tuple, or a 1D or 2D numpy array.')
+
         terms = np.array([(x ** n) * (y ** m)
                           for m in range(self.degree + 1)
                           for n in range(self.degree - m + 1)])
@@ -200,7 +207,7 @@ class PolyFitBase:
             nparams.append(np.count_nonzero(p))
             # print(f'poly: {p}')
             # print(f'degree = {degree}, threshold: {thresh}, BIC: {bic}')
-            # print(f'threshold: {thresh}, {metric_name[method]}: {metric}, coeffs: {list(p)}')
+            # print(f'threshold: {thresh:.4f}, {metric_name[method]}: {metric:.4f}, poly: {p}')
             # if metric <= best_metric:
             #     best_metric = metric
             #     best_thresh = thresh
@@ -215,8 +222,6 @@ class PolyFitBase:
 
             metrics = np.array(metrics)
             errordelta = metrics[1:] - metrics[:-1]
-            print(errordelta)
-            print(thresholds[:-1])
             ax[1].plot(thresholds[:-1], errordelta, '.-')
             ax[2].set(xlabel='Sparsity Threshold', ylabel=f'Change in {metric_name[method]}')
 
@@ -226,13 +231,14 @@ class PolyFitBase:
         # print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
 
-    def tune_and_fit(self, x, y, thresholds=None, steps=50):
+    def tune_and_fit(self, x, y, thresholds=None, steps=20):
         """
         Args:
             x, y: Data to fit
             thresholds: List of thresholds to try, will be automatically chosen if None
             steps: When auto-choosing thesholds, the number of steps to take in the threshold range.
         """
+
         if thresholds is None:
             self.threshold = 0
             p = np.array(self.fit(x, y))
@@ -291,6 +297,9 @@ class PolyFitBase:
     def _get_coeffs(self):
         raise NotImplementedError
 
+    # def _get_cv_splits(self, x, y):
+    #     raise NotImplementedError
+
     def _evaluate(self, c, x):
         if self.library:  # Fitting with custom library
             # In this case, c is an array of coefficients.
@@ -316,13 +325,17 @@ class PolyFit1D(PolyFitBase):
     def _get_coeffs(self):
         return np.zeros(self.max_degree + 1)
 
+    # def _get_cv_splits(self):
+
+
+
 
 class PolyFit2D(PolyFitBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def _get_poly_dictionary(self, x):
-        x, y = x
+        x, y = x[:, 0], x[:, 1]
         return np.array([(x ** n) * (y ** m)
                          for m in range(self.max_degree + 1)
                          for n in range(self.max_degree - m + 1)]).T
