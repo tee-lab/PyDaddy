@@ -16,27 +16,20 @@ class Poly2D:
         self.coeffs = np.array(coeffs)
         self.degree = degree
 
-    def __call__(self, x):
-        x = np.array(x)
-        if x.ndim == 1:
-            x, y = x[0], x[1]
-        elif x.ndim == 2:
-            x, y = x[:, 0], x[:, 1]
-        else:
-            raise ValueError('Incompatible dimensions for Poly2D call. Poly2D objects can be called with a tuple, or a 1D or 2D numpy array.')
+    def __call__(self, x, y):
+        # x = np.array(x)
+        # if x.ndim == 1:
+        #     x, y = x[0], x[1]
+        # elif x.ndim == 2:
+        #     x, y = x[:, 0], x[:, 1]
+        # else:
+        #     raise ValueError('Incompatible dimensions for Poly2D call. Poly2D objects can be called with a tuple, or a 1D or 2D numpy array.')
 
         terms = np.array([(x ** n) * (y ** m)
                           for m in range(self.degree + 1)
                           for n in range(self.degree - m + 1)])
-        try:
-            # The following statement gives a ValueError (broadcast dimensions error) if
-            #  being called with np.arrays as arguments. In this case, we need an appropriate
-            #  reshaping -- see except clause.
-            terms_with_coeffs = self.coeffs * terms
-        except ValueError:
-            terms_with_coeffs = self.coeffs[:, None] * terms
-
-        return terms_with_coeffs.sum(axis=0)
+        terms_with_coeffs = self.coeffs * np.moveaxis(terms, 0, -1)
+        return terms_with_coeffs.sum(axis=-1)
 
     def __array__(self):
         return self.coeffs
@@ -223,10 +216,11 @@ class PolyFitBase:
             metrics = np.array(metrics)
             errordelta = metrics[1:] - metrics[:-1]
             ax[1].plot(thresholds[:-1], errordelta, '.-')
-            ax[2].set(xlabel='Sparsity Threshold', ylabel=f'Change in {metric_name[method]}')
+            ax[1].set(xlabel='Sparsity Threshold', ylabel=f'Change in {metric_name[method]}')
 
             ax[2].plot(thresholds, nparams, '.-')
             ax[2].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
+            plt.tight_layout()
             plt.show()
         # print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
@@ -268,7 +262,7 @@ class PolyFitBase:
         return np.mean(cv_errors)
 
     def _get_cv_error(self, x, y, folds):
-        kf = KFold(n_splits=folds)
+        kf = KFold(n_splits=folds, shuffle=False)
         cv_errors = []
         for train, test in kf.split(x, y):
             p = self.fit(x[train], y[train])
@@ -308,7 +302,10 @@ class PolyFitBase:
         else:  # Fitting with default polynomial library
             # In this case, c is a callable polynomial.
             # c = self._get_callable_poly(c)
-            return c(x)
+            return self._evaluate_poly(c, x)
+
+    def _evaluate_poly(self, c, x):
+        return NotImplementedError
 
 
 class PolyFit1D(PolyFitBase):
@@ -325,9 +322,8 @@ class PolyFit1D(PolyFitBase):
     def _get_coeffs(self):
         return np.zeros(self.max_degree + 1)
 
-    # def _get_cv_splits(self):
-
-
+    def _evaluate_poly(self, c, x):
+        return c(x)
 
 
 class PolyFit2D(PolyFitBase):
@@ -345,3 +341,6 @@ class PolyFit2D(PolyFitBase):
 
     def _get_coeffs(self):
         return np.zeros(int((self.max_degree + 1) * (self.max_degree + 2) / 2))
+
+    def _evaluate_poly(self, c, x):
+        return c(x[:, 0], x[:, 1])

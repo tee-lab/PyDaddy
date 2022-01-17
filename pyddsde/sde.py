@@ -115,20 +115,20 @@ class SDE:
         return np.square(X[dt:] - X[:-dt]) / (t_int * dt)
 
     def _diffusion_x_from_residual(self, x, y, A1, t_int, dt):
-        drift = A1(np.stack((x[:-dt], y[:-dt]), axis=1))
+        drift = A1(x[:-dt], y[:-dt])
         finite_diff = x[dt:] - x[:-dt]
         residual = finite_diff - drift * t_int
         return residual ** 2 / t_int
 
     def _diffusion_y_from_residual(self, x, y, A2, t_int, dt):
-        drift = A2(np.stack((x[:-dt], y[:-dt]), axis=1))
+        drift = A2(x[:-dt], y[:-dt])
         finite_diff = y[dt:] - y[:-dt]
         residual = finite_diff - drift * t_int
         return residual ** 2 / t_int
 
     def _diffusion_xy_from_residual(self, x, y, A1, A2, t_int, dt):
-        drift_x = A1(np.stack((x[:-dt], y[:-dt]), axis=1))
-        drift_y = A2(np.stack((x[:-dt], y[:-dt]), axis=1))
+        drift_x = A1(x[:-dt], y[:-dt])
+        drift_y = A2(x[:-dt], y[:-dt])
         residual_x = (x[dt:] - x[:dt]) - drift_x
         residual_y = (y[dt:] - y[:dt]) - drift_y
         return residual_x * residual_y / dt * t_int
@@ -319,8 +319,14 @@ class SDE:
         driftY = self._drift(y, t_int, Dt)
 
         v = np.stack((x[:-Dt], y[:-Dt]), axis=1)
-        A1 = fitter.tune_and_fit(v, driftX)
-        A2 = fitter.tune_and_fit(v, driftY)
+
+        nan_idx = np.isnan(v).any(axis=1) | np.isnan(driftX) | np.isnan(driftY)
+        v = v[~nan_idx]
+        driftX_ = driftX[~nan_idx]
+        driftY_ = driftY[~nan_idx]
+
+        A1 = fitter.tune_and_fit(v, driftX_)
+        A2 = fitter.tune_and_fit(v, driftY_)
 
         diffusionX = self._diffusion_x_from_residual(x, y, A1, t_int, dt)
         diffusionY = self._diffusion_y_from_residual(x, y, A1, t_int, dt)
