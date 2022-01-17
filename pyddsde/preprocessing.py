@@ -52,7 +52,7 @@ class Preprocessing(GaussianTest):
 		N = 8
 		time_scale_list = sorted(set(map(int, np.linspace(1, max_dt, N))).union(set([self.Dt])))
 		for time_scale in time_scale_list:
-			drift, diff, avgDiff, avgDrift, op, drift_ebar, diff_ebar, _, _ = self._drift_and_diffusion(
+			drift, diff, avgDiff, avgDrift, op, drift_ebar, diff_ebar, _, _, _, _ = self._drift_and_diffusion(
 				X, t_int, Dt=time_scale, dt=time_scale, inc=inc)
 			op1, avgDrift = self._remove_nan(op, avgDrift)
 			op2, avgDiff = self._remove_nan(op, avgDiff)
@@ -191,11 +191,11 @@ class Preprocessing(GaussianTest):
 
 	def _preprocess(self):
 		self._validate_inputs()
-		inc = self.inc_x if self.vector else self.inc
-		self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(self._X, self._M_square, t_int=self.t_int ,inc=inc, dt=self.dt, max_order=self.max_order)
-		k = self._r2_drift_m_dt[-1].index(self.Dt)
-		self._r2_drift = np.array(self._r2_drift_m_dt[k])
-		self._r2_diff = np.array(self._r2_diff_m_dt[0])
+		# inc = self.inc_x if self.vector else self.inc
+		# self._r2_drift_m_dt, self._r2_diff_m_dt = self._r2_vs_order_multi_dt(self._X, self._M_square, t_int=self.t_int ,inc=inc, dt=self.dt, max_order=self.max_order)
+		# k = self._r2_drift_m_dt[-1].index(self.Dt)
+		# self._r2_drift = np.array(self._r2_drift_m_dt[k])
+		# self._r2_diff = np.array(self._r2_diff_m_dt[0])
 		return None
 
 	def _timestep(self, t):

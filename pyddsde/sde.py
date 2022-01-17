@@ -1,4 +1,6 @@
+from collections import namedtuple
 import numpy as np
+from .fitters import PolyFit1D, PolyFit2D
 
 class SDE:
     """
@@ -75,6 +77,21 @@ class SDE:
         res = (X[dt:] - X[:-dt])[:p]
         return res - drift*(t_int*dt)
 
+    def _diffusion_from_residual(self, X, F, t_int, dt=1):
+        """
+        Get diffusion using residuals about drift function.
+
+        Parameters
+        ----------
+        X (np.array): Time-series
+        t_int (float): Time-step
+        F (Callable): Drift function
+        """
+        drift = F(X[:-dt])
+        finite_diff = X[dt:] - X[:-dt]
+        residual = finite_diff - drift * t_int
+        return residual ** 2 / t_int
+
     def _diffusion(self, X, t_int, dt=1):
         """
         Get Diffusion coefficient vector of data
@@ -96,6 +113,25 @@ class SDE:
 
         # return np.square(np.array([b - a for a, b in zip(X, X[dt:])])) / (t_int * dt)
         return np.square(X[dt:] - X[:-dt]) / (t_int * dt)
+
+    def _diffusion_x_from_residual(self, x, y, A1, t_int, dt):
+        drift = A1(x[:-dt], y[:-dt])
+        finite_diff = x[dt:] - x[:-dt]
+        residual = finite_diff - drift * t_int
+        return residual ** 2 / t_int
+
+    def _diffusion_y_from_residual(self, x, y, A2, t_int, dt):
+        drift = A2(x[:-dt], y[:-dt])
+        finite_diff = y[dt:] - y[:-dt]
+        residual = finite_diff - drift * t_int
+        return residual ** 2 / t_int
+
+    def _diffusion_xy_from_residual(self, x, y, A1, A2, t_int, dt):
+        drift_x = A1(x[:-dt], y[:-dt])
+        drift_y = A2(x[:-dt], y[:-dt])
+        residual_x = (x[dt:] - x[:dt]) - drift_x
+        residual_y = (y[dt:] - y[:dt]) - drift_y
+        return residual_x * residual_y / dt * t_int
 
     def _diffusion_xy(self, x, y, t_int, dt):
         """
@@ -187,7 +223,6 @@ class SDE:
             return np.linspace(r[0], r[-1], self.bins)
         return np.arange(min(r), max(r)+inc, inc)
 
-
     def _drift_and_diffusion(self, X, t_int, Dt, dt, inc):
         """
         Get drift and diffusion coefficients for a given timeseries data
@@ -221,7 +256,12 @@ class SDE:
         op = self._order_parameter(X, inc, self.op_range)
         avgdiff, avgdrift = [], []
         drift = self._drift(X, t_int, Dt)
-        diff = self._diffusion(X, t_int, dt=dt)
+
+        fitter = PolyFit1D()
+        F = fitter.tune_and_fit(X[:-Dt], drift)
+        diff = self._diffusion_from_residual(X, F, t_int, dt=dt)
+        G = fitter.tune_and_fit(X[:-dt], diff)
+
         drift_ebar = []
         diff_ebar = []
         drift_num = []
@@ -235,7 +275,15 @@ class SDE:
             diff_ebar.append(diff[i].std()/np.sqrt(len(diff[i])))
             drift_num.append(len(drift[i]))
             diff_num.append(len(diff[i]))
-        return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num
+        # return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num, F, G
+        DD = namedtuple('DD', 'diff drift avgdiff avgdrift op drift_ebar diff_ebar drift_num diff_num F G')
+        return DD(
+            diff=diff, drift=drift,
+            avgdiff=np.array(avgdiff), avgdrift=np.array(avgdrift), op=op,
+            drift_ebar=drift_ebar, diff_ebar=diff_ebar,
+            drift_num=drift_num, diff_num=diff_num,
+            F=F, G=G
+        )
 
     def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, Dt, dt):
         """
@@ -262,17 +310,33 @@ class SDE:
             [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
         """
 
+        fitter = PolyFit2D()
+
         op_x = self._order_parameter(x, inc_x, self.op_x_range)
         op_y = self._order_parameter(y, inc_y, self.op_y_range)
 
         driftX = self._drift(x, t_int, Dt)
         driftY = self._drift(y, t_int, Dt)
 
-        diffusionX = self._diffusion(x, t_int, dt)
-        diffusionY = self._diffusion(y, t_int, dt)
+        v = np.stack((x[:-Dt], y[:-Dt]), axis=1)
 
-        diffusionXY = self._diffusion_xy(x, y, t_int, dt)
-        diffusionYX = self._diffusion_yx(x, y, t_int, dt)
+        nan_idx = np.isnan(v).any(axis=1) | np.isnan(driftX) | np.isnan(driftY)
+        v = v[~nan_idx]
+        driftX_ = driftX[~nan_idx]
+        driftY_ = driftY[~nan_idx]
+
+        A1 = fitter.tune_and_fit(v, driftX_)
+        A2 = fitter.tune_and_fit(v, driftY_)
+
+        diffusionX = self._diffusion_x_from_residual(x, y, A1, t_int, dt)
+        diffusionY = self._diffusion_y_from_residual(x, y, A1, t_int, dt)
+        # diffusionX = self._diffusion(x, t_int, dt)
+        # diffusionY = self._diffusion(y, t_int, dt)
+
+        diffusionXY = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
+        diffusionYX = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
+        # diffusionXY = self._diffusion_xy(x, y, t_int, dt)
+        # diffusionYX = self._diffusion_yx(x, y, t_int, dt)
 
         avgdriftX = np.zeros((len(op_x), len(op_y)))
         avgdriftY = np.zeros((len(op_x), len(op_y)))

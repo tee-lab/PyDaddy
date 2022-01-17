@@ -15,7 +15,6 @@ import sdeint
 import seaborn as sns
 import tqdm
 
-from pyddsde.fitters import PolyFit1D, PolyFit2D
 from pyddsde.preprocessing import Preprocessing
 from pyddsde.visualize import Visualize
 
@@ -35,6 +34,8 @@ class Output(Preprocessing, Visualize):
         self.op_x_range = ddsde.op_x_range
         self.op_y_range = ddsde.op_y_range
 
+        self.fit = ddsde.fit
+
         if not self.vector:
             self._data_X = ddsde._X
             self._data_t = ddsde._t
@@ -49,6 +50,8 @@ class Output(Preprocessing, Visualize):
             self._data_drift_nums = ddsde._scalar_drift_nums
             self._data_diff_nums = ddsde._scalar_diff_nums
             self._data_op = ddsde._op_
+            self.F = ddsde.F
+            self.G = ddsde.G
             # self.drift_order = ddsde.drift_order
             # self.diff_order = ddsde.diff_order
 
@@ -118,6 +121,9 @@ class Output(Preprocessing, Visualize):
         path : str
             path where data is exported
         """
+
+        #FIXME: Saving as one CSV with multiple columns may be more useful than many different files.
+
         if fname is None:
             fname = ''
         base, name = os.path.split(fname)
@@ -385,90 +391,6 @@ class Output(Preprocessing, Visualize):
                 params[keys] = str(self._ddsde.__dict__[keys])
         return params
 
-    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None):
-
-        if not (order or library):
-            raise TypeError('You should either specify the order of the polynomial, or provide a library.')
-
-        if library:
-            order = 1
-
-        fmap = {
-            'F': 'drift',
-            'G': 'diff',
-            'Gsquare': 'diff',
-            'A1': 'driftX',
-            'A2': 'driftY',
-            'B11': 'diffX',
-            'B12': 'diffXY',
-            'B21': 'diffYX',
-            'B22': 'diffY'
-        }
-        if function_name not in fmap.keys():
-            print("Invalid function name")
-            return None
-
-        if self.vector:
-            warnings.warn('Sparse fitting is not implemented for 2D. Using simple polynomial regression.')
-            # if function_name not in list(fmap.keys())[3:]:
-            #     print("Invalid function name for vector analysis")
-            #     return None
-            # data = self.data(drift_time_scale=1, diff_time_scale=1)._asdict()
-
-            # x, y = np.meshgrid(self._data_Mx, self._data_My)
-            x = [self._data_Mx[:-1], self._data_My[:-1]]
-            if function_name == 'A1':
-                y = self._drift(self._data_Mx, t_int=self._ddsde.t_int, Dt=1)
-            elif function_name == 'A2':
-                y = self._drift(self._data_My, t_int=self._ddsde.t_int, Dt=1)
-            elif function_name == 'B11':
-                y = self._diffusion(self._data_Mx, t_int=self._ddsde.t_int, dt=1)
-            elif function_name == 'B22':
-                y = self._diffusion(self._data_My, t_int=self._ddsde.t_int, dt=1)
-            elif function_name == 'B12':
-                y = self._diffusion_xy(self._data_Mx, self._data_My, t_int=self._ddsde.t_int, dt=1)
-            elif function_name == 'B21':
-                y = self._diffusion_yx(self._data_Mx, self._data_My, t_int=self._ddsde.t_int, dt=1)
-            else:
-                raise TypeError('Invalid function name for vector analysis')
-
-            # Handle missing values (NaNs) if present
-            nan_idx = np.isnan(x[0]) | np.isnan(x[1]) | np.isnan(y)
-            x[0] = np.delete(x[0], nan_idx)
-            x[1] = np.delete(x[1], nan_idx)
-            y = np.delete(y, nan_idx)
-
-            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
-        else:
-            x = self._data_X[:-1]
-            if function_name == 'G':  #FIXME Might be incorrect: how to fix?
-                y = np.sqrt(self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1))
-            elif function_name == 'Gsquare':
-                y = self._diffusion(self._data_X, t_int=self._ddsde.t_int, dt=1)
-            elif function_name == 'F':
-                y = self._drift(self._data_X, t_int=self._ddsde.t_int, Dt=1)
-            else:
-                raise TypeError('Invalid function name for scalar analysis')
-
-            # Handle missing values (NaNs) if present
-            nan_idx = np.isnan(x) | np.isnan(y)
-            x = np.delete(x, nan_idx)
-            y = np.delete(y, nan_idx)
-
-            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
-
-        if tune:
-            if thresholds is None:
-                # fitter = PolyFit1D(max_degree=order, threshold=0, alpha=alpha)
-                fitter.threshold = 0
-                p = np.array(fitter.fit(x, y))
-                thresh_max = np.max(np.abs(p))
-                thresholds = np.linspace(0, thresh_max, 20)
-
-            fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
-
-        return fitter.fit(x, y)
-
     def fit__old(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0,
                  weighted=True):
         """
@@ -690,143 +612,145 @@ class Output(Preprocessing, Visualize):
 
             return np.array(m)
 
-    def summary(self, start=0, end=1000, kde=False, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
+    def summary(self, start=0, end=1000, kde=True, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
                 ret_fig=True, **plot_text):
+
         """
-		Print summary of data and show summary plots chart
+        		Print summary of data and show summary plots chart
 
-		Args
-		----
-			start : int, (default=0)
-				starting index, begin plotting timeseries from this point
-			end : int, default=1000
-				end point, plots timeseries till this index
-			kde : bool, (default=False)
-				if True, plot kde for histograms
-			title_size : int, (default=15)
-				title font size
-			tick_size : int, (default=12)
-				axis tick size
-			label_size : int, (default=15)
-				label font size
-			label_pad : int, (default=8)
-				axis label padding
-			n_ticks : int, (default=3)
-				number of axis ticks
-			ret_fig : bool, (default=True)
-				if True return figure object
+        		Args
+        		----
+        			start : int, (default=0)
+        				starting index, begin plotting timeseries from this point
+        			end : int, default=1000
+        				end point, plots timeseries till this index
+        			kde : bool, (default=False)
+        				if True, plot kde for histograms
+        			title_size : int, (default=15)
+        				title font size
+        			tick_size : int, (default=12)
+        				axis tick size
+        			label_size : int, (default=15)
+        				label font size
+        			label_pad : int, (default=8)
+        				axis label padding
+        			n_ticks : int, (default=3)
+        				number of axis ticks
+        			ret_fig : bool, (default=True)
+        				if True return figure object
 
-			**plot_text:
-				plots' title and axis texts
-				
-				For scalar analysis summary plot:
-					timeseries_title : title of timeseries plot
+        			**plot_text:
+        				plots' title and axis texts
 
-					timeseries_xlabel : x label of timeseries
+        				For scalar analysis summary plot:
+        					timeseries_title : title of timeseries plot
 
-					timeseries_ylabel : y label of timeseries
+        					timeseries_xlabel : x label of timeseries
 
-					drift_title : drift plot title
+        					timeseries_ylabel : y label of timeseries
 
-					drift_xlabel : drift plot x label
+        					drift_title : drift plot title
 
-					drift_ylabel : drift plot ylabel
+        					drift_xlabel : drift plot x label
 
-					diffusion_title : diffusion plot title
+        					drift_ylabel : drift plot ylabel
 
-					diffusion_xlabel : diffusion plot x label
+        					diffusion_title : diffusion plot title
 
-					diffusion_ylabel : diffusion plot y label
-				
-				For vector analysis summary plot:
-					timeseries1_title : first timeseries plot title
+        					diffusion_xlabel : diffusion plot x label
 
-					timeseries1_ylabel : first timeseries plot ylabel
+        					diffusion_ylabel : diffusion plot y label
 
-					timeseries1_xlabel : first timeseries plot xlabel
+        				For vector analysis summary plot:
+        					timeseries1_title : first timeseries plot title
 
-					timeseries1_legend1 : first timeseries (Mx) legend label
-	 
-					timeseries1_legend2 : first timeseries (My) legend label
+        					timeseries1_ylabel : first timeseries plot ylabel
 
-					timeseries2_title : second timeseries plot title
+        					timeseries1_xlabel : first timeseries plot xlabel
 
-					timeseries2_xlabel : second timeseries plot x label
+        					timeseries1_legend1 : first timeseries (Mx) legend label
 
-					timeseries2_ylabel : second timeseries plot y label
+        					timeseries1_legend2 : first timeseries (My) legend label
 
-					2dhist1_title : Mx 2d histogram title
+        					timeseries2_title : second timeseries plot title
 
-					2dhist1_xlabel : Mx 2d histogram x label
+        					timeseries2_xlabel : second timeseries plot x label
 
-					2dhist1_ylabel : Mx 2d histogram y label
+        					timeseries2_ylabel : second timeseries plot y label
 
-					2dhist2_title : My 2d histogram title
+        					2dhist1_title : Mx 2d histogram title
 
-					2dhist2_xlabel : My 2d histogram x label
+        					2dhist1_xlabel : Mx 2d histogram x label
 
-					2dhist2_ylabel : My 2d histogram y label
+        					2dhist1_ylabel : Mx 2d histogram y label
 
-					2dhist3_title :  M 3d histogram title
+        					2dhist2_title : My 2d histogram title
 
-					2dhist3_xlabel : M 2d histogram x label
+        					2dhist2_xlabel : My 2d histogram x label
 
-					2dhist3_ylabel : M 2d histogram y label
+        					2dhist2_ylabel : My 2d histogram y label
 
-					3dhist_title :  3d histogram title
+        					2dhist3_title :  M 3d histogram title
 
-					3dhist_xlabel : 3d histogram x label
+        					2dhist3_xlabel : M 2d histogram x label
 
-					3dhist_ylabel : 3d histogram y label
+        					2dhist3_ylabel : M 2d histogram y label
 
-					3dhist_zlabel : 3d histogram z label
+        					3dhist_title :  3d histogram title
 
-					driftx_title : drift x plot title
+        					3dhist_xlabel : 3d histogram x label
 
-					driftx_xlabel : drift x plot x label
+        					3dhist_ylabel : 3d histogram y label
 
-					driftx_ylabel : drift x plot y label
+        					3dhist_zlabel : 3d histogram z label
 
-					driftx_zlabel : drift x plot z label
+        					driftx_title : drift x plot title
 
-					drifty_title : drift y plot title
+        					driftx_xlabel : drift x plot x label
 
-					drifty_xlabel : drift y plot x label
+        					driftx_ylabel : drift x plot y label
 
-					drifty_ylabel : drift y plot y label
+        					driftx_zlabel : drift x plot z label
 
-					drifty_zlabel : drift y plot z label
+        					drifty_title : drift y plot title
 
-					diffusionx_title : diffusion x plot title
+        					drifty_xlabel : drift y plot x label
 
-					diffusionx_xlabel : diffusion x plot x label
+        					drifty_ylabel : drift y plot y label
 
-					diffusionx_ylabel : diffusion x plot y label
+        					drifty_zlabel : drift y plot z label
 
-					diffusionx_zlabel : diffusion x plot z label
+        					diffusionx_title : diffusion x plot title
 
-					diffusiony_title : diffusion y plot title
+        					diffusionx_xlabel : diffusion x plot x label
 
-					diffusiony_xlabel : diffusion y plot x label
+        					diffusionx_ylabel : diffusion x plot y label
 
-					diffusiony_ylabel : diffusion y plot y label
+        					diffusionx_zlabel : diffusion x plot z label
 
-					diffusiony_zlabel : diffusion y plot z label
+        					diffusiony_title : diffusion y plot title
 
-		Returns
-		-------
-			None, or figure
+        					diffusiony_xlabel : diffusion y plot x label
 
-		Raises
-		------
-		ValueError
-			If start is greater than end
-		"""
+        					diffusiony_ylabel : diffusion y plot y label
+
+        					diffusiony_zlabel : diffusion y plot z label
+
+        		Returns
+        		-------
+        			None, or figure
+
+        		Raises
+        		------
+        		ValueError
+        			If start is greater than end
+        		"""
+
         if start > end:
             raise ValueError("'start' sould not be greater than 'end'")
 
         if not self.vector:
-            feilds = ['M range', 'M mean',
+            fields = ['M range', 'M mean',
                       '|M| range', '|M| mean',
                       'Autocorr time (M)', '(Dt, dt)',
                       ]
@@ -838,15 +762,16 @@ class Output(Preprocessing, Visualize):
                       ]
             values = list(map(str, values))
             summary = []
-            for i in range(len(feilds)):
-                summary.append(feilds[i])
+            for i in range(len(fields)):
+                summary.append(fields[i])
                 summary.append(values[i])
-            summary_format = ("| {:<20} : {:^15}" * 1 + "|\n") * int(len(feilds) / 1)
+            summary_format = ("| {:<20} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
             print(summary_format.format(*summary))
+            print(f'Drift:\n{self.F}\nDiffusion:\n{self.G}\n')
             data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self._data_drift_ebar, self._data_diff_ebar]
 
         else:
-            feilds = ['Mx range', 'Mx mean',
+            fields = ['Mx range', 'Mx mean',
                       'My range', 'My mean',
                       '|M| range', '|M| mean',
                       'Autocorr time (Mx, My, |M^2|)', '(Dt, dt)',
@@ -861,10 +786,10 @@ class Output(Preprocessing, Visualize):
                       ]
             values = list(map(str, values))
             summary = []
-            for i in range(len(feilds)):
-                summary.append(feilds[i])
+            for i in range(len(fields)):
+                summary.append(fields[i])
                 summary.append(values[i])
-            summary_format = ("| {:<30} : {:^15}" * 1 + "|\n") * int(len(feilds) / 1)
+            summary_format = ("| {:<30} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
             print(
                 "Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
             print(summary_format.format(*summary))
