@@ -38,6 +38,13 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             n_trials=1,
             show_summary=True,
             max_order=5,
+            drift_threshold=None,
+            diff_threshold=None,
+            drift_degree=5,
+            diff_degree=5,
+            drift_alpha=0,
+            diff_alpha=0,
+            fast_mode=False,
             **kwargs):
 
         self._data = data
@@ -45,7 +52,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.Dt = Dt
 
         self.t_lag = t_lag
-        self.max_order = max_order
+        self.max_order = max_order  # FIXME: Deprecated, can be removed.
         self.inc = inc
         self.inc_x = inc_x
         self.inc_y = inc_y
@@ -67,6 +74,16 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         else:
             self.bins = None
         self.slider_timescales = slider_timescales
+
+        self.fast_mode = fast_mode
+
+        self.drift_threshold = drift_threshold
+        self.drift_degree = drift_degree
+        self.drift_alpha = drift_alpha
+
+        self.diff_threshold = diff_threshold
+        self.diff_degree = diff_degree
+        self.diff_alpha = diff_alpha
 
         """
         # When t_lag is greater than timeseries length, reassign its value as length of data
@@ -294,7 +311,14 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                                                                                       self.t_int,
                                                                                       Dt=self.Dt,
                                                                                       dt=self.dt,
-                                                                                      inc=self.inc)
+                                                                                      inc=self.inc,
+                                                                                      fast_mode=self.fast_mode,
+                                                                                      drift_threshold=self.drift_threshold,
+                                                                                      drift_degree=self.drift_degree,
+                                                                                      drift_alpha=self.drift_alpha,
+                                                                                      diff_threshold=self.diff_threshold,
+                                                                                      diff_degree=self.diff_degree,
+                                                                                      diff_alpha=self.diff_alpha)
                 self._avgdiff_ = self._avgdiff_ / self.n_trials
                 self._avgdrift_ = self._avgdrift_ / self.n_trials
                 self._drift_slider[self.Dt] = [self._avgdrift_, self._op_]
@@ -321,14 +345,25 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._drift_slider = dict()
                 self._diff_slider = dict()
                 self._cross_diff_slider = dict()
-                self._avgdriftX_, self._avgdriftY_, self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, self._op_x_, self._op_y_ = self._vector_drift_diff(
-                    self._Mx,
-                    self._My,
-                    inc_x=self.inc_x,
-                    inc_y=self.inc_y,
-                    t_int=self.t_int,
-                    Dt=self.Dt,
-                    dt=self.dt)
+                self._avgdriftX_, self._avgdriftY_, \
+                    self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, \
+                    self._op_x_, self._op_y_,\
+                    self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = self._vector_drift_diff(
+                        self._Mx,
+                        self._My,
+                        inc_x=self.inc_x,
+                        inc_y=self.inc_y,
+                        t_int=self.t_int,
+                        Dt=self.Dt,
+                        dt=self.dt,
+                        fast_mode=self.fast_mode,
+                        drift_threshold=self.drift_threshold,
+                        drift_degree=self.drift_degree,
+                        drift_alpha=self.drift_alpha,
+                        diff_threshold=self.diff_threshold,
+                        diff_degree=self.diff_degree,
+                        diff_alpha=self.diff_alpha
+                    )
                 self._avgdriftX_ = self._avgdriftX_ / self.n_trials
                 self._avgdriftY_ = self._avgdriftY_ / self.n_trials
                 self._avgdiffX_ = self._avgdiffX_ / self.n_trials
@@ -406,6 +441,13 @@ class Characterize(object):
             slider_timescales=None,
             n_trials=1,
             show_summary=True,
+            drift_threshold=None,
+            diff_threshold=None,
+            drift_degree=5,
+            diff_degree=5,
+            drift_alpha=0,
+            diff_alpha=0,
+            fast_mode=False,
             **kwargs):
         ddsde = Main(
             data=data,
@@ -419,6 +461,13 @@ class Characterize(object):
             slider_timescales=slider_timescales,
             n_trials=n_trials,
             show_summary=show_summary,
+            drift_threshold=drift_threshold,
+            diff_threshold=diff_threshold,
+            drift_degree=drift_degree,
+            diff_degree=diff_degree,
+            drift_alpha=drift_alpha,
+            diff_alpha=diff_alpha,
+            fast_mode=fast_mode,
             **kwargs)
 
         return ddsde(data=data, t=t, Dt=Dt)

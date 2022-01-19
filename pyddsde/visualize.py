@@ -267,6 +267,8 @@ class Visualize(Metrics):
             pdf_axis = self._plot_3d_hisogram(Mx, My, ax=pdf_axis, title='', title_size=title_size, tick_size=tick_size,
                                               label_size=label_size, label_pad=label_pad)
 
+            # FIXME: Plot function fits.
+
             """
             fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 12))
             #TimeSeries
@@ -391,7 +393,8 @@ class Visualize(Metrics):
             # p_drift, _ = self._fit_poly(self.op, drift, drift_order)
             # ax[0][1].scatter(self.op, drift, marker='.', label='drift')
             ax[0][1].errorbar(self.op, drift, yerr=drift_ebar, fmt='o', label='drift')
-            ax[0][1].plot(self.op, self.F(self.op))
+            if not self.fast_mode:
+                ax[0][1].plot(self.op, self.F(self.op))
             """
             ax[0][1].plot(self.op,
                              p_drift(self.op),
@@ -415,7 +418,8 @@ class Visualize(Metrics):
             # p_diff, _ = self._fit_poly(self.op, diff, diff_order)
             # ax[1][1].scatter(self.op, diff, marker='.', label='diffusion')
             ax[1][1].errorbar(self.op, diff, yerr=diff_ebar, fmt='o', label='diffusion')
-            ax[1][1].plot(self.op, self.G(self.op))
+            if not self.fast_mode:
+                ax[1][1].plot(self.op, self.G(self.op))
             """
             ax[1][1].plot(self.op,
                              p_diff(self.op),

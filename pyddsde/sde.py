@@ -223,7 +223,10 @@ class SDE:
             return np.linspace(r[0], r[-1], self.bins)
         return np.arange(min(r), max(r)+inc, inc)
 
-    def _drift_and_diffusion(self, X, t_int, Dt, dt, inc):
+    def _drift_and_diffusion(self, X, t_int, Dt, dt, inc,
+                             drift_threshold, drift_degree, drift_alpha,
+                             diff_threshold, diff_degree, diff_alpha,
+                             fast_mode):
         """
         Get drift and diffusion coefficients for a given timeseries data
 
@@ -239,7 +242,10 @@ class SDE:
                 timescale to claculate diffusion
         inc : float
                 step increments in order parameter
-
+        drift_threshold : float or None
+                threshold to use for fitting drift function. If None, automatic model selection will be used.
+        diff_threshold : float or None
+                threshold to use for fitting diffusion function. If None, automatic model selection will be used.
         Returns
         -------
         diff : array
@@ -257,10 +263,22 @@ class SDE:
         avgdiff, avgdrift = [], []
         drift = self._drift(X, t_int, Dt)
 
-        fitter = PolyFit1D()
-        F = fitter.tune_and_fit(X[:-Dt], drift)
-        diff = self._diffusion_from_residual(X, F, t_int, dt=dt)
-        G = fitter.tune_and_fit(X[:-dt], diff)
+        if not fast_mode:
+            fitter = PolyFit1D(max_degree=drift_degree, threshold=drift_threshold, alpha=drift_alpha)
+            if drift_threshold is None:
+                F = fitter.tune_and_fit(X[:-Dt], drift)
+            else:
+                F = fitter.fit(X[:-Dt], drift)
+
+            diff = self._diffusion_from_residual(X, F, t_int, dt=dt)
+            fitter = PolyFit1D(max_degree=diff_degree, threshold=diff_threshold, alpha=diff_alpha)
+            if diff_threshold is None:
+                G = fitter.tune_and_fit(X[:-dt], diff)
+            else:
+                G = fitter.fit(X[:-dt], diff)
+        else:
+            diff = self._diffusion(X, t_int, dt=dt)
+            F = G = None
 
         drift_ebar = []
         diff_ebar = []
@@ -285,7 +303,10 @@ class SDE:
             F=F, G=G
         )
 
-    def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, Dt, dt):
+    def _vector_drift_diff(self, x, y, inc_x, inc_y, t_int, Dt, dt,
+                           drift_threshold, drift_degree, drift_alpha,
+                           diff_threshold, diff_degree, diff_alpha,
+                           fast_mode):
         """
         Get average binned drift and diffusion coefficients for given x and y data
 
@@ -310,8 +331,6 @@ class SDE:
             [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
         """
 
-        fitter = PolyFit2D()
-
         op_x = self._order_parameter(x, inc_x, self.op_x_range)
         op_y = self._order_parameter(y, inc_y, self.op_y_range)
 
@@ -325,18 +344,43 @@ class SDE:
         driftX_ = driftX[~nan_idx]
         driftY_ = driftY[~nan_idx]
 
-        A1 = fitter.tune_and_fit(v, driftX_)
-        A2 = fitter.tune_and_fit(v, driftY_)
+        if not fast_mode:
+            fitter = PolyFit2D(max_degree=drift_degree, threshold=drift_threshold, alpha=drift_alpha)
+            if drift_threshold is None:
+                A1 = fitter.tune_and_fit(v, driftX_)
+                A2 = fitter.tune_and_fit(v, driftY_)
+            else:
+                A1 = fitter.fit(v, driftX_)
+                A2 = fitter.fit(v, driftY_)
 
-        diffusionX = self._diffusion_x_from_residual(x, y, A1, t_int, dt)
-        diffusionY = self._diffusion_y_from_residual(x, y, A1, t_int, dt)
-        # diffusionX = self._diffusion(x, t_int, dt)
-        # diffusionY = self._diffusion(y, t_int, dt)
+            diffusionX = self._diffusion_x_from_residual(x, y, A1, t_int, dt)
+            diffusionY = self._diffusion_y_from_residual(x, y, A1, t_int, dt)
+            diffusionXY = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
+            diffusionYX = diffusionXY  # self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
 
-        diffusionXY = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
-        diffusionYX = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
-        # diffusionXY = self._diffusion_xy(x, y, t_int, dt)
-        # diffusionYX = self._diffusion_yx(x, y, t_int, dt)
+            diffusionX_ = diffusionX[~nan_idx]
+            diffusionY_ = diffusionY[~nan_idx]
+            diffusionXY_ = diffusionXY[~nan_idx]
+            diffusionYX_ = diffusionXY_
+            fitter = PolyFit2D(max_degree=diff_degree, threshold=diff_threshold, alpha=diff_alpha)
+            if diff_threshold is None:
+                B11 = fitter.tune_and_fit(v, diffusionX_)
+                B22 = fitter.tune_and_fit(v, diffusionY_)
+                B12 = fitter.tune_and_fit(v, diffusionXY_)
+                B21 = B12
+            else:
+                B11 = fitter.fit(v, diffusionX_)
+                B22 = fitter.fit(v, diffusionY_)
+                B12 = fitter.fit(v, diffusionXY_)
+                B21 = B12
+        else:
+            diffusionX = self._diffusion(x, t_int, dt)
+            diffusionY = self._diffusion(y, t_int, dt)
+            diffusionXY = self._diffusion_xy(x, y, t_int, dt)
+            diffusionYX = self._diffusion_yx(x, y, t_int, dt)
+
+            A1 = A2 = None
+            B11 = B22 = B12 = B21 = None
 
         avgdriftX = np.zeros((len(op_x), len(op_y)))
         avgdriftY = np.zeros((len(op_x), len(op_y)))
@@ -365,7 +409,16 @@ class SDE:
                 avgdiffYX[n, m] = np.nanmean(diffusionYX[i])
                 n = n + 1
             m = m + 1
-        return [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y]
+        DD = namedtuple('DD',
+                        'avgdriftX avgdriftY avgdiffX avgdiffY avgdiffXY avgdiffYX op_x op_y A1 A2 B11 B22 B12 B21')
+        return DD(
+            avgdriftX=avgdriftX, avgdriftY=avgdriftY,
+            avgdiffX=avgdiffX, avgdiffY=avgdiffY, avgdiffXY=avgdiffXY, avgdiffYX=avgdiffYX,
+            op_x=op_x, op_y=op_y,
+            A1=A1, A2=A2, B11=B11, B22=B22, B12=B12, B21=B21,
+        )
+
+        # return [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y]
 
     def __call__(self, X, t_int, Dt, dt=1, inc=0.01, **kwargs):
         """
