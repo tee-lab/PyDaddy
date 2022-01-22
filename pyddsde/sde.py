@@ -129,8 +129,8 @@ class SDE:
     def _diffusion_xy_from_residual(self, x, y, A1, A2, t_int, dt):
         drift_x = A1(x[:-dt], y[:-dt])
         drift_y = A2(x[:-dt], y[:-dt])
-        residual_x = (x[dt:] - x[:dt]) - drift_x
-        residual_y = (y[dt:] - y[:dt]) - drift_y
+        residual_x = (x[dt:] - x[:-dt]) - drift_x
+        residual_y = (y[dt:] - y[:-dt]) - drift_y
         return residual_x * residual_y / dt * t_int
 
     def _diffusion_xy(self, x, y, t_int, dt):
