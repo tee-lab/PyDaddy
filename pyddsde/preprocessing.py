@@ -235,7 +235,9 @@ class Preprocessing(GaussianTest):
 				raise InputError("t <float> or <array>","Time increment must either array or float type")
 
 		if self.t_lag >= len(self._X):
-			print('Warning : t_lag is greater that the length of data; setting t_lag as {}\n'.format(len(data[0]) - 1))
+			print('Warning : t_lag ({}) is greater that the length of data; setting t_lag as {}\n'.format(
+				self.t_lag,
+				len(self._data[0]) - 1))
 			self.t_lag = len(self._X) - 1
 		self.autocorrelation_time = self._get_autocorr_time(self._M_square)
 
