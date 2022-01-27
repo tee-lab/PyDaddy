@@ -86,7 +86,7 @@ class Visualize(Metrics):
             'timeseries1_legend2': '$M_{y}$',
             'timeseries2_title': '',
             'timeseries2_xlabel': 'Time Index',
-            'timeseries2_ylabel': '|M|',
+            'timeseries2_ylabel': '$|M|$',
 
             '2dhist1_title': '',
             '2dhist1_xlabel': '$M_{x}$',
@@ -97,7 +97,7 @@ class Visualize(Metrics):
             '2dhist2_ylabel': 'Frequency',
 
             '2dhist3_title': '',
-            '2dhist3_xlabel': '|M|',
+            '2dhist3_xlabel': '$|M|$',
             '2dhist3_ylabel': 'Frequency',
 
             '3dhist_title': '',
@@ -130,19 +130,14 @@ class Visualize(Metrics):
                 print("{} not a valid plot text key".format(k))
         text.update(plot_text)
         if vector:
-            Mx, My, driftX, driftY, diffX, diffY = data
-            M = np.sqrt(Mx ** 2 + My ** 2)
-            # fig, axs = plt.subplots(nrows=3, ncols=4,figsize=(15,12), dpi=150)
-            # plt.subplots_adjust(wspace= 0.5, hspace= 0.5)
+            # FIXME Pass driftXY in data
+            Mx, My, driftX, driftY, diffX, diffY, diffXY = data
+            # M = np.sqrt(Mx ** 2 + My ** 2)  # Not plotting |M| anymore.
+
             fig = plt.figure(constrained_layout=True, figsize=(15, 12), dpi=100)
-
-            # gs = axs[0, 0].get_gridspec()
             gs = gridspec.GridSpec(nrows=3, ncols=4, wspace=0.5, hspace=0.5, figure=fig)
-            # fig.set_constrained_layout_pads(w_pad=1, h_pad=5)
-            # remove the underlying axes
-            # for ax in axs.flatten():
-            #    ax.remove()
 
+            # Mx, My timeseries
             Mx_axis = fig.add_subplot(gs[0, 0:2])
             Mx_axis.plot(range(timeseries_start, timeseries_end), Mx[timeseries_start:timeseries_end],
                          label=text['timeseries1_legend1'])
@@ -162,21 +157,22 @@ class Visualize(Metrics):
             Mx_axis.legend(loc="best")
             Mx_axis.grid("on")
 
-            My_axis = fig.add_subplot(gs[1, 0:2])
-            My_axis.plot(range(timeseries_start, timeseries_end), M[timeseries_start:timeseries_end])
-            My_axis.set_yticks(np.linspace(min(M), max(M), n_ticks).round(2))
-            self._stylize_axes(My_axis,
-                               x_label=text['timeseries2_xlabel'],  # 'Time Index',
-                               y_label=text['timeseries2_ylabel'],  # '$|M|$',
-                               title=text['timeseries2_title'],  # '',
-                               tick_size=tick_size,
-                               title_size=title_size,
-                               label_size=label_size,
-                               label_pad=label_pad)
-            My_axis.minorticks_on()
-            My_axis.grid("on")
+            # |M| timeseries.
+            # My_axis = fig.add_subplot(gs[1, 0:2])
+            # My_axis.plot(range(timeseries_start, timeseries_end), M[timeseries_start:timeseries_end])
+            # My_axis.set_yticks(np.linspace(min(M), max(M), n_ticks).round(2))
+            # self._stylize_axes(My_axis,
+            #                    x_label=text['timeseries2_xlabel'],  # 'Time Index',
+            #                    y_label=text['timeseries2_ylabel'],  # '$|M|$',
+            #                    title=text['timeseries2_title'],  # '',
+            #                    tick_size=tick_size,
+            #                    title_size=title_size,
+            #                    label_size=label_size,
+            #                    label_pad=label_pad)
+            # My_axis.minorticks_on()
+            # My_axis.grid("on")
 
-            driftX_axis = fig.add_subplot(gs[2, 0], projection='3d')
+            driftX_axis = fig.add_subplot(gs[0, 2], projection='3d')
             _, driftX_axis = self._plot_data(driftX,
                                              ax=driftX_axis,
                                              title=text['driftx_title'],  # "Drift X",
@@ -188,7 +184,7 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
-            driftY_axis = fig.add_subplot(gs[2, 1], projection='3d')
+            driftY_axis = fig.add_subplot(gs[0, 3], projection='3d')
             _, driftY_axis = self._plot_data(driftY,
                                              ax=driftY_axis,
                                              title=text['drifty_title'],  # "Drift Y",
@@ -200,7 +196,7 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
-            diffX_axis = fig.add_subplot(gs[2, 2], projection='3d')
+            diffX_axis = fig.add_subplot(gs[1, 2], projection='3d')
             _, driffX_axis = self._plot_data(diffX,
                                              ax=diffX_axis,
                                              title=text['diffusionx_title'],  # "Diffusion X",
@@ -211,6 +207,31 @@ class Visualize(Metrics):
                                              title_size=title_size,
                                              label_size=label_size,
                                              label_pad=label_pad)
+
+            # FIXME Pass appropriate args and plot diffXY, diffYX
+            diffXY_axis = fig.add_subplot(gs[1, 3], projection='3d')
+            _, diffXY_axis = self._plot_data(diffXY,
+                                            ax=diffXY_axis,
+                                            title=text['diffusiony_title'],  # "Diffusion Y",
+                                            x_label=text['diffusiony_xlabel'],  # '$m_{x}$',
+                                            y_label=text['diffusiony_ylabel'],  # '$m_{y}$',
+                                            z_label=text['diffusiony_zlabel'],  # '$B_{22}$',
+                                            tick_size=tick_size,
+                                            title_size=title_size,
+                                            label_size=label_size,
+                                            label_pad=label_pad)
+
+            diffYX_axis = fig.add_subplot(gs[2, 2], projection='3d')
+            _, diffYX_axis = self._plot_data(diffXY,
+                                            ax=diffYX_axis,
+                                            title=text['diffusiony_title'],  # "Diffusion Y",
+                                            x_label=text['diffusiony_xlabel'],  # '$m_{x}$',
+                                            y_label=text['diffusiony_ylabel'],  # '$m_{y}$',
+                                            z_label=text['diffusiony_zlabel'],  # '$B_{22}$',
+                                            tick_size=tick_size,
+                                            title_size=title_size,
+                                            label_size=label_size,
+                                            label_pad=label_pad)
 
             diffY_axis = fig.add_subplot(gs[2, 3], projection='3d')
             _, diffY_axis = self._plot_data(diffY,
@@ -224,8 +245,10 @@ class Visualize(Metrics):
                                             label_size=label_size,
                                             label_pad=label_pad)
 
-            distMx_axis = fig.add_subplot(gs[0, 2])
-            distMx_axis = sns.distplot(Mx, kde=kde, ax=distMx_axis)
+            # Histogram of Mx
+            # FIXME Don't use histplot.
+            distMx_axis = fig.add_subplot(gs[2, 0])
+            distMx_axis = sns.distplot(Mx, kde=kde, ax=distMx_axis, norm_hist=True)
             ticks = [str(i) + "K" for i in (np.array(distMx_axis.get_yticks()) / 1000).round(1)]
             distMx_axis.set_yticklabels(ticks)
             self._stylize_axes(distMx_axis,
@@ -237,8 +260,10 @@ class Visualize(Metrics):
                                label_size=label_size,
                                label_pad=label_pad)
 
-            distMy_axis = fig.add_subplot(gs[0, 3])
-            distMy_axis = sns.distplot(My, kde=kde, ax=distMy_axis)
+            # Histogram of My
+            # FIXME Don't use histplot.
+            distMy_axis = fig.add_subplot(gs[2, 1])
+            distMy_axis = sns.distplot(My, kde=kde, ax=distMy_axis, norm_hist=True)
             ticks = [str(i) + "K" for i in (np.array(distMy_axis.get_yticks()) / 1000).round(1)]
             distMy_axis.set_yticklabels(ticks)
             self._stylize_axes(distMy_axis,
@@ -250,8 +275,9 @@ class Visualize(Metrics):
                                label_size=label_size,
                                label_pad=label_pad)
 
-            distM_axis = fig.add_subplot(gs[1, 2])
-            distM_axis = sns.distplot(np.sqrt(Mx ** 2 + My ** 2), kde=kde, ax=distM_axis)
+            # Histogram of |M|
+            distM_axis = fig.add_subplot(gs[1, 1])
+            distM_axis = sns.distplot(np.sqrt(Mx ** 2 + My ** 2), kde=kde, ax=distM_axis, norm_hist=True)
             ticks = [str(i) + "K" for i in (np.array(distM_axis.get_yticks()) / 1000).round(1)]
             distM_axis.set_yticklabels(ticks)
             self._stylize_axes(distM_axis,
@@ -263,101 +289,12 @@ class Visualize(Metrics):
                                label_size=label_size,
                                label_pad=label_pad)
 
-            pdf_axis = fig.add_subplot(gs[1, 3], projection='3d')
+            # Histogram of M
+            pdf_axis = fig.add_subplot(gs[1, 0], projection='3d')
             pdf_axis = self._plot_3d_hisogram(Mx, My, ax=pdf_axis, title='', title_size=title_size, tick_size=tick_size,
                                               label_size=label_size, label_pad=label_pad)
 
             # FIXME: Plot function fits.
-
-            """
-            fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 12))
-            #TimeSeries
-            if timeseries_end > len(Mx):
-                timeseries_end = len(Mx)
-
-            ax[0][0].plot(range(timeseries_start, timeseries_end),
-                          M[timeseries_start:timeseries_end])
-            ax[0][0].set_ylim(0, 1)
-            self._stylize_axes(ax[0][0],
-                              x_label='Time Index',
-                              y_label='|M|',
-                              title='Time Series',
-                              tick_size=tick_size,
-                              title_size=title_size,
-                              label_size=label_size,
-                              label_pad=label_pad)
-
-            #Dist Mx, My
-            ax[1][0].remove()
-            ax[1][0] = fig.add_subplot(2,3,4, projection='3d')
-            ax[1][0] = self._plot_3d_hisogram(Mx, My, ax=ax[1][0], title='Mx,My distrubition', title_size=title_size, tick_size=tick_size,label_size=label_size, label_pad=label_pad)
-
-            #sns.distplot(M, kde=kde, ax=ax[1][0])
-            #self._stylize_axes(ax[1][0],
-            #				  x_label='op',
-            #				  y_label='freq',
-            #				  title='Dist |M|',
-            #				  tick_size=tick_size,
-            #				  title_size=title_size,
-            #				  label_size=label_size,
-            #				  label_pad=label_pad)
-
-            #Drift X
-            ax[0][1].remove()
-            ax[0][1] = fig.add_subplot(2, 3, 2, projection='3d')
-            _, ax[0][1] = self._plot_data(driftX,
-                                         ax=ax[0][1],
-                                         title="Drift X",
-                                         x_label='$m_{x}$',
-                                         y_label='$m_{y}$',
-                                         z_label='$A_{1}$',
-                                         tick_size=tick_size,
-                                         title_size=title_size,
-                                         label_size=label_size,
-                                         label_pad=label_pad)
-
-            #Drift Y
-            ax[0][2].remove()
-            ax[0][2] = fig.add_subplot(2, 3, 3, projection='3d')
-            _, ax[0][2] = self._plot_data(driftY,
-                                         ax=ax[0][2],
-                                         title="Drift Y",
-                                         x_label='$m_{x}$',
-                                         y_label='$m_{y}$',
-                                         z_label='$A_{2}$',
-                                         tick_size=tick_size,
-                                         title_size=title_size,
-                                         label_size=label_size,
-                                         label_pad=label_pad)
-
-            #Diffusion X
-            ax[1][1].remove()
-            ax[1][1] = fig.add_subplot(2, 3, 5, projection='3d')
-            _, ax[1][1] = self._plot_data(diffX,
-                                         ax=ax[1][1],
-                                         title="Diffusion X",
-                                         x_label='$m_{x}$',
-                                         y_label='$m_{y}$',
-                                         z_label='$B_{11}$',
-                                         tick_size=tick_size,
-                                         title_size=title_size,
-                                         label_size=label_size,
-                                         label_pad=label_pad)
-
-            #Diffusion Y
-            ax[1][2].remove()
-            ax[1][2] = fig.add_subplot(2, 3, 6, projection='3d')
-            _, ax[1][2] = self._plot_data(diffY,
-                                         ax=ax[1][2],
-                                         title="Diffusion Y",
-                                         x_label='$m_{x}$',
-                                         y_label='$m_{y}$',
-                                         z_label='$B_{22}$',
-                                         tick_size=tick_size,
-                                         title_size=title_size,
-                                         label_size=label_size,
-                                         label_pad=label_pad)
-             """
 
         else:
             # Time Series

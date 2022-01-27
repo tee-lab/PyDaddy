@@ -132,7 +132,8 @@ class Output(Preprocessing, Visualize):
             path where data is exported
         """
 
-        #FIXME: Saving as one CSV with multiple columns may be more useful than many different files.
+        # FIXME: Major rewrites and optimizations may be possible.
+        # FIXME: Saving as one CSV with multiple columns may be more useful than many different files.
 
         if fname is None:
             fname = ''
@@ -144,11 +145,12 @@ class Output(Preprocessing, Visualize):
 
         if name == '':
             self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-            name = self._make_directory(os.path.join(base, 'pyddsde_exports', self.res_dir))
-            self.res_dir = os.path.join(os.getcwd(), name)
+            name = os.path.join(base, 'pyddsde_exports', self.res_dir)
+            os.makedirs(name, exist_ok=True)
         else:
             self.res_dir = name
-            name = self._make_directory(os.path.join(base, 'pyddsde_exports', self.res_dir))
+            os.path.join(base, 'pyddsde_exports', self.res_dir)
+            os.makedirs(name, exist_ok=True)
 
         data_dict = self._get_stacked_data()
         for key in data_dict:
@@ -811,7 +813,7 @@ class Output(Preprocessing, Visualize):
                 print(f'Diffusion (B22): {self.B22}')
                 print(f'Cross diffusion (B12, B21): {self.B21}')
             data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX,
-                    self._data_avgdiffY]
+                    self._data_avgdiffY, self._data_avgdiffXY]
 
         sys.stdout.flush()
         fig = self._plot_summary(data, self.vector, kde=kde, tick_size=tick_size, title_size=title_size,
