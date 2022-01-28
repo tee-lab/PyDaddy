@@ -123,7 +123,18 @@ class Visualize(Metrics):
             'diffusiony_title': 'Diffusion Y',
             'diffusiony_xlabel': '$m_{x}$',
             'diffusiony_ylabel': '$m_{y}$',
-            'diffusiony_zlabel': '$B_{22}$'
+            'diffusiony_zlabel': '$B_{22}$',
+
+            'diffusionxy_title': 'Diffusion XY',
+            'diffusionxy_xlabel': '$m_{x}$',
+            'diffusionxy_ylabel': '$m_{y}$',
+            'diffusionxy_zlabel': '$B_{12}$',
+
+            'diffusionyx_title': 'Diffusion YX',
+            'diffusionyx_xlabel': '$m_{x}$',
+            'diffusionyx_ylabel': '$m_{y}$',
+            'diffusionyx_zlabel': '$B_{21}$',
+
         }
         for k in plot_text.keys():
             if k not in text.keys():
@@ -212,10 +223,10 @@ class Visualize(Metrics):
             diffXY_axis = fig.add_subplot(gs[1, 3], projection='3d')
             _, diffXY_axis = self._plot_data(diffXY,
                                             ax=diffXY_axis,
-                                            title=text['diffusiony_title'],  # "Diffusion Y",
-                                            x_label=text['diffusiony_xlabel'],  # '$m_{x}$',
-                                            y_label=text['diffusiony_ylabel'],  # '$m_{y}$',
-                                            z_label=text['diffusiony_zlabel'],  # '$B_{22}$',
+                                            title=text['diffusionxy_title'],  # "Diffusion Y",
+                                            x_label=text['diffusionxy_xlabel'],  # '$m_{x}$',
+                                            y_label=text['diffusionxy_ylabel'],  # '$m_{y}$',
+                                            z_label=text['diffusionxy_zlabel'],  # '$B_{22}$',
                                             tick_size=tick_size,
                                             title_size=title_size,
                                             label_size=label_size,
@@ -224,10 +235,10 @@ class Visualize(Metrics):
             diffYX_axis = fig.add_subplot(gs[2, 2], projection='3d')
             _, diffYX_axis = self._plot_data(diffXY,
                                             ax=diffYX_axis,
-                                            title=text['diffusiony_title'],  # "Diffusion Y",
-                                            x_label=text['diffusiony_xlabel'],  # '$m_{x}$',
-                                            y_label=text['diffusiony_ylabel'],  # '$m_{y}$',
-                                            z_label=text['diffusiony_zlabel'],  # '$B_{22}$',
+                                            title=text['diffusionyx_title'],  # "Diffusion Y",
+                                            x_label=text['diffusionyx_xlabel'],  # '$m_{x}$',
+                                            y_label=text['diffusionyx_ylabel'],  # '$m_{y}$',
+                                            z_label=text['diffusionyx_zlabel'],  # '$B_{22}$',
                                             tick_size=tick_size,
                                             title_size=title_size,
                                             label_size=label_size,
