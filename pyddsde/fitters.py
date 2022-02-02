@@ -7,14 +7,55 @@ from sklearn.linear_model import ridge_regression
 from sklearn.model_selection import KFold
 
 
-class Poly2D:
-    """ A rudimentary 2D polynomial class. Returns polynomial objects that can be called or pretty-printed. """
+class Poly1D:
+    """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
+        Returns polynomial objects that can be called or pretty-printed. """
 
-    def __init__(self, coeffs, degree):
-        assert len(coeffs) == (degree + 1) * (degree + 2) / 2, \
-            f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
+    def __init__(self, coeffs, degree, stderr=None):
+        assert len(coeffs) == (degree + 1), \
+            f'For degree {degree}, number of coefficients mut be {(degree + 1)}'
+        assert not stderr or len(stderr) == len(coeffs), \
+            'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
         self.coeffs = np.array(coeffs)
         self.degree = degree
+        self.stderr = stderr
+
+    def __call__(self, x):
+        terms = np.array([x ** n for n in range(self.degree + 1)])
+        terms_with_coeffs = self.coeffs * np.moveaxis(terms, 0, -1)
+        return terms_with_coeffs.sum(axis=-1)
+
+    def __str__(self):
+        def term(n):
+            if n == 0: return ''
+            if n == 1: return 'x'
+            return f'x^{n}'
+
+        terms = [term(n) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
+        if self.stderr:
+            terms_with_coeffs = [f'({c:.3f} ± {e:.3f}){t}' for (c, e, t) in zip(self.coeffs, self.stderr, terms) if
+                                 c != 0]
+        else:
+            terms_with_coeffs = [f'{c:.3f}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+
+        if terms_with_coeffs:
+            return ' + '.join(terms_with_coeffs)
+        else:
+            return '0'
+
+
+class Poly2D:
+    """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
+        Returns polynomial objects that can be called or pretty-printed. """
+
+    def __init__(self, coeffs, degree, stderr=None):
+        assert len(coeffs) == (degree + 1) * (degree + 2) / 2, \
+            f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
+        assert not stderr or len(stderr) == len(coeffs), \
+            'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
+        self.coeffs = np.array(coeffs)
+        self.degree = degree
+        self.stderr = stderr
 
     def __call__(self, x, y):
         # x = np.array(x)
@@ -47,7 +88,11 @@ class Poly2D:
             return xterm + yterm
 
         terms = [term(n, m) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
-        terms_with_coeffs = [f'{c}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+        if self.stderr:
+            terms_with_coeffs = [f'({c:.3f} ± {e:.3f}){t}' for (c, e, t) in zip(self.coeffs, self.stderr, terms) if c != 0]
+        else:
+            terms_with_coeffs = [f'{c:.3f}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+
         if terms_with_coeffs:
             return ' + '.join(terms_with_coeffs)
         else:
