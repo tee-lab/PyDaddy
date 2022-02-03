@@ -14,7 +14,7 @@ class Poly1D:
     def __init__(self, coeffs, degree, stderr=None):
         assert len(coeffs) == (degree + 1), \
             f'For degree {degree}, number of coefficients mut be {(degree + 1)}'
-        assert not stderr or len(stderr) == len(coeffs), \
+        assert (stderr is None) or len(stderr) == len(coeffs), \
             'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
         self.coeffs = np.array(coeffs)
         self.degree = degree
@@ -35,7 +35,7 @@ class Poly1D:
             return f'x^{n}'
 
         terms = [term(n) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
-        if self.stderr:
+        if self.stderr is not None:
             terms_with_coeffs = [f'({c:.3f} ± {e:.3f}){t}' for (c, e, t) in zip(self.coeffs, self.stderr, terms) if
                                  c != 0]
         else:
@@ -54,7 +54,7 @@ class Poly2D:
     def __init__(self, coeffs, degree, stderr=None):
         assert len(coeffs) == (degree + 1) * (degree + 2) / 2, \
             f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
-        assert not stderr or len(stderr) == len(coeffs), \
+        assert (stderr is None) or len(stderr) == len(coeffs), \
             'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
         self.coeffs = np.array(coeffs)
         self.degree = degree
@@ -97,7 +97,7 @@ class Poly2D:
             return xterm + yterm
 
         terms = [term(n, m) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
-        if self.stderr:
+        if self.stderr is not None:
             terms_with_coeffs = [f'({c:.3f} ± {e:.3f}){t}' for (c, e, t) in zip(self.coeffs, self.stderr, terms) if
                                  c != 0]
         else:
@@ -160,12 +160,19 @@ class PolyFitBase:
             keep = (np.abs(coeffs) > self.threshold)
             coeffs[~keep] = 0
 
-        # Compute errors in coefficients:
+        # Compute errors in coefficients
+        N = y.shape[0]  # Number of samples
+        p = keep.sum()  # Number of nonzero terms
+        yhat = dictionary @ coeffs
+        rsos = (y - yhat).T @ (y - yhat)
+        sigma_2 = rsos / (N - p)
+        var_coeff = np.linalg.inv(dictionary.T @ dictionary) * sigma_2
+        stderr = np.sqrt(np.diagonal(var_coeff))
 
         if ispoly:
-            return self._get_callable_poly(coeffs)
+            return self._get_callable_poly(coeffs, stderr)
         else:
-            return coeffs
+            return coeffs, stderr
 
     def model_selection(self, thresholds, x, y, weights=None, method='cv', plot=False):
         """ Automatically choose the best threshold using BIC.
@@ -263,7 +270,7 @@ class PolyFitBase:
     def _get_poly_dictionary(self, x):
         raise NotImplementedError
 
-    def _get_callable_poly(self, coeffs):
+    def _get_callable_poly(self, coeffs, stderr):
         raise NotImplementedError
 
     def _get_coeffs(self):
@@ -292,7 +299,7 @@ class PolyFit1D(PolyFitBase):
 
     def _get_callable_poly(self, coeffs, stderr):
         """ Construct a callable polynomial from a given coefficient array. """
-        return Poly1D(coeffs, self.max_degree, stderr)  # return np.poly1d(np.flipud(coeffs))
+        return Poly1D(coeffs=coeffs, degree=self.max_degree, stderr=stderr)  # return np.poly1d(np.flipud(coeffs))
 
     def _get_coeffs(self):
         return np.zeros(self.max_degree + 1)
@@ -312,7 +319,7 @@ class PolyFit2D(PolyFitBase):
                          for n in range(self.max_degree - m + 1)]).T
 
     def _get_callable_poly(self, coeffs, stderr):
-        return Poly2D(coeffs, self.max_degree, stderr)
+        return Poly2D(coeffs=coeffs, degree=self.max_degree, stderr=stderr)
 
     def _get_coeffs(self):
         return np.zeros(int((self.max_degree + 1) * (self.max_degree + 2) / 2))
