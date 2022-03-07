@@ -294,10 +294,10 @@ class SDE:
         X = X[0 : -max(Dt, dt)]
         for b in op:
             i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
-            avgdiff.append(diff[i].mean())
-            avgdrift.append(drift[i].mean())
-            drift_ebar.append(drift[i].std()/np.sqrt(len(drift[i])))
-            diff_ebar.append(diff[i].std()/np.sqrt(len(diff[i])))
+            avgdiff.append(np.nanmean(diff[i]))
+            avgdrift.append(np.nanmean(drift[i]))
+            drift_ebar.append(np.nanstd(drift[i])/np.sqrt(len(drift[i])))
+            diff_ebar.append(np.nanstd(diff[i])/np.sqrt(len(diff[i])))
             drift_num.append(len(drift[i]))
             diff_num.append(len(diff[i]))
         # return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num, F, G
