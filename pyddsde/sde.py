@@ -247,7 +247,8 @@ class SDE:
         diff_threshold : float or None
                 threshold to use for fitting diffusion function. If None, automatic model selection will be used.
         Returns
-        -------
+        ----
+        ---
         diff : array
             diffusion of the data
         drift : array.
@@ -264,18 +265,24 @@ class SDE:
         drift = self._drift(X, t_int, Dt)
 
         if not fast_mode:
+            X_ = X[:-Dt]
+            nan_idx = np.isnan(X_) | np.isnan(drift)
+            X_ = X_[~nan_idx]
+            drift_ = drift[~nan_idx]
+
             fitter = PolyFit1D(max_degree=drift_degree, threshold=drift_threshold, alpha=drift_alpha)
             if drift_threshold is None:
-                F = fitter.tune_and_fit(X[:-Dt], drift)
+                F = fitter.tune_and_fit(X_, drift_)
             else:
-                F = fitter.fit(X[:-Dt], drift)
+                F = fitter.fit(X[:-Dt], drift_)
 
             diff = self._diffusion_from_residual(X, F, t_int, dt=dt)
+            diff_ = diff[~nan_idx]
             fitter = PolyFit1D(max_degree=diff_degree, threshold=diff_threshold, alpha=diff_alpha)
             if diff_threshold is None:
-                G = fitter.tune_and_fit(X[:-dt], diff)
+                G = fitter.tune_and_fit(X_, diff_)
             else:
-                G = fitter.fit(X[:-dt], diff)
+                G = fitter.fit(X_, diff_)
         else:
             diff = self._diffusion(X, t_int, dt=dt)
             F = G = None
@@ -339,12 +346,12 @@ class SDE:
 
         v = np.stack((x[:-Dt], y[:-Dt]), axis=1)
 
-        nan_idx = np.isnan(v).any(axis=1) | np.isnan(driftX) | np.isnan(driftY)
-        v = v[~nan_idx]
-        driftX_ = driftX[~nan_idx]
-        driftY_ = driftY[~nan_idx]
-
         if not fast_mode:
+            nan_idx = np.isnan(v).any(axis=1) | np.isnan(driftX) | np.isnan(driftY)
+            v = v[~nan_idx]
+            driftX_ = driftX[~nan_idx]
+            driftY_ = driftY[~nan_idx]
+
             fitter = PolyFit2D(max_degree=drift_degree, threshold=drift_threshold, alpha=drift_alpha)
             if drift_threshold is None:
                 A1 = fitter.tune_and_fit(v, driftX_)
