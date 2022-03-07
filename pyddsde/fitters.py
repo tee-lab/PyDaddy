@@ -7,14 +7,58 @@ from sklearn.linear_model import ridge_regression
 from sklearn.model_selection import KFold
 
 
-class Poly2D:
-    """ A rudimentary 2D polynomial class. Returns polynomial objects that can be called or pretty-printed. """
+class Poly1D:
+    """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
+        Returns polynomial objects that can be called or pretty-printed. """
 
-    def __init__(self, coeffs, degree):
-        assert len(coeffs) == (degree + 1) * (degree + 2) / 2, \
-            f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
+    def __init__(self, coeffs, degree, stderr=None):
+        assert len(coeffs) == (degree + 1), \
+            f'For degree {degree}, number of coefficients mut be {(degree + 1)}'
+        assert (stderr is None) or len(stderr) == len(coeffs), \
+            'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
         self.coeffs = np.array(coeffs)
         self.degree = degree
+        self.stderr = stderr
+
+    def __call__(self, x):
+        terms = np.array([x ** n for n in range(self.degree + 1)])
+        terms_with_coeffs = self.coeffs * np.moveaxis(terms, 0, -1)
+        return terms_with_coeffs.sum(axis=-1)
+
+    def __array__(self):
+        return self.coeffs
+
+    def __str__(self):
+        def term(n):
+            if n == 0: return ''
+            if n == 1: return 'x'
+            return f'x^{n}'
+
+        terms = [term(n) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
+        if self.stderr is not None:
+            terms_with_coeffs = [f'({c:.3f} ± {e:.3f}){t}' for (c, e, t) in zip(self.coeffs, self.stderr, terms) if
+                                 c != 0]
+        else:
+            terms_with_coeffs = [f'{c:.3f}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+
+        if terms_with_coeffs:
+            return ' + '.join(terms_with_coeffs)
+        else:
+            return '0'
+
+
+class Poly2D:
+    """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
+        Returns polynomial objects that can be called or pretty-printed. """
+
+    def __init__(self, coeffs, degree, stderr=None):
+        assert len(coeffs) == (degree + 1) * (degree + 2) / 2, \
+            f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
+        assert (stderr is None) or len(stderr) == len(coeffs), \
+            'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
+        self.coeffs = np.array(coeffs)
+        self.degree = degree
+        self.stderr = stderr
 
     def __call__(self, x, y):
         # x = np.array(x)
@@ -36,18 +80,29 @@ class Poly2D:
 
     def __str__(self):
         def term(m, n):
-            if m == 0: xterm = ''
-            elif m == 1: xterm = 'x'
-            else: xterm = f'x^{m}'
+            if m == 0:
+                xterm = ''
+            elif m == 1:
+                xterm = 'x'
+            else:
+                xterm = f'x^{m}'
 
-            if n == 0: yterm = ''
-            elif n == 1: yterm = 'y'
-            else: yterm = f'y^{n}'
+            if n == 0:
+                yterm = ''
+            elif n == 1:
+                yterm = 'y'
+            else:
+                yterm = f'y^{n}'
 
             return xterm + yterm
 
         terms = [term(n, m) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
-        terms_with_coeffs = [f'{c}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+        if self.stderr is not None:
+            terms_with_coeffs = [f'({c:.3f} ± {e:.3f}){t}' for (c, e, t) in zip(self.coeffs, self.stderr, terms) if
+                                 c != 0]
+        else:
+            terms_with_coeffs = [f'{c:.3f}{t}' for (c, t) in zip(self.coeffs, terms) if c != 0]
+
         if terms_with_coeffs:
             return ' + '.join(terms_with_coeffs)
         else:
@@ -104,70 +159,20 @@ class PolyFitBase:
             coeffs[keep] = coeffs_
             keep = (np.abs(coeffs) > self.threshold)
             coeffs[~keep] = 0
-        if ispoly:
-            return self._get_callable_poly(coeffs)
-        else:
-            return coeffs
 
-    def fit_ssr(self, x, y, weights=None, plot=True, model_selection='cv'):
-        """ Fit a polynomial using sparse regression using STLSQ (Sequentially thresholded least-squares)
-        Parameters:
-            x (np.array or list): Independent variable. Could either be an array (for 1D case) or
-                a list of two arrays (for 2D case).
-            y (np.array): Dependent variable
-            weights (np.array): Sample weights for regression.
-                If None (default), simple unweighted ridge regression will be performed.
-            model_selection: ('bic' or 'cv') Method for model-selection
-        Returns:
-            np.poly1d object for 1D case, Poly2D object for 2D case.
-        """
-
-        assert model_selection in ['bic', 'cv'], "Parameter 'model_selection' should be 'bic' or 'cv'."
-
-        if self.library:
-            dictionary = np.vstack([f(x) for f in self.library]).T
-            coeffs = np.zeros(len(self.library))
-            keep = np.ones_like(coeffs, dtype=np.bool)
-            ispoly = False
-        else:  # Default polynomial dictionary
-            dictionary = self._get_poly_dictionary(x)
-            coeffs = self._get_coeffs()
-            keep = np.ones_like(coeffs, dtype=np.bool)
-            ispoly = True
-
-        metrics = []
-        best_metric = np.inf
-        for it in range(len(coeffs)):
-            coeffs_ = ridge_regression(dictionary[:, keep], y, alpha=self.alpha, sample_weight=weights)
-            coeffs[keep] = coeffs_
-            if model_selection == 'cv':
-                metric = self._get_cv_error_2(keep, x, y, dictionary, folds=5)
-            else:
-                metric = self._get_bic(coeffs, x, y)
-            print(f'Iteration: {it}, Best Metric: {best_metric}, Metric: {metric}, Coeffs: {coeffs}')
-            metrics.append(metric)
-
-            if metric <= best_metric + 0.05:
-                best_model = coeffs.copy()
-            if metric <= best_metric:
-                best_metric = metric
-
-            keep[np.abs(coeffs) == np.min(np.abs(coeffs_))] = False
-            coeffs[~keep] = 0
-
-            # print(f'Best BIC: {best_bic}, Best coeffs: {best_model}')
-
-        if plot:
-            fig, ax = plt.subplots(figsize=(7, 7))
-            ax.plot(metrics)
-            ylabel = {'cv': 'CV Error', 'bic': 'BIC'}
-            ax.set(xlabel='Iteration', ylabel=ylabel[model_selection])
-            plt.show()
+        # Compute errors in coefficients
+        N = y.shape[0]  # Number of samples
+        p = keep.sum()  # Number of nonzero terms
+        yhat = dictionary @ coeffs
+        rsos = (y - yhat).T @ (y - yhat)
+        sigma_2 = rsos / (N - p)
+        var_coeff = np.linalg.inv(dictionary.T @ dictionary) * sigma_2
+        stderr = np.sqrt(np.diagonal(var_coeff))
 
         if ispoly:
-            return self._get_callable_poly(best_model)
+            return self._get_callable_poly(coeffs, stderr)
         else:
-            return best_model  # FIXME Return callable function?
+            return coeffs, stderr
 
     def model_selection(self, thresholds, x, y, weights=None, method='cv', plot=False):
         """ Automatically choose the best threshold using BIC.
@@ -241,26 +246,6 @@ class PolyFitBase:
         self.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
         return self.fit(x, y)
 
-    def _get_cv_error_2(self, keep, x, y, dictionary, folds):
-        """
-        Parameters:
-            keep: Bit-vector denoting which coefficients to keep
-        """
-        kf = KFold(n_splits=folds, shuffle=False)
-        cv_errors = []
-        coeffs = np.zeros_like(keep)
-        for train, test in kf.split(x, y):
-            # Fit on train data
-            coeffs_ = ridge_regression(dictionary[train][:, keep], y[train], alpha=self.alpha)
-            coeffs[keep] = coeffs_
-            coeffs[~keep] = 0
-
-            # Evaluate on held-out test-data
-            mse = np.mean((y[test] - self._evaluate(coeffs, x[test])) ** 2)
-            cv_errors.append(mse)
-
-        return np.mean(cv_errors)
-
     def _get_cv_error(self, x, y, folds):
         kf = KFold(n_splits=folds, shuffle=False)
         cv_errors = []
@@ -276,7 +261,7 @@ class PolyFitBase:
 
         dof = np.count_nonzero(p)  # Degrees of freedom
         n_samples = len(y)
-        mse = np.mean((y - self._evaluate(p, x)) ** 2)#np.mean(y ** 2)  # Normalized mean-squared error
+        mse = np.mean((y - self._evaluate(p, x)) ** 2)  # np.mean(y ** 2)  # Normalized mean-squared error
         # bic = np.log(n_samples) * dof + n_samples * np.log(mse / n_samples)
         # print(f'dof: {dof}, n_samples: {n_samples}, mse: {mse}, bic: {bic}')
         bic = 2 * dof + n_samples * np.log(mse / n_samples)
@@ -285,14 +270,11 @@ class PolyFitBase:
     def _get_poly_dictionary(self, x):
         raise NotImplementedError
 
-    def _get_callable_poly(self, coeffs):
+    def _get_callable_poly(self, coeffs, stderr):
         raise NotImplementedError
 
     def _get_coeffs(self):
         raise NotImplementedError
-
-    # def _get_cv_splits(self, x, y):
-    #     raise NotImplementedError
 
     def _evaluate(self, c, x):
         if self.library:  # Fitting with custom library
@@ -315,9 +297,9 @@ class PolyFit1D(PolyFitBase):
     def _get_poly_dictionary(self, x):
         return np.array([x ** d for d in range(self.max_degree + 1)]).T
 
-    def _get_callable_poly(self, coeffs):
+    def _get_callable_poly(self, coeffs, stderr):
         """ Construct a callable polynomial from a given coefficient array. """
-        return np.poly1d(np.flipud(coeffs))
+        return Poly1D(coeffs=coeffs, degree=self.max_degree, stderr=stderr)  # return np.poly1d(np.flipud(coeffs))
 
     def _get_coeffs(self):
         return np.zeros(self.max_degree + 1)
@@ -336,8 +318,8 @@ class PolyFit2D(PolyFitBase):
                          for m in range(self.max_degree + 1)
                          for n in range(self.max_degree - m + 1)]).T
 
-    def _get_callable_poly(self, coeffs):
-        return Poly2D(coeffs, self.max_degree)
+    def _get_callable_poly(self, coeffs, stderr):
+        return Poly2D(coeffs=coeffs, degree=self.max_degree, stderr=stderr)
 
     def _get_coeffs(self):
         return np.zeros(int((self.max_degree + 1) * (self.max_degree + 2) / 2))
