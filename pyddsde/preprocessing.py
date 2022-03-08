@@ -247,25 +247,25 @@ class Preprocessing(GaussianTest):
 
 		if not self._isValidRange(self.op_range):
 			if self.op_range is None:
-				self.op_range = (min(self._X), max(self._X))
+				self.op_range = (np.nanmin(self._X), np.nanmax(self._X))
 			else:
 				print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-				self.op_range = (min(self._X), max(self._X))
+				self.op_range = (np.nanmin(self._X), np.nanmax(self._X))
 
 		if self.vector:
 			if not self._isValidRange(self.op_x_range):
 				if self.op_x_range is None:
-					self.op_x_range = (min(self._Mx), max(self._Mx))
+					self.op_x_range = (np.nanmin(self._Mx), np.nanmax(self._Mx))
 				else:
 					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-					self.op_x_range = (min(self._Mx), max(self._Mx))
+					self.op_x_range = (np.nanmin(self._Mx), np.nanmax(self._Mx))
 
 			if not self._isValidRange(self.op_y_range):
 				if self.op_y_range is None:
-					self.op_y_range = (min(self._My), max(self._My))
+					self.op_y_range = (np.nanmin(self._My), np.nanmax(self._My))
 				else:
 					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-					self.op_y_range = (min(self._My), max(self._My))
+					self.op_y_range = (np.nanmin(self._My), np.nanmax(self._My))
 
 
 		if self.bins:

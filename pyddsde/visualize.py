@@ -155,7 +155,7 @@ class Visualize(Metrics):
             Mx_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end], color='red',
                          label=text['timeseries1_legend2'])
             # Mx_axis.set_xticks([])
-            Mx_axis.set_yticks(np.linspace(min(min(Mx), min(My)), max(max(Mx), max(My)), n_ticks).round(2))
+            Mx_axis.set_yticks(np.linspace(min(np.nanmin(Mx), np.nanmin(My)), max(np.nanmax(Mx), np.nanmax(My)), n_ticks).round(2))
             self._stylize_axes(Mx_axis,
                                x_label=text['timeseries1_xlabel'],  # '',
                                y_label=text['timeseries1_ylabel'],  # '$M_{x}, M_{y}$',
@@ -219,7 +219,7 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
-            # FIXME Pass appropriate args and plot diffXY, diffYX
+            # # FIXME Pass appropriate args and plot diffXY, diffYX
             diffXY_axis = fig.add_subplot(gs[1, 3], projection='3d')
             _, diffXY_axis = self._plot_data(diffXY,
                                             ax=diffXY_axis,
@@ -723,8 +723,8 @@ class Visualize(Metrics):
         ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
         ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
         # Set ticks lable and its fontsize
-        ax.set_xticks(np.linspace(round(min(Mx), 2), round(max(Mx), 2), 3))
-        ax.set_yticks(np.linspace(round(min(My), 2), round(max(My), 2), 3))
+        ax.set_xticks(np.linspace(round(np.nanmin(Mx), 2), round(np.nanmax(Mx), 2), 3))
+        ax.set_yticks(np.linspace(round(np.nanmin(My), 2), round(np.nanmax(My), 2), 3))
         ax.set_title(title, fontsize=title_size)
         ticks = [str(i) + "K" for i in (np.array(ax.get_zticks()) / 1000).round(1)]
         ax.set_zticklabels(ticks)
