@@ -34,25 +34,13 @@ class Output(Preprocessing, Visualize):
         self.op_x_range = ddsde.op_x_range
         self.op_y_range = ddsde.op_y_range
 
-        # self.fit = ddsde.fit
-        # self.fast_mode = ddsde.fast_mode
+        self.fit = ddsde.fit
+        self.fast_mode = ddsde.fast_mode
 
         if not self.vector:
             self._data_X = ddsde._X
             self._data_t = ddsde._t
-            # self._data_drift = ddsde._drift_
-            # self._data_diff = ddsde._diff_
-            self._data_avgdrift = ddsde._avgdrift_
-            self._data_avgdiff = ddsde._avgdiff_
-            self._data_drift_ebar = ddsde._drift_ebar
-            self._data_diff_ebar = ddsde._diff_ebar
-            self._data_drift_num = ddsde._drift_num
-            self._data_diff_num = ddsde._diff_num
-            self._data_drift_nums = ddsde._scalar_drift_nums
-            self._data_diff_nums = ddsde._scalar_diff_nums
             self._data_op = ddsde._op_
-            self.F = ddsde.F
-            self.G = ddsde.G
 
             # self.drift_order = ddsde.drift_order
             # self.diff_order = ddsde.diff_order
@@ -63,21 +51,9 @@ class Output(Preprocessing, Visualize):
             self._data_Mx = ddsde._Mx
             self._data_My = ddsde._My
             self._data_M = np.sqrt(self._data_Mx ** 2 + self._data_My ** 2)
-            self._data_avgdriftX = ddsde._avgdriftX_
-            self._data_avgdriftY = ddsde._avgdriftY_
-            self._data_avgdiffX = ddsde._avgdiffX_
-            self._data_avgdiffY = ddsde._avgdiffY_
-            self._data_avgdiffXY = ddsde._avgdiffXY_
-            self._data_avgdiffYX = ddsde._avgdiffYX_
             self._data_op_x = ddsde._op_x_
             self._data_op_y = ddsde._op_y_
 
-            self.A1 = ddsde.A1
-            self.A2 = ddsde.A2
-            self.B11 = ddsde.B11
-            self.B22 = ddsde.B22
-            self.B12 = ddsde.B12
-            self.B21 = ddsde.B21
             # FIXME: B12 = B21, no need to keep both.
 
             # self._drift_slider = ddsde._drift_slider
@@ -97,8 +73,82 @@ class Output(Preprocessing, Visualize):
         Preprocessing.__init__(self)
 
         if ddsde._show_summary:
-            return self.summary(ret_fig=False)
-        return None
+            self.summary(ret_fig=False)
+
+    # The following attributes of ddsde may change during runtime (e.g. when fit() is called).
+    # Defining them as property getters ensures that we always have the up-to-date value.
+
+    @property
+    def _data_avgdrift(self):
+        return self._ddsde._avgdrift_
+
+    @property
+    def _data_avgdiff(self):
+        return self._ddsde._avgdiff_
+
+    @property
+    def _data_drift_ebar(self):
+        return self._ddsde._drift_ebar
+
+    @property
+    def _data_diff_ebar(self):
+        return self._ddsde._diff_ebar
+
+    @property
+    def _data_avgdriftX(self):
+        return self._ddsde._avgdriftX_
+
+    @property
+    def _data_avgdriftY(self):
+        return self._ddsde._avgdriftY_
+
+    @property
+    def _data_avgdiffX(self):
+        return self._ddsde._avgdiffX_
+
+    @property
+    def _data_avgdiffY(self):
+        return self._ddsde._avgdiffY_
+
+    @property
+    def _data_avgdiffXY(self):
+        return self._ddsde._avgdiffXY_
+
+    @property
+    def _data_avgdiffYX(self):
+        return self._ddsde._avgdiffYX_
+
+    @property
+    def F(self):
+        return self._ddsde.F
+
+    @property
+    def G(self):
+        return self._ddsde.G
+
+    @property
+    def A1(self):
+        return self._ddsde.A1
+
+    @property
+    def A2(self):
+        return self._ddsde.A2
+
+    @property
+    def B11(self):
+        return self._ddsde.B11
+
+    @property
+    def B22(self):
+        return self._ddsde.B22
+
+    @property
+    def B12(self):
+        return self._ddsde.B12
+
+    @property
+    def B21(self):
+        return self._ddsde.B21
 
     def release(self):
         """
@@ -202,110 +252,6 @@ class Output(Preprocessing, Visualize):
     #	b_a = np.sum(np.where((a != 0)&(b != 0), b * np.log(b / a), 0))
     #	return (a_b + b_a)/2
 
-    def derive_functions(self, drift_order, diff_order, t_inc=None, T=None, m0=None, Dt='default', dt=1):
-        """
-        Simulated to optimize the best fitting functional forms for the derrived drift and diffusion
-        coefficients.
-
-        Args
-        ----
-        drift_order : int
-            order of the drift coefficient observed
-        diff_order : int
-            order of the diffusion coefficient observed
-        t_inc : float (or None)
-            time increment for the SDE integration, if None
-            time_increment will be taken as 1/autocorrelation time or
-            the observed (input) timeseries
-        T : int (or None)
-            total time units of simulation, if None,
-            T will be taken as the fraction of  total time units of
-            observed (input) data and its autocorrealtion time.
-        m0 : float (or None)
-            initial state of the SDE, if None, then m0 will be the first
-            value of the input data
-        Dt : list or 'default', 'all'
-            list of drift timescales for to simulate reconstructed SDE and compare
-            it with the observed data.
-
-            If 'default', Dt = range(1, autocorrealtion_time+1, 10)
-
-            if 'all', Dt will include all timescales for which the drift and
-            diffusion coefficients are derrived.
-        dt : int, (default = 1)
-            diffusion time scale
-
-        Returns
-        -------
-        opt_F : callable
-            drift polynomila function of the given order, and the timescale for which the simulated
-            SDE's PDF was in close match with that of the observed.
-        opt_G : callable
-            diffusion polynomial function of the given order and timescale `dt`.
-
-        Note
-        ----
-        If the Dt set contains, timescale values for which the drift and diffusion
-        coefficents have not been derrived, then such timescale values will be ignored.
-
-        In other words, Dt set must be a subset of the set containing the slider timescales.
-
-        """
-
-        if self.vector:
-            print("Feature not implemented for vector data")
-            return None
-
-        if Dt == 'default':
-            start, stop, n_steps = 1, self._ddsde.autocorrelation_time, 10
-            Dt = set(np.linspace(1, self._ddsde.autocorrelation_time, 10, dtype=np.int))
-            Dt = Dt.intersection(set(self._ddsde._avaiable_timescales))
-        elif Dt == 'all':
-            Dt = list(self._ddsde._avaiable_timescales)
-        else:
-            Dt = set(Dt)
-            Dt = Dt.intersection(set(self._ddsde._avaiable_timescales))
-        Dt = sorted(list(Dt))
-
-        if t_inc is None:
-            t_inc = 1 / self._ddsde.autocorrelation_time
-        if T is None:
-            T = int(np.ceil(len(self._data_X) / self._ddsde.autocorrelation_time))
-        t_span = np.arange(0, T, t_inc)
-
-        pbar = tqdm.tqdm(total=len(Dt))
-        _g = self.fit("G", order=diff_order, diff_time_scale=dt)
-        G = lambda x, t: _g(x)
-        m0 = self._data_X[0]
-        M = []
-        for i in Dt:
-            _f = self.fit("F", order=drift_order, drift_time_scale=i)
-            F = lambda x, t: _f(x)
-            n = sdeint.itoEuler(F, G, m0, t_span)
-            M.append(n.flatten())
-            pbar.update(1)
-        pbar.close()
-
-        M = np.array(M)
-        divergence_list = []
-        p = self._data_X.copy()
-        for q in M:
-            divergence_list.append(self._divergence(p, q))
-        divergence_list = np.array(divergence_list)
-        opt_Dt = divergence_list.argmin() + 1
-
-        fig = plt.figure(dpi=300)
-        plt.plot(list(Dt), divergence_list)
-        plt.xlabel('Dt')
-        plt.ylabel('KL Divergence')
-        plt.show()
-        print("optimium time scale Dt : {}".format(opt_Dt))
-        opt_F = self.fit('F', order=drift_order, drift_time_scale=opt_Dt)
-        opt_G = self.fit('G', order=diff_order, diff_time_scale=dt)
-        print(opt_F)
-        print(opt_G)
-        return opt_F, opt_G, M
-
     def plot_data(self,
                   data_in,
                   ax=None,
@@ -403,94 +349,6 @@ class Output(Preprocessing, Visualize):
                 params[keys] = str(self._ddsde.__dict__[keys])
         return params
 
-    def fit__old(self, function_name, order, threshold=0.05, drift_time_scale=None, diff_time_scale=None, alpha=0,
-                 weighted=True):
-        """
-		Fit a polynomial or plane to the derrived data
-
-		Args
-		----
-		function_name : str
-			name of the function
-
-			For scalar
-			F : drift
-			G : diffusion
-
-			For Vector
-			A1 : driftX
-			A2 : driftY
-			B11 : diffusionX
-			B22 : diffusionY
-			B12 : diffusionXY
-			B21 : diffusionYx
-		order : int
-			order (degree) of the polynomial or plane to fit
-		threshold: Sparsification threshold. In the returned polynomial, all coefficients will be above this threshold.
-		alpha: Regularization parameter for ridge-regression.
-		weighted: Whether to use weighted regression to fit
-
-		Returns
-		-------
-		func : poly or plane
-			a callable function
-			y = poly(x)
-			z = plane(x,y)
-
-		Note
-		----
-			Plane fitting is yet to be implemented
-		"""
-        fmap = {
-            'F': 'drift',
-            'G': 'diff',
-            'Gsquare': 'diff',
-            'A1': 'driftX',
-            'A2': 'driftY',
-            'B11': 'diffX',
-            'B12': 'diffXY',
-            'B21': 'diffYX',
-            'B22': 'diffY'
-        }
-        if function_name not in fmap.keys():
-            print("Invalid function name")
-            return None
-
-        if self.vector:
-            if function_name not in list(fmap.keys())[3:]:
-                print("Invalid function name for vector analysis")
-                return None
-            data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
-
-            x, y = np.meshgrid(data['op_x'], data['op_y'])
-            z = data[fmap[function_name]]
-            plane = self._fit_plane(x=x, y=y, z=z, order=order)
-            return plane
-
-        if function_name not in list(fmap.keys())[:3]:
-            print("Invalid function name for scalar analysis")
-            return None
-
-        data = self.data(drift_time_scale=drift_time_scale, diff_time_scale=diff_time_scale)._asdict()
-        if function_name in ['G']:
-            y = np.sqrt(data[fmap[function_name]])
-            y_num = data[fmap[function_name] + '_num']  # Number of samples for each y
-        else:
-            y = data[fmap[function_name]]
-            y_num = data[fmap[function_name] + '_num']
-        # poly, _ = self._fit_poly(data['op'], y, order)
-        # print(poly)
-        # print(y)
-        if weighted:
-            weights = y_num
-        # weights = 1 / yvar
-        # weights[np.isinf(weights)] = 0
-        # weights[np.isnan(weights)] = 0
-        else:
-            weights = None
-        poly, _ = self._fit_poly_sparse(data['op'], y, order, threshold=threshold, alpha=alpha, weights=weights)
-        return poly
-
     def simulate(self, sigma=4, dt=None, T=None, **functions):
         """
 		Simulate SDE
@@ -566,7 +424,7 @@ class Output(Preprocessing, Visualize):
 
 		def diffusion_yx(x,y):
 			rerutn 0
-		
+
 		simulated_data = ddsde.simulate(A1=drift_x,
 						A2=drift_y,
 						B11=diffusion_x,
@@ -865,7 +723,7 @@ class Output(Preprocessing, Visualize):
 			plots' title and axis texts
 
 			For scalar analysis plot:
-				timeseries_title : title 
+				timeseries_title : title
 
 				timeseries_xlabel : x label
 
@@ -1209,10 +1067,10 @@ class Output(Preprocessing, Visualize):
                                       label_size=14,
                                       title_size=16)
             """
-			fig5_1, _ = self._plot_data(self._data_avgdriftX,
-										title='DriftX_heatmap',
-										heatmap=True)
-			"""
+            fig5_1, _ = self._plot_data(self._data_avgdriftX,
+                                        title='DriftX_heatmap',
+                                        heatmap=True)
+            """
 
             fig4, _ = self._plot_data(driftY,
                                       plot_plane=False,
@@ -1222,10 +1080,10 @@ class Output(Preprocessing, Visualize):
                                       label_size=14,
                                       title_size=16)
             """
-			fig4_1, _ = self._plot_data(self._data_avgdriftY,
-										title='DriftY_heatmap',
-										heatmap=True)
-			"""
+            fig4_1, _ = self._plot_data(self._data_avgdriftY,
+                                        title='DriftY_heatmap',
+                                        heatmap=True)
+            """
 
             fig3, _ = self._plot_data(diffX,
                                       plot_plane=False,
@@ -1235,10 +1093,10 @@ class Output(Preprocessing, Visualize):
                                       label_size=14,
                                       title_size=16)
             """
-			fig3_1, _ = self._plot_data(self._data_avgdiffX,
-										title='DiffX_heatmap',
-										heatmap=True)
-			"""
+            fig3_1, _ = self._plot_data(self._data_avgdiffX,
+                                        title='DiffX_heatmap',
+                                        heatmap=True)
+            """
 
             fig2, _ = self._plot_data(diffY,
                                       plot_plane=False,
@@ -1248,10 +1106,10 @@ class Output(Preprocessing, Visualize):
                                       label_size=14,
                                       title_size=16)
             """
-			fig2_1, _ = self._plot_data(self._data_avgdiffY,
-										title='DiffY_heatmap',
-										heatmap=True)
-			"""
+            fig2_1, _ = self._plot_data(self._data_avgdiffY,
+                                        title='DiffY_heatmap',
+                                        heatmap=True)
+            """
 
             fig6, _ = self._plot_data(diffXY,
                                       plot_plane=False,
@@ -1272,15 +1130,15 @@ class Output(Preprocessing, Visualize):
 
     def acf_diagnostic(self):
         """
-		Show autocorrealtion and autocorrelation time calculation plots.
+        Show autocorrealtion and autocorrelation time calculation plots.
 
-		Args
-		----
+        Args
+        ----
 
-		Returns
-		-------
-		displays figures : None
-		"""
+        Returns
+        -------
+        displays figures : None
+        """
         exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
 
         print("Exponential function of the form: ")
@@ -1353,34 +1211,34 @@ class Output(Preprocessing, Visualize):
 
     def fitting_diagnostic(self):
         """
-		Show diagnostics figures like autocorrelation plots, r2 adjusted plots, for drift and diffusion
-		for multiple dt.
+        Show diagnostics figures like autocorrelation plots, r2 adjusted plots, for drift and diffusion
+        for multiple dt.
 
-		Args
-		----
+        Args
+        ----
 
-		Returns
-		-------
-		displays figures : None
-		"""
+        Returns
+        -------
+        displays figures : None
+        """
 
         if self.vector:
             print("N/A")
             return None
         t1 = "R2_adj"
         """
-		#ACF
-		fig1 = plt.figure(dpi=150)
-		plt.suptitle("ACF")
-		exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
-		plt.plot(self._ddsde._autocorr_x, self._ddsde._autocorr_y)
-		y = exp_fn(self._ddsde._autocorr_x, self._ddsde._a,
-				   self._ddsde.autocorrelation_time, self._ddsde._c)
-		plt.plot(self._ddsde._autocorr_x, y)
-		plt.legend(('ACF', 'exp_fit'))
-		plt.xlabel('Time Lag')
-		plt.ylabel('ACF')
-		"""
+        #ACF
+        fig1 = plt.figure(dpi=150)
+        plt.suptitle("ACF")
+        exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
+        plt.plot(self._ddsde._autocorr_x, self._ddsde._autocorr_y)
+        y = exp_fn(self._ddsde._autocorr_x, self._ddsde._a,
+                   self._ddsde.autocorrelation_time, self._ddsde._c)
+        plt.plot(self._ddsde._autocorr_x, y)
+        plt.legend(('ACF', 'exp_fit'))
+        plt.xlabel('Time Lag')
+        plt.ylabel('ACF')
+        """
 
         # R2 vs order for drift
         fig2 = plt.figure(dpi=150)
@@ -1432,15 +1290,15 @@ class Output(Preprocessing, Visualize):
                          label_size=15,
                          label_pad=8):
         """
-		Show noise characterstics plots.
+        Show noise characterstics plots.
 
-		Args
-		----
+        Args
+        ----
 
-		Returns
-		-------
-		displays plots : None
-		"""
+        Returns
+        -------
+        displays plots : None
+        """
         # print("Noise is gaussian") if self._ddsde.gaussian_noise else print("Noise is not Gaussian")
         if not hasattr(self._ddsde, 'gaussian_noise'):
             inc = self._ddsde.inc_x if self.vector else self._ddsde.inc
@@ -1462,19 +1320,19 @@ class Output(Preprocessing, Visualize):
 
 class Error(Exception):
     """
-	Base class for exceptions in this module.
-	
-	:meta private:
-	"""
+    Base class for exceptions in this module.
+
+    :meta private:
+    """
     pass
 
 
 class PathNotFound(Error):
     """
-	pass
+    pass
 
-	:meta private:
-	"""
+    :meta private:
+    """
 
     def __init__(self, full_path, message):
         self.full_path = full_path

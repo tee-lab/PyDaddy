@@ -252,6 +252,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
         res = fitter.fit(x, y)
         setattr(self, function_name, res)
+
         return res
 
     def __call__(self, data, t=1, Dt=None, **kwargs):
