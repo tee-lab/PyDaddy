@@ -34,8 +34,8 @@ class Output(Preprocessing, Visualize):
         self.op_x_range = ddsde.op_x_range
         self.op_y_range = ddsde.op_y_range
 
-        self.fit = ddsde.fit
-        self.fast_mode = ddsde.fast_mode
+        # self.fit = ddsde.fit
+        # self.fast_mode = ddsde.fast_mode
 
         if not self.vector:
             self._data_X = ddsde._X
@@ -625,7 +625,7 @@ class Output(Preprocessing, Visualize):
             return np.array(m)
 
     def summary(self, start=0, end=1000, kde=True, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
-                ret_fig=True, **plot_text):
+                ret_fig=False, **plot_text):
 
         """
         		Print summary of data and show summary plots chart
@@ -779,8 +779,10 @@ class Output(Preprocessing, Visualize):
                 summary.append(values[i])
             summary_format = ("| {:<20} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
             print(summary_format.format(*summary))
-            if not self.fast_mode:
-                print(f'Drift:\n{self.F}\nDiffusion:\n{self.G}\n')
+            if self._ddsde.F:
+                print(f'Drift:\n{self._ddsde.F}\n')
+            if self._ddsde.G:
+                print(f'Diffusion:\n{self._ddsde.G}\n')
             data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self._data_drift_ebar, self._data_diff_ebar]
 
         else:
@@ -806,12 +808,16 @@ class Output(Preprocessing, Visualize):
             print(
                 "Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
             print(summary_format.format(*summary))
-            if not self.fast_mode:
-                print(f'Drift (A1): {self.A1}')
-                print(f'Drift (A2): {self.A2}')
-                print(f'Diffusion (B11): {self.B11}')
-                print(f'Diffusion (B22): {self.B22}')
-                print(f'Cross diffusion (B12, B21): {self.B21}')
+            if self._ddsde.A1:
+                print(f'Drift (A1): {self._ddsde.A1}')
+            if self._ddsde.A2:
+                print(f'Drift (A2): {self._ddsde.A2}')
+            if self._ddsde.B11:
+                print(f'Diffusion (B11): {self._ddsde.B11}')
+            if self._ddsde.B22:
+                print(f'Diffusion (B22): {self._ddsde.B22}')
+            if self._ddsde.B21:
+                print(f'Cross diffusion (B12, B21): {self._ddsde.B21}')
             data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX,
                     self._data_avgdiffY, self._data_avgdiffXY]
 
