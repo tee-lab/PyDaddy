@@ -802,6 +802,8 @@ class Visualize(Metrics):
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
             )
+            func = [self.A1, self.A2]
+            func_name = ['$A_1(x, y)$', '$A_2(x, y)$']
         elif prefix == 'dt':
             t = 'Diffusion'
             t_tex = "\delta t"
@@ -822,6 +824,8 @@ class Visualize(Metrics):
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
             )
+            func = [self.B11, self.B22]
+            func_name = ['$B_{11}(x, y)$', '$B_{22}(x, y)$']
         else:
             prefix = 'dt'
             t = 'Cross Correlation'
@@ -843,6 +847,8 @@ class Visualize(Metrics):
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
             )
+            func = [self.B12, self.B21]
+            func_name = ['$B_{12}(x, y)$', '$B_{21}(x, y)$']
         nrows, ncols = 1, 2
         title_template = r"$\text{{ {0} |  Autocorrelation time (Mx, My, |M^2|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
         fig = make_subplots(
@@ -896,29 +902,30 @@ class Visualize(Metrics):
                         row=r,
                         col=c,
                     )
-                    if isinstance(order, int):
+                    if func[c - 1]: #isinstance(order, int):
                         x, y = np.meshgrid(self.op_x, self.op_y)
-                        c_s = []
-                        for _ in range(len(x.flatten())):
-                            c_s.append([1, 'rgb(1, 0, 0)'])
-                        try:
-                            plane = self._fit_plane(x=x, y=y, z=data[k], order=order)
-                        except:
-                            print('Unable to fit plane')
-                            order = None
-                            k = k + 1
-                            continue
+                        # c_s = []
+                        # for _ in range(len(x.flatten())):
+                        #     c_s.append([1, 'rgb(1, 0, 0)'])
+                        # try:
+                        #     plane = self._fit_plane(x=x, y=y, z=data[k], order=order)
+                        # except:
+                        #     print('Unable to fit plane')
+                        #     order = None
+                        #     k = k + 1
+                        #     continue
                         fig.append_trace(
                             go.Surface(
                                 x=x,
                                 y=y,
-                                z=plane(x, y),
+                                z=func[c - 1](x, y),
                                 opacity=0.3,
-                                name='fit',
+                                name=func_name[c - 1],
                                 visible=visible,
                                 showscale=False,
-                                colorscale=c_s,
-                                surfacecolor=c_s,
+                                colorscale='Viridis',
+                                # colorscale=c_s,
+                                # surfacecolor=c_s,
                             ),
                             row=r,
                             col=c,
@@ -1028,9 +1035,13 @@ class Visualize(Metrics):
         if prefix == 'Dt':
             t = 'Drift'
             t_tex = "\Delta t"
+            func = self.F
+            func_name = 'F(x)'
         else:
             t = 'Diffusion'
             t_tex = "\delta t"
+            func = self.G
+            func_name = 'G(x)'
 
         # Create figure
         fig = go.Figure()
@@ -1060,18 +1071,19 @@ class Visualize(Metrics):
                     name="{} = {}".format(prefix, str(step)),
                     x=data[step][-1],
                     y=data[step][0]))
-            if isinstance(polynomial_order, int):
-                poly, op = self._fit_poly(data[step][-1], data[step][0], polynomial_order)
+            if func:  # isinstance(polynomial_order, int):
+                # poly, op = self._fit_poly(data[step][-1], data[step][0], polynomial_order)
 
+                x = data[step][-1]
                 fig.add_trace(
                     go.Scatter(
                         visible=visible,
                         # mode='markers',
                         opacity=0.3,
                         line=dict(color=marker_colour, width=6),
-                        name="poly_fit = " + str(step),
-                        x=op,
-                        y=poly(op)))
+                        name=func_name,
+                        x=x,
+                        y=func(x)))
 
         fig.update_layout(
             autosize=False,

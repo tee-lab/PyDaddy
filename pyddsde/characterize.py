@@ -252,6 +252,10 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
         res = fitter.fit(x, y)
         setattr(self, function_name, res)
+        if function_name in ['B12', 'B21']:
+            self.B12 = res
+            self.B21 = res
+
 
         return res
 
