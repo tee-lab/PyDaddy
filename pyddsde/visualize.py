@@ -141,7 +141,6 @@ class Visualize(Metrics):
                 print("{} not a valid plot text key".format(k))
         text.update(plot_text)
         if vector:
-            # FIXME Pass driftXY in data
             Mx, My, driftX, driftY, diffX, diffY, diffXY = data
             # M = np.sqrt(Mx ** 2 + My ** 2)  # Not plotting |M| anymore.
 
@@ -155,7 +154,8 @@ class Visualize(Metrics):
             Mx_axis.plot(range(timeseries_start, timeseries_end), My[timeseries_start:timeseries_end], color='red',
                          label=text['timeseries1_legend2'])
             # Mx_axis.set_xticks([])
-            Mx_axis.set_yticks(np.linspace(min(np.nanmin(Mx), np.nanmin(My)), max(np.nanmax(Mx), np.nanmax(My)), n_ticks).round(2))
+            Mx_axis.set_yticks(
+                np.linspace(min(np.nanmin(Mx), np.nanmin(My)), max(np.nanmax(Mx), np.nanmax(My)), n_ticks).round(2))
             self._stylize_axes(Mx_axis,
                                x_label=text['timeseries1_xlabel'],  # '',
                                y_label=text['timeseries1_ylabel'],  # '$M_{x}, M_{y}$',
@@ -220,29 +220,34 @@ class Visualize(Metrics):
                                              label_pad=label_pad)
 
             # # FIXME Pass appropriate args and plot diffXY, diffYX
+
+            zlim = (-max(np.nanmax(diffX), np.nanmax(diffY)), max(np.nanmax(diffX), np.nanmax(diffY)))
+
             diffXY_axis = fig.add_subplot(gs[1, 3], projection='3d')
             _, diffXY_axis = self._plot_data(diffXY,
-                                            ax=diffXY_axis,
-                                            title=text['diffusionxy_title'],  # "Diffusion Y",
-                                            x_label=text['diffusionxy_xlabel'],  # '$m_{x}$',
-                                            y_label=text['diffusionxy_ylabel'],  # '$m_{y}$',
-                                            z_label=text['diffusionxy_zlabel'],  # '$B_{22}$',
-                                            tick_size=tick_size,
-                                            title_size=title_size,
-                                            label_size=label_size,
-                                            label_pad=label_pad)
+                                             ax=diffXY_axis,
+                                             title=text['diffusionxy_title'],  # "Diffusion Y",
+                                             x_label=text['diffusionxy_xlabel'],  # '$m_{x}$',
+                                             y_label=text['diffusionxy_ylabel'],  # '$m_{y}$',
+                                             z_label=text['diffusionxy_zlabel'],  # '$B_{22}$',
+                                             tick_size=tick_size,
+                                             title_size=title_size,
+                                             label_size=label_size,
+                                             label_pad=label_pad,
+                                             zlim=zlim)
 
             diffYX_axis = fig.add_subplot(gs[2, 2], projection='3d')
             _, diffYX_axis = self._plot_data(diffXY,
-                                            ax=diffYX_axis,
-                                            title=text['diffusionyx_title'],  # "Diffusion Y",
-                                            x_label=text['diffusionyx_xlabel'],  # '$m_{x}$',
-                                            y_label=text['diffusionyx_ylabel'],  # '$m_{y}$',
-                                            z_label=text['diffusionyx_zlabel'],  # '$B_{22}$',
-                                            tick_size=tick_size,
-                                            title_size=title_size,
-                                            label_size=label_size,
-                                            label_pad=label_pad)
+                                             ax=diffYX_axis,
+                                             title=text['diffusionyx_title'],  # "Diffusion Y",
+                                             x_label=text['diffusionyx_xlabel'],  # '$m_{x}$',
+                                             y_label=text['diffusionyx_ylabel'],  # '$m_{y}$',
+                                             z_label=text['diffusionyx_zlabel'],  # '$B_{22}$',
+                                             tick_size=tick_size,
+                                             title_size=title_size,
+                                             label_size=label_size,
+                                             label_pad=label_pad,
+                                             zlim=zlim)
 
             diffY_axis = fig.add_subplot(gs[2, 3], projection='3d')
             _, diffY_axis = self._plot_data(diffY,
@@ -260,8 +265,8 @@ class Visualize(Metrics):
             # FIXME Don't use histplot.
             distMx_axis = fig.add_subplot(gs[2, 0])
             distMx_axis = sns.distplot(Mx, kde=kde, ax=distMx_axis, norm_hist=True)
-            ticks = [str(i) + "K" for i in (np.array(distMx_axis.get_yticks()) / 1000).round(1)]
-            distMx_axis.set_yticklabels(ticks)
+            # ticks = [str(i) + "K" for i in (np.array(distMx_axis.get_yticks()) / 1000).round(1)]
+            # distMx_axis.set_yticklabels(ticks)
             self._stylize_axes(distMx_axis,
                                x_label=text['2dhist1_xlabel'],  # '$M_{x}$',
                                y_label=text['2dhist1_ylabel'],  # 'Frequency',
@@ -275,8 +280,8 @@ class Visualize(Metrics):
             # FIXME Don't use histplot.
             distMy_axis = fig.add_subplot(gs[2, 1])
             distMy_axis = sns.distplot(My, kde=kde, ax=distMy_axis, norm_hist=True)
-            ticks = [str(i) + "K" for i in (np.array(distMy_axis.get_yticks()) / 1000).round(1)]
-            distMy_axis.set_yticklabels(ticks)
+            # ticks = [str(i) + "K" for i in (np.array(distMy_axis.get_yticks()) / 1000).round(1)]
+            # distMy_axis.set_yticklabels(ticks)
             self._stylize_axes(distMy_axis,
                                x_label=text['2dhist2_xlabel'],  # '$M_{y}$',
                                y_label=text['2dhist2_ylabel'],  # 'Frequency',
@@ -289,8 +294,8 @@ class Visualize(Metrics):
             # Histogram of |M|
             distM_axis = fig.add_subplot(gs[1, 1])
             distM_axis = sns.distplot(np.sqrt(Mx ** 2 + My ** 2), kde=kde, ax=distM_axis, norm_hist=True)
-            ticks = [str(i) + "K" for i in (np.array(distM_axis.get_yticks()) / 1000).round(1)]
-            distM_axis.set_yticklabels(ticks)
+            # ticks = [str(i) + "K" for i in (np.array(distM_axis.get_yticks()) / 1000).round(1)]
+            # distM_axis.set_yticklabels(ticks)
             self._stylize_axes(distM_axis,
                                x_label=text['2dhist3_xlabel'],  # '|M|',
                                y_label=text['2dhist3_ylabel'],  # 'Frequency',
@@ -733,7 +738,7 @@ class Visualize(Metrics):
             return fig, ax
         return ax
 
-    def _slider_3d(self, slider_data, init_pos=0, prefix='dt', order=None, **plot_text):
+    def _slider_3d(self, slider_data, init_pos=0, prefix='dt', zlim=None, order=None, **plot_text):
         """
         Get slider for analysed vector data.
         """
@@ -747,9 +752,9 @@ class Visualize(Metrics):
                 'title2': 'Diffusion Y',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'A2' },
+                'z_label2': 'A2'},
 
-        'Dt' :{
+            'Dt': {
                 'title1': 'Drift X',
                 'x_label1': 'mx',
                 'y_label1': 'my',
@@ -758,18 +763,18 @@ class Visualize(Metrics):
                 'title2': 'Drift Y',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'B22' },
+                'z_label2': 'B22'},
 
-        'c_dt': {
-            'title1' : 'Diffusion XY',
-            'x_label1' : 'mx',
-            'y_label1' : 'my',
-            'z_label1' : 'B12',
+            'c_dt': {
+                'title1': 'Diffusion XY',
+                'x_label1': 'mx',
+                'y_label1': 'my',
+                'z_label1': 'B12',
 
-            'title2' : 'Diffusion YX',
-            'x_label2' : 'mx',
-            'y_label2' : 'my',
-            'z_label2' : 'B21' 	}
+                'title2': 'Diffusion YX',
+                'x_label2': 'mx',
+                'y_label2': 'my',
+                'z_label2': 'B21' }
         }
 
         text = slider_texts[prefix]
@@ -819,13 +824,13 @@ class Visualize(Metrics):
             )
         else:
             prefix = 'dt'
-            t = 'Cross Correaltion'
+            t = 'Cross Correlation'
             t_tex = "\delta t"
             sub_titles = (text['title1'], text['title2'])
             scene1 = dict(
                 xaxis=dict(showbackground=True),
                 yaxis=dict(showbackground=True),
-                zaxis=dict(showbackground=True, ),
+                zaxis=dict(showbackground=True, range=zlim),
                 xaxis_title=text['x_label1'],
                 yaxis_title=text['y_label1'],
                 zaxis_title=text['z_label1'],
@@ -833,7 +838,7 @@ class Visualize(Metrics):
             scene2 = dict(
                 xaxis=dict(showbackground=True),
                 yaxis=dict(showbackground=True),
-                zaxis=dict(showbackground=True, ),
+                zaxis=dict(showbackground=True, range=zlim),
                 xaxis_title=text['x_label2'],
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
@@ -868,7 +873,7 @@ class Visualize(Metrics):
                     # marker_colour = 'blue'
                     # if k % 2: marker_colour = 'red'
                     marker_colour = self._c_pallet[dt_s.index(dt ) %len(self._c_pallet)]
-                    if k % 2 : marker_colour = self._c_pallet[dt_s.index(dt ) %len(self._c_pallet)]
+                    if k % 2: marker_colour = self._c_pallet[dt_s.index(dt) % len(self._c_pallet)]
                     fig.append_trace(
                         go.Scatter3d(x=(x.flatten()),
                                      y=(y.flatten()),
@@ -900,7 +905,7 @@ class Visualize(Metrics):
                             plane = self._fit_plane(x=x, y=y, z=data[k], order=order)
                         except:
                             print('Unable to fit plane')
-                            order =None
+                            order = None
                             k = k + 1
                             continue
                         fig.append_trace(
@@ -927,9 +932,11 @@ class Visualize(Metrics):
             scene2=scene2,
             # scene3 = scene,
             # scene4 = scene,
-            title_text=title_template.format(t, self.autocorrelation_time,
-                                             t_tex,
-                                             dt_s[init_pos], self._act_mx, self._act_my),
+            title_text=t,
+            title_x=0.5,
+            # title_text=title_template.format(t, self.autocorrelation_time,
+            #                                  t_tex,
+            #                                  dt_s[init_pos], self._act_mx, self._act_my),
             height=600,
             width=900,
             # updatemenus=[
@@ -1069,9 +1076,11 @@ class Visualize(Metrics):
         fig.update_layout(
             autosize=False,
             scene_aspectmode='cube',
-            title_text=title_template.format(t, self.autocorrelation_time,
-                                             t_tex,
-                                             dt_s[init_pos]),
+            title_text=t,
+            title_x=0.5,
+            # title_text=title_template.format(t, self.autocorrelation_time,
+            #                                  t_tex,
+            #                                  dt_s[init_pos]),
             height=600,
             width=600,
         )
@@ -1170,6 +1179,7 @@ class Visualize(Metrics):
                    x_label='$m_x$',
                    y_label='$m_y$',
                    z_label='z',
+                   zlim=None,
                    ax=None,
                    clear=True,
                    legend=False,
@@ -1269,6 +1279,10 @@ class Visualize(Metrics):
         if legend:
             # plt.legend(prop={'size': 14})
             ax.legend()
+
+        if zlim:
+            ax.set_zlim3d(zlim)
+
         return fig, ax
 
     def _plot_heatmap(self, data, title='title', num_ticks=5):

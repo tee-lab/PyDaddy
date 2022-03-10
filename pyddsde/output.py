@@ -947,7 +947,7 @@ class Output(Preprocessing, Visualize):
         fig.show()
         return None
 
-    def diffusion_cross(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def cross_diffusion(self, polynomial_order=None, slider_timescales=None, **plot_text):
         """
 		Display diffusion cross correlation slider figure
 
@@ -966,7 +966,11 @@ class Output(Preprocessing, Visualize):
         dt_s = list(self._cross_diff_slider.keys())
         if not len(dt_s):  # empty slider
             return None
-        fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order, **plot_text)
+
+        zlim = (-max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)),
+                 max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)))
+        fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order,
+                              zlim=zlim, **plot_text)
         fig.show()
         return None
 
