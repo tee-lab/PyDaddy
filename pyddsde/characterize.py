@@ -172,7 +172,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self._avaiable_timescales = time_scale_list
         return drift_data_dict, diff_data_dict, ebar_drift_dict, ebar_diff_dict, num_drift_dict, num_diff_dict
 
-    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None):
+    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None,
+            plot=False):
 
         if not (order or library):
             raise TypeError('You should either specify the order of the polynomial, or provide a library.')
@@ -241,21 +242,14 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         #
         if tune:
-            if thresholds is None:
-                # fitter = PolyFit1D(max_degree=order, threshold=0, alpha=alpha)
-                fitter.threshold = 0
-                p = np.array(fitter.fit(x, y))
-                thresh_max = np.max(np.abs(p))
-                thresholds = np.linspace(0, thresh_max, 50, endpoint=False)
+            res = fitter.tune_and_fit(x, y, thresholds, plot=plot)
+        else:
+            res = fitter.fit(x, y)
 
-            fitter.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
-
-        res = fitter.fit(x, y)
         setattr(self, function_name, res)
         if function_name in ['B12', 'B21']:
             self.B12 = res
             self.B21 = res
-
 
         return res
 

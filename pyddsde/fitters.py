@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import ridge_regression
 from sklearn.model_selection import KFold
 
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 
 class Poly1D:
     """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
@@ -214,28 +217,53 @@ class PolyFitBase:
         errordelta = metrics[1:] - metrics[:-1]
         best_thresh = thresholds[:-1][np.argmax(errordelta)]
         if plot:
-            fig, ax = plt.subplots(1, 3, figsize=(12, 4))
-            ax[0].plot(thresholds, metrics, '.-')
-            ax[0].set(xlabel='Sparsity Threshold', ylabel=metric_name[method])
+            # fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+            #                     vertical_spacing=0.01)
+            #
+            # fig.add_scatter(row=1, col=1, x=thresholds, y=metrics)
+            # fig.add_scatter(row=2, col=1, x=thresholds, y=nparams)
+            #
+            # # fig.update_xaxes(row=1, col=1, title_text='Threshold')
+            # fig.update_xaxes(row=2, col=1, title_text='Threshold')
+            # fig.update_yaxes(row=1, col=1, title_text=metric_name[method])
+            # fig.update_yaxes(row=2, col=1, title_text='No. of terms')
 
-            metrics = np.array(metrics)
-            errordelta = metrics[1:] - metrics[:-1]
-            ax[1].plot(thresholds[:-1], errordelta, '.-')
-            ax[1].set(xlabel='Sparsity Threshold', ylabel=f'Change in {metric_name[method]}')
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_scatter(x=thresholds, y=metrics, secondary_y=False, name=metric_name[method])
+            fig.add_scatter(x=thresholds, y=nparams, secondary_y=True, name='No. of terms')
 
-            ax[2].plot(thresholds, nparams, '.-')
-            ax[2].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
-            plt.tight_layout()
-            plt.show()
+            fig.update_xaxes(title_text='Threshold')
+            fig.update_yaxes(title_text=metric_name[method], secondary_y=False)
+            fig.update_yaxes(title_text='No. of terms', secondary_y=True)
+
+            fig.update_layout(width=800, height=600,
+                              title_text=f'{metric_name[method]} Model selection',
+                              title_x=0.5,)
+            fig.show()
+
+            # fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+            # ax[0].plot(thresholds, metrics, '.-')
+            # ax[0].set(xlabel='Sparsity Threshold', ylabel=metric_name[method])
+            #
+            # metrics = np.array(metrics)
+            # errordelta = metrics[1:] - metrics[:-1]
+            # ax[1].plot(thresholds[:-1], errordelta, '.-')
+            # ax[1].set(xlabel='Sparsity Threshold', ylabel=f'Change in {metric_name[method]}')
+            #
+            # ax[2].plot(thresholds, nparams, '.-')
+            # ax[2].set(xlabel='Sparsity Threshold', ylabel='Nonzero Coefficients')
+            # plt.tight_layout()
+            # plt.show()
         # print(f'Model selection complete. Chosen threshold = {best_thresh}')
         self.threshold = best_thresh
 
-    def tune_and_fit(self, x, y, thresholds=None, steps=20):
+    def tune_and_fit(self, x, y, thresholds=None, steps=20, plot=False):
         """
         Args:
             x, y: Data to fit
             thresholds: List of thresholds to try, will be automatically chosen if None
             steps: When auto-choosing thesholds, the number of steps to take in the threshold range.
+            plot: Whether to plot the cross-validation error curves.
         """
 
         if thresholds is None:
@@ -243,7 +271,7 @@ class PolyFitBase:
             p = np.array(self.fit(x, y))
             thresholds = np.linspace(0, np.max(np.abs(p)), steps, endpoint=False)
 
-        self.model_selection(thresholds=thresholds, x=x, y=y, plot=False)
+        self.model_selection(thresholds=thresholds, x=x, y=y, plot=plot)
         return self.fit(x, y)
 
     def _get_cv_error(self, x, y, folds):
