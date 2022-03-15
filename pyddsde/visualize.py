@@ -747,23 +747,23 @@ class Visualize(Metrics):
                 'title1': 'Diffusion X',
                 'x_label1': 'mx',
                 'y_label1': 'my',
-                'z_label1': 'A1',
+                'z_label1': 'B11',
 
                 'title2': 'Diffusion Y',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'A2'},
+                'z_label2': 'B22'},
 
             'Dt': {
                 'title1': 'Drift X',
                 'x_label1': 'mx',
                 'y_label1': 'my',
-                'z_label1': 'B11',
+                'z_label1': 'A1',
 
                 'title2': 'Drift Y',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'B22'},
+                'z_label2': 'A2'},
 
             'c_dt': {
                 'title1': 'Diffusion XY',
@@ -903,7 +903,9 @@ class Visualize(Metrics):
                         col=c,
                     )
                     if func[c - 1]: #isinstance(order, int):
-                        x, y = np.meshgrid(self.op_x, self.op_y)
+                        # x, y = np.meshgrid(self.op_x, self.op_y)
+                        z = func[c - 1](x, y)
+                        # z[np.isnan(data[k])] = np.nan
                         # c_s = []
                         # for _ in range(len(x.flatten())):
                         #     c_s.append([1, 'rgb(1, 0, 0)'])
@@ -918,7 +920,7 @@ class Visualize(Metrics):
                             go.Surface(
                                 x=x,
                                 y=y,
-                                z=func[c - 1](x, y),
+                                z=z,
                                 opacity=0.3,
                                 name=func_name[c - 1],
                                 visible=visible,
@@ -937,6 +939,8 @@ class Visualize(Metrics):
             scene2_aspectmode='cube',
             scene1=scene1,
             scene2=scene2,
+            scene1_zaxis_range=[np.nanmin(data[0]), np.nanmax(data[0])],
+            scene2_zaxis_range=[np.nanmin(data[1]), np.nanmax(data[1])],
             # scene3 = scene,
             # scene4 = scene,
             title_text=t,
