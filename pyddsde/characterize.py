@@ -37,7 +37,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             slider_timescales=None,
             n_trials=1,
             show_summary=True,
-            max_order=5,
             drift_threshold=None,
             diff_threshold=None,
             drift_degree=5,
@@ -52,7 +51,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.Dt = Dt
 
         self.t_lag = t_lag
-        self.max_order = max_order  # FIXME: Deprecated, can be removed.
         self.inc = inc
         self.inc_x = inc_x
         self.inc_y = inc_y

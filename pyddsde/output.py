@@ -3,11 +3,11 @@ import os
 import sys
 import time
 import warnings
-from collections import OrderedDict
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy.io
 import scipy.optimize
 import scipy.stats
@@ -163,6 +163,66 @@ class Output(Preprocessing, Visualize):
         gc.collect()
         return None
 
+    def get_data(self, filename=None, raw=False):
+        """
+        Returns a pandas dataframe containing the drift and diffusion values.
+        Args
+        ----
+        filename : str, optional (default=None).
+            If provided, the data will be saved as a CSV at the given path. Else, a dataframe will be returned.
+        raw : bool, optional (default=False)
+            If True, the raw, the drift and diffusion will be returned as raw unbinned data. Otherwise (default),
+            drift and diffusion are returned as binwise-average Kramers-Moyal coefficients are returned.
+
+        Returns
+        -------
+        df : Pandas dataframe containing
+
+        """
+
+        if not self.vector:
+            if raw:
+                data_dict = dict(
+                    x=self._data_X[:-1],
+                    drift=self._ddsde._drift_,
+                    diffusion=self._ddsde._diffusion_,
+                )
+            else:
+                data_dict = dict(
+                    x=self._data_op,
+                    drift=self._data_avgdrift,
+                    diffusion=self._data_avgdiff,
+                )
+        else:
+            if raw:
+                data_dict = dict(
+                    x=self._data_Mx[:-1],
+                    y=self._data_My[:-1],
+                    M=self._data_M[:-1],
+                    drift_x=self._ddsde._driftX_,
+                    drift_y=self._ddsde._driftY_,
+                    diffusion_x=self._ddsde._diffusionX_,
+                    diffusion_y=self._ddsde._diffusionY_,
+                    diffusion_xy=self._ddsde._diffusionXY_,
+                )
+            else:
+                x, y = np.meshgrid(self._data_op_x, self._data_op_y)
+                data_dict = dict(
+                    x=x.flatten(),
+                    y=y.flatten(),
+                    drift_x=self._data_avgdriftX.flatten(),
+                    drift_y=self._data_avgdriftY.flatten(),
+                    diff_x=self._data_avgdiffX.flatten(),
+                    diff_y=self._data_avgdiffX.flatten(),
+                    diff_xy=self._data_avgdriftX.flatten(),
+                )
+
+        df = pd.DataFrame(data=data_dict)
+        if filename:
+            df.to_csv(filename)
+
+        return df
+
     def export_data(self, fname=None, save_mat=True, zip=False):
         """
         Export all drift and diffusion data, to csv and matlab (mat) files
@@ -182,8 +242,7 @@ class Output(Preprocessing, Visualize):
             path where data is exported
         """
 
-        # FIXME: Major rewrites and optimizations may be possible.
-        # FIXME: Saving as one CSV with multiple columns may be more useful than many different files.
+        warnings.warn('export_data() is deprecated. Use get_data() instead.', DeprecationWarning)
 
         if fname is None:
             fname = ''
@@ -663,8 +722,8 @@ class Output(Preprocessing, Visualize):
                 summary.append(fields[i])
                 summary.append(values[i])
             summary_format = ("| {:<30} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
-            print(
-                "Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
+            # print(
+            #     "Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
             print(summary_format.format(*summary))
             if self._ddsde.A1:
                 print(f'Drift (A1): {self._ddsde.A1}')
@@ -1169,7 +1228,7 @@ class Output(Preprocessing, Visualize):
             plt.xlabel('Time Lag')
             plt.ylabel('$ACF\ (M)$')
             print("acf_M : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
-            return None
+            return
 
         x_M, acf_M = self._acf(self._data_M ** 2, t_lag=self._ddsde.t_lag)
         [a_M, b_M, c_M], _ = self._fit_exp(x_M, acf_M)
@@ -1211,7 +1270,6 @@ class Output(Preprocessing, Visualize):
         print("acf_My : a = {}, tau = {}, c = {}".format(a_My, b_My, c_My))
 
         plt.show()
-        return None
 
     def fitting_diagnostic(self):
         """
@@ -1225,7 +1283,7 @@ class Output(Preprocessing, Visualize):
         -------
         displays figures : None
         """
-
+        # FIXME Needs to be changed.
         if self.vector:
             print("N/A")
             return None

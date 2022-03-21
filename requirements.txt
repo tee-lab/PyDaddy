@@ -7,4 +7,5 @@ plotly
 sympy
 sdeint
 scikit-learn
-statsmodels
+pandas
+setuptools

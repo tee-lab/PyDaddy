@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import seaborn as sns
-import statsmodels.graphics
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from pyddsde.metrics import Metrics
@@ -598,7 +597,7 @@ class Visualize(Metrics):
         lags = 50
         if len(noise) < lags + 1:
             lags = len(noise) - 1
-        statsmodels.graphics.tsaplots.plot_acf(noise, lags=lags, ax=ax[1][0], missing='conservative')
+        # statsmodels.graphics.tsaplots.plot_acf(noise, lags=lags, ax=ax[1][0], missing='conservative')
         # ax[1][0].plot(noise_correlation[0], noise_correlation[1])
         self._stylize_axes(ax[1][0],
                            x_label='lags',
@@ -902,7 +901,7 @@ class Visualize(Metrics):
                         row=r,
                         col=c,
                     )
-                    if func[c - 1]: #isinstance(order, int):
+                    if func[c - 1] and type(func[c - 1]) is not tuple: #isinstance(order, int):
                         # x, y = np.meshgrid(self.op_x, self.op_y)
                         z = func[c - 1](x, y)
                         # z[np.isnan(data[k])] = np.nan
@@ -1075,7 +1074,7 @@ class Visualize(Metrics):
                     name="{} = {}".format(prefix, str(step)),
                     x=data[step][-1],
                     y=data[step][0]))
-            if func:  # isinstance(polynomial_order, int):
+            if func and type(func) is not tuple:  # isinstance(polynomial_order, int):
                 # poly, op = self._fit_poly(data[step][-1], data[step][0], polynomial_order)
 
                 x = data[step][-1]

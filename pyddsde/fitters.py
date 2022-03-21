@@ -308,7 +308,7 @@ class PolyFitBase:
         if self.library:  # Fitting with custom library
             # In this case, c is an array of coefficients.
             dictionary = np.vstack([f(x) for f in self.library]).T
-            return np.sum(c * dictionary, axis=1)
+            return np.sum(c[0] * dictionary, axis=1)
         else:  # Fitting with default polynomial library
             # In this case, c is a callable polynomial.
             # c = self._get_callable_poly(c)

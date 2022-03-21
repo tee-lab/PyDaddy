@@ -192,9 +192,10 @@ class UnderlyingNoise(SDE):
 		"""
 		x = X[:len(X)-max(Dt,dt)]
 		i = np.where(np.logical_and(x <= (point + inc), x >= point))[0]
+		# FIXME Is this correct for vector?
 		noise = self._residual(X, t_int=t_int, Dt=Dt, dt=dt) / np.sqrt(t_int * dt)
 		return noise[i]
-
+		# return noise
 
 
 

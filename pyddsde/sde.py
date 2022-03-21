@@ -74,8 +74,8 @@ class SDE:
         """
         p = len(X) - max(dt, Dt)
         drift = self._drift(X, t_int, Dt)[:p]
-        res = (X[dt:] - X[:-dt])[:p]
-        return res - drift*(t_int*dt)
+        res = (X[dt:] - X[:-dt])[:p] - drift*(t_int*dt)
+        return res
 
     def _diffusion_from_residual(self, X, F, t_int, dt=1):
         """
