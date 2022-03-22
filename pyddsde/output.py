@@ -11,7 +11,6 @@ import pandas as pd
 import scipy.io
 import scipy.optimize
 import scipy.stats
-import sdeint
 import seaborn as sns
 import tqdm
 
@@ -172,11 +171,11 @@ class Output(Preprocessing, Visualize):
             If provided, the data will be saved as a CSV at the given path. Else, a dataframe will be returned.
         raw : bool, optional (default=False)
             If True, the raw, the drift and diffusion will be returned as raw unbinned data. Otherwise (default),
-            drift and diffusion are returned as binwise-average Kramers-Moyal coefficients are returned.
+            drift and diffusion as binwise-average Kramers-Moyal coefficients are returned.
 
         Returns
         -------
-        df : Pandas dataframe containing
+        df : Pandas dataframe containing the estimated drift and diffusion coefficients.
 
         """
 
@@ -198,7 +197,6 @@ class Output(Preprocessing, Visualize):
                 data_dict = dict(
                     x=self._data_Mx[:-1],
                     y=self._data_My[:-1],
-                    M=self._data_M[:-1],
                     drift_x=self._ddsde._driftX_,
                     drift_y=self._ddsde._driftY_,
                     diffusion_x=self._ddsde._diffusionX_,
@@ -212,16 +210,21 @@ class Output(Preprocessing, Visualize):
                     y=y.flatten(),
                     drift_x=self._data_avgdriftX.flatten(),
                     drift_y=self._data_avgdriftY.flatten(),
-                    diff_x=self._data_avgdiffX.flatten(),
-                    diff_y=self._data_avgdiffX.flatten(),
-                    diff_xy=self._data_avgdriftX.flatten(),
+                    diffusion_x=self._data_avgdiffX.flatten(),
+                    diffusion_y=self._data_avgdiffX.flatten(),
+                    diffusion_xy=self._data_avgdriftX.flatten(),
                 )
 
         df = pd.DataFrame(data=data_dict)
+
+        if self.vector:
+            na_rows = df[['drift_x', 'drift_y', 'diffusion_x', 'diffusion_y', 'diffusion_xy']].isna().all(axis=1)
+            df = df[~na_rows]
+
         if filename:
             df.to_csv(filename)
-
-        return df
+        else:
+            return df
 
     def export_data(self, fname=None, save_mat=True, zip=False):
         """

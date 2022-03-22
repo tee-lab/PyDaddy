@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import numpy as np
 from pyddsde.analysis import GaussianTest
 
@@ -206,7 +208,7 @@ class Preprocessing(GaussianTest):
 		Initailize and validate all inputs.
 		"""
 
-		if not isinstance(self._data, list):
+		if not isinstance(self._data, Iterable):
 			raise InputError('Characterize(data=[Mx,My],...)',
 							 'data input must be a list of length 1 or 2!')
 		for d in self._data:
