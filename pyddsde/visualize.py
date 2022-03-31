@@ -5,6 +5,7 @@ import seaborn as sns
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from pyddsde.metrics import Metrics
+from scipy.stats import norm, probplot
 
 
 class Visualize(Metrics):
@@ -1379,7 +1380,7 @@ class Visualize(Metrics):
         if (len(x) == 2):
             x = x.T
 
-        H, edges = np.histogramdd(x, bins, normed=normed)
+        H, edges = np.histogramdd(x, bins, density=True)
 
         H = H.T
         X = np.array(
@@ -1423,3 +1424,74 @@ class Visualize(Metrics):
 
         # return H, edges;
         return H, edges, X, Y, Z, dx, dy, dz
+
+    def _noise_plot(self, ax, residual, title):
+        sigma = np.nanstd(residual)
+        x = np.linspace(-6 * sigma, 6 * sigma, 100)
+        gaussian = norm.pdf(x, scale=sigma)
+
+        ax.hist(residual, bins=100, density=True, label='Actual')
+        ax.plot(x, gaussian, label='Theoretical')
+
+        ax.set(xlabel='Residual', ylabel='Density', title=title)
+        ax.legend()
+
+    def _noise_plot_2d(self, ax, res_x, res_y, title):
+        H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(res_x, res_y))
+        colors = plt.cm.YlGnBu(dz.flatten() / float(dz.max()))
+        ax.bar3d(X, Y, Z, dx, dy, dz, alpha=0.6, cmap=plt.cm.YlGnBu, color=colors)
+        ax.set(xlabel='X', ylabel='Y', title=title)
+
+    def _matrix_plot(self, ax, mat):
+        ax.imshow(mat, vmin=-1, vmax=1, cmap='RdBu')
+        for i in range(mat.shape[0]):
+            for j in range(mat.shape[1]):
+                col = 'w' if i == j else 'k'
+                ax.text(j, i, f'{mat[i, j]:.3f}', ha='center', va='center', size='small', color=col)
+
+        ax.set(xticks=[], yticks=[])
+
+    def _qq_plot(self, ax, residual, title):
+        sigma = np.nanstd(residual)
+        (osm, osr), _ = probplot(residual, sparams=(0, sigma))
+        ax.axline(xy1=(-1, -1), xy2=(1, 1), color='k')
+        ax.plot(osm, osr, '.')
+
+        ax.axis('equal')
+        ax.set(xlabel='Actual', ylabel='Theoretical',
+               xlim=(1.1 * np.nanmin((osm, osr)), 1.1 * np.nanmax((osm, osr))),
+               title=title)
+        ax.set_yticks(ax.get_xticks())
+
+    def _acf_plot(self, ax, acf, lags, a, b, c, act, title):
+        acf, lags = acf[:(10 * act)], lags[:(10 * act)]
+
+        expfit = a * np.exp(-lags / b) + c
+        ax.plot(lags, acf, label='Autocorrelation')
+        ax.plot(lags, expfit, '--', label='Exponential fit')
+        ax.axvline(act, label='Autocorr. time', color='k')
+
+        ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
+        ax.legend()
+
+    def _acf_plot_multi(self, ax, acf1, acf2, lags, act1, act2, title=None):
+        lim = 10 * max(act1, act2)
+        acf1, acf2, lags = acf1[:lim], acf2[:lim], lags[:lim]
+        ax.plot(lags, acf1, label='Autocorr. $\\eta_x$')
+        ax.plot(lags, acf2, label='Autocorr. $\\eta_y$')
+        ax.axvline(act1,)  # label='ACT (X)')
+        ax.axvline(act2,)  # label='ACT (Y)')
+
+        ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
+        ax.legend()
+
+
+    def _km_plot(self, ax, km_2, km_4, title):
+        ax.axline(xy1=(0, 0), slope=1, color='k')
+        ax.plot(3 * (km_2 ** 2), km_4, '.')
+
+        ax.axis('equal')
+        ax.set(xlabel='3 * K(2)^2', ylabel='K(4)', title=title)
+        ax.set_yticks(ax.get_xticks())
+
+

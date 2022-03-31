@@ -2,11 +2,9 @@
 
 import warnings
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.linear_model import ridge_regression
 from sklearn.model_selection import KFold
 
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
@@ -33,8 +31,10 @@ class Poly1D:
 
     def __str__(self):
         def term(n):
-            if n == 0: return ''
-            if n == 1: return 'x'
+            if n == 0:
+                return ''
+            if n == 1:
+                return 'x'
             return f'x^{n}'
 
         terms = [term(n) for m in range(self.degree + 1) for n in range(self.degree - m + 1)]
@@ -64,14 +64,6 @@ class Poly2D:
         self.stderr = stderr
 
     def __call__(self, x, y):
-        # x = np.array(x)
-        # if x.ndim == 1:
-        #     x, y = x[0], x[1]
-        # elif x.ndim == 2:
-        #     x, y = x[:, 0], x[:, 1]
-        # else:
-        #     raise ValueError('Incompatible dimensions for Poly2D call. Poly2D objects can be called with a tuple, or a 1D or 2D numpy array.')
-
         terms = np.array([(x ** n) * (y ** m)
                           for m in range(self.degree + 1)
                           for n in range(self.degree - m + 1)])

@@ -6,11 +6,13 @@ import warnings
 from collections import OrderedDict, namedtuple
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
 import scipy.io
 import scipy.optimize
 import scipy.stats
+from scipy.signal import correlate
 import seaborn as sns
 import tqdm
 
@@ -1381,6 +1383,103 @@ class Output(Preprocessing, Visualize):
 
         plt.show()
         return None
+
+    def diagnostics(self):
+        if self.vector:
+            X, Y = self._ddsde._Mx, self._ddsde._My
+            inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y
+            t_int = self._ddsde.t_int
+            op_x, op_y = self._ddsde._op_x_, self._ddsde._op_y_
+            avg_drift_x, avg_drift_y = self._ddsde._avgdriftX_, self._ddsde._avgdriftY_
+            res_x, res_y = self._ddsde._residual_timeseries_vector(
+                X=X, Y=Y,
+                bins_x=op_x, bins_y=op_y,
+                avg_drift_x=avg_drift_x, avg_drift_y=avg_drift_y,
+                t_int=t_int
+            )
+            res_m = np.sqrt(res_x ** 2 + res_y ** 2)
+
+            noise_dist_x = res_x[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
+            noise_dist_y = res_y[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
+            noise_corr = np.corrcoef([noise_dist_x, noise_dist_y])
+
+            lags, acf = self._ddsde._acf(res_m, t_lag=min(100, len(res_m)))
+            (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            act = int(np.ceil(b))
+
+            _, acf_x = self._ddsde._acf(res_x, t_lag=min(100, len(res_m)))
+            _, acf_y = self._ddsde._acf(res_y, t_lag=min(100, len(res_m)))
+
+            (_, bx, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            act_x = int(np.ceil(bx))
+
+            (_, by, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            act_y = int(np.ceil(by))
+
+            # fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)
+            fig = plt.figure(figsize=(7, 7))
+            gs = fig.add_gridspec(4, 2)
+            ax_2d = fig.add_subplot(gs[:2, 0], projection='3d')
+            ax_acf1 = fig.add_subplot(gs[0, 1])
+            ax_acf2 = fig.add_subplot(gs[1, 1])
+            ax_qqx = fig.add_subplot(gs[2:, 0])
+            ax_qqy = fig.add_subplot(gs[2:, 1])
+            ax_corr = inset_axes(ax_2d, width='30%', height='39%', loc='upper left')
+
+            self._noise_plot_2d(ax_2d, noise_dist_x, noise_dist_y, title='Residual Distribution')
+            self._matrix_plot(ax_corr, noise_corr)
+            self._acf_plot(ax_acf1, acf, lags, a, b, c, act, title='Autocorrelation: $|\\eta|$')
+            self._acf_plot_multi(ax_acf2, acf_x, acf_y, lags, act_x, act_y, title='Autocorrelation: $\\eta_x, \\eta_y$')
+            self._qq_plot(ax_qqx, noise_dist_x, title='QQ Plot: $\\eta_x$')
+            self._qq_plot(ax_qqy, noise_dist_y, title='QQ Plot: $\\eta_y$')
+
+            plt.tight_layout()
+            plt.show()
+
+        else:
+            X = self._ddsde._X
+            inc = self._ddsde.inc
+            t_int = self._ddsde.t_int
+            op = self._ddsde._op_
+            avg_drift = self._ddsde._avgdrift_
+            residual = self._ddsde._residual_timeseries(X=X,
+                                                        bins=op,
+                                                        avg_drift=avg_drift,
+                                                        t_int=t_int,
+                                                        )
+
+            noise_distribution = residual[(0 <= X[:-1]) & (X[:-1] < inc)]
+
+            # Compute residual autocorrelation
+            lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))
+            (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            act = int(np.ceil(b))
+
+            # Compute 2nd and 4th Kramers-Moyal coefficients
+            km_2 = self._km_coefficient(2, X, t_int)
+            km_4 = self._km_coefficient(4, X, t_int)
+
+            km_2_avg = np.zeros(len(op))
+            km_4_avg = np.zeros(len(op))
+            X = X[:-1]
+            for i, b in enumerate(op):
+                km_2_avg[i] = np.nanmean(km_2[(b <= X) & (X < (b + inc))])
+                km_4_avg[i] = np.nanmean(km_4[(b <= X) & (X < (b + inc))])
+
+            # Print summary data
+
+            # Plot figures
+            fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)
+            self._noise_plot(ax[0, 0], noise_distribution, title='Residual Distribution')
+            self._qq_plot(ax[0, 1], noise_distribution, title='QQ Plot')
+            self._acf_plot(ax[1, 0], acf, lags, a, b, c, act, title='Residual Autocorrelation')
+            self._km_plot(ax[1, 1], km_2_avg, km_4_avg, title='KM Coefficients')
+
+            plt.tight_layout()
+            plt.show()
+
+    def fit_diagnostics(self):
+        return NotImplementedError
 
 
 class Error(Exception):

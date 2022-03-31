@@ -1,6 +1,7 @@
 from collections import namedtuple
 import numpy as np
 from .fitters import PolyFit1D, PolyFit2D
+from scipy.special import factorial
 
 class SDE:
     """
@@ -175,6 +176,9 @@ class SDE:
                 cross-correlation coefficients between y and x data
         """
         return ((x[dt:] - x[:-dt]) * (y[dt:] - y[:-dt])) / (dt * t_int)
+
+    def _km_coefficient(self, order, X, t_int):
+        return (X[1:] - X[:-1]) ** order #/ (t_int) # * factorial(order))
 
     def _isValidRange(self, r):
         """
