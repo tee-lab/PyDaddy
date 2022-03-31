@@ -61,7 +61,7 @@ class AutoCorrelation:
 		Calculates autocorrelation using wiener khinchin theorem.
 		"""
         if np.isnan(data).any():
-            print('Missing values in time series')
+            # print('Missing values in time series')
             self.fft = False
             return self._nan_acf(data, t_lag)
         data = data - data.mean()

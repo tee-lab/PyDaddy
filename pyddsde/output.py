@@ -13,6 +13,7 @@ import scipy.io
 import scipy.optimize
 import scipy.stats
 from scipy.signal import correlate
+from scipy.stats import skew, kurtosis
 import seaborn as sns
 import tqdm
 
@@ -1384,7 +1385,7 @@ class Output(Preprocessing, Visualize):
         plt.show()
         return None
 
-    def diagnostics(self):
+    def noise_diagnostics(self):
         if self.vector:
             X, Y = self._ddsde._Mx, self._ddsde._My
             inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y
@@ -1416,7 +1417,18 @@ class Output(Preprocessing, Visualize):
             (_, by, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
             act_y = int(np.ceil(by))
 
-            # fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)
+            # Summary information
+            print('Noise statistics:')
+            print(f'Mean: ({np.nanmean(noise_dist_x):.4f}, {np.nanmean(noise_dist_y):.4f})')
+            print(f'Correlation matrix:\n'
+                  f'    {noise_corr[0, 0]:+.4f}    {noise_corr[0, 1]:+.4f}\n'
+                  f'    {noise_corr[1, 0]:+.4f}    {noise_corr[1, 1]:+.4f}')
+
+            print('\nNoise autocorrelation time (time-steps):')
+            print(f'    eta_x: {act_x}    eta_y: {act_y}')
+            print(f'    |eta|: {act}')
+
+            # Summary figures
             fig = plt.figure(figsize=(7, 7))
             gs = fig.add_gridspec(4, 2)
             ax_2d = fig.add_subplot(gs[:2, 0], projection='3d')
@@ -1467,6 +1479,12 @@ class Output(Preprocessing, Visualize):
                 km_4_avg[i] = np.nanmean(km_4[(b <= X) & (X < (b + inc))])
 
             # Print summary data
+            print('Noise statistics:')
+            print(f'\tMean: {np.nanmean(noise_distribution):.4f} \t\t Std. Dev.: {np.nanstd(noise_distribution):.4f}')
+            print(f'\tSkewness: {skew(noise_distribution, nan_policy="omit"):.4f}'
+                  f'\t Kurtosis: {kurtosis(noise_distribution, nan_policy="omit"):.4f}')
+
+            print(f'\nNoise autocorrelation time: {act} time-steps')
 
             # Plot figures
             fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)
