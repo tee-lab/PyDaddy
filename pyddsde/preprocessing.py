@@ -38,6 +38,19 @@ class Preprocessing(GaussianTest):
 		idx = np.linspace(0, len(x)-1, sample_size, dtype=np.int)
 		return x[idx], y[idx]
 
+	def _remove_outliers(self, xs, y, quantile=0.01):
+		""" Remove points corresponding to outliers in y. xs is a list of one or more arrays, indices corresponding
+		to outliers in y will be removed from each array in xs as well. """
+
+		lb = np.nanquantile(y, quantile)
+		ub = np.nanquantile(y, 1 - quantile)
+
+		cond = (lb <= y) & (y <= ub)
+		y = y[cond]
+		xs = [x[cond] for x in xs]
+
+		return xs, y
+
 	def _r2_vs_order_multi_dt(self,
 							  X,
 							  M_square,

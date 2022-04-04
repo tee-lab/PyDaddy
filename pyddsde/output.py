@@ -1277,114 +1277,6 @@ class Output(Preprocessing, Visualize):
 
         plt.show()
 
-    def fitting_diagnostic(self):
-        """
-        Show diagnostics figures like autocorrelation plots, r2 adjusted plots, for drift and diffusion
-        for multiple dt.
-
-        Args
-        ----
-
-        Returns
-        -------
-        displays figures : None
-        """
-        # FIXME Needs to be changed.
-        if self.vector:
-            print("N/A")
-            return None
-        t1 = "R2_adj"
-        """
-        #ACF
-        fig1 = plt.figure(dpi=150)
-        plt.suptitle("ACF")
-        exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
-        plt.plot(self._ddsde._autocorr_x, self._ddsde._autocorr_y)
-        y = exp_fn(self._ddsde._autocorr_x, self._ddsde._a,
-                   self._ddsde.autocorrelation_time, self._ddsde._c)
-        plt.plot(self._ddsde._autocorr_x, y)
-        plt.legend(('ACF', 'exp_fit'))
-        plt.xlabel('Time Lag')
-        plt.ylabel('ACF')
-        """
-
-        # R2 vs order for drift
-        fig2 = plt.figure(dpi=150)
-        plt.suptitle("{}_vs_drift_order".format(t1))
-        plt.plot(range(self._ddsde.max_order), self._ddsde._r2_drift)
-        plt.xlabel('order')
-        plt.ylabel(t1)
-
-        # R2 vs order for diff
-        fig3 = plt.figure(dpi=150)
-        plt.suptitle("{}_vs_Diff_order".format(t1))
-        plt.plot(range(self._ddsde.max_order), self._ddsde._r2_diff)
-        plt.xlabel('order')
-        plt.ylabel(t1)
-        # plt.title('{} Diff vs order'.format(t1))
-
-        # R2 vs order for drift, multiple dt
-        label = ["dt={}".format(i) for i in self._ddsde._r2_drift_m_dt[-1]]
-        fig4 = plt.figure(dpi=150)
-        plt.suptitle("{}_Drift_different_dt".format(t1))
-        for i in range(len(self._ddsde._r2_drift_m_dt) - 1):
-            plt.plot(range(self._ddsde.max_order),
-                     self._ddsde._r2_drift_m_dt[i],
-                     label=self._ddsde._r2_drift_m_dt[-1][i])
-        plt.xlabel('order')
-        plt.ylabel(t1)
-        plt.legend()
-
-        # R2 vs order for diff, multiple dt
-        fig5 = plt.figure(dpi=150)
-        plt.suptitle("{}_Diff_different_dt".format(t1))
-        for i in range(len(self._ddsde._r2_drift_m_dt) - 1):
-            plt.plot(range(self._ddsde.max_order),
-                     self._ddsde._r2_diff_m_dt[i],
-                     label=self._ddsde._r2_drift_m_dt[-1][i])
-        plt.xlabel('order')
-        plt.ylabel(t1)
-        plt.legend()
-
-        plt.show()
-
-        return None
-
-    def noise_diagnostic(self,
-                         dpi=150,
-                         kde=True,
-                         title_size=14,
-                         tick_size=15,
-                         label_size=15,
-                         label_pad=8):
-        """
-        Show noise characterstics plots.
-
-        Args
-        ----
-
-        Returns
-        -------
-        displays plots : None
-        """
-        # print("Noise is gaussian") if self._ddsde.gaussian_noise else print("Noise is not Gaussian")
-        if not hasattr(self._ddsde, 'gaussian_noise'):
-            inc = self._ddsde.inc_x if self.vector else self._ddsde.inc
-            self._ddsde.gaussian_noise, self._ddsde._noise, self._ddsde._kl_dist, self._ddsde.noise_stat, self._ddsde.noise_l_lim, self._ddsde.noise_h_lim, self._ddsde._noise_correlation = self._ddsde._noise_analysis(
-                self._ddsde._X, self._ddsde.Dt, self._ddsde.dt, self._ddsde.t_int, inc=inc, point=0)
-        data = [self._ddsde._noise, self._ddsde._kl_dist, self._ddsde._X1, self._ddsde.noise_h_lim,
-                self._ddsde.noise_stat, self._ddsde.noise_l_lim, self._ddsde._f, self._ddsde._noise_correlation]
-        fig = self._plot_noise_characterstics(data,
-                                              dpi=150,
-                                              kde=True,
-                                              title_size=14,
-                                              tick_size=15,
-                                              label_size=15,
-                                              label_pad=8)
-
-        plt.show()
-        return None
-
     def noise_diagnostics(self):
         if self.vector:
             X, Y = self._ddsde._Mx, self._ddsde._My
@@ -1482,7 +1374,7 @@ class Output(Preprocessing, Visualize):
             print('Noise statistics:')
             print(f'\tMean: {np.nanmean(noise_distribution):.4f} \t\t Std. Dev.: {np.nanstd(noise_distribution):.4f}')
             print(f'\tSkewness: {skew(noise_distribution, nan_policy="omit"):.4f}'
-                  f'\t Kurtosis: {kurtosis(noise_distribution, nan_policy="omit"):.4f}')
+                  f'\tKurtosis: {kurtosis(noise_distribution, nan_policy="omit"):.4f}')
 
             print(f'\nNoise autocorrelation time: {act} time-steps')
 
@@ -1497,7 +1389,67 @@ class Output(Preprocessing, Visualize):
             plt.show()
 
     def fit_diagnostics(self):
-        return NotImplementedError
+        if self.vector:
+            if not (self.A1 or self.A2 or self.B11 or self.B12 or self.B21):
+                print('Use fit() to fit functions before calling fit_diagnostics().')
+                return
+
+            x, y = np.meshgrid(self._ddsde._op_x_, self._ddsde._op_y_)
+
+            if self.A1:
+                z = self._ddsde._avgdriftX_
+                self._print_function_diagnostics_2d(self.A1, x, y, z, name='Drift', symbol='A1')
+
+            if self.A2:
+                z = self._ddsde._avgdriftY_
+                self._print_function_diagnostics_2d(self.A2, x, y, z, name='Drift', symbol='A2')
+
+            if self.B11:
+                z = self._ddsde._avgdiffX_
+                self._print_function_diagnostics_2d(self.B11, x, y, z, name='Diffusion', symbol='B11')
+
+            if self.B22:
+                z = self._ddsde._avgdiffY_
+                self._print_function_diagnostics_2d(self.B22, x, y, z, name='Diffusion', symbol='B22')
+
+            if self.B12:
+                z = self._ddsde._avgdiffXY_
+                self._print_function_diagnostics_2d(self.B21, x, y, z, name='Cross-diffusion', symbol='B12 = B21')
+
+        else:
+            if (self.F is None) and (self.G is None):
+                print('Use fit() to fit functions before calling fit_diagnostics().')
+                return
+
+            x = self._ddsde._op_
+
+            if self.F:
+                y = self._ddsde._avgdrift_
+                self._print_function_diagnostics(self.F, x, y, name='Drift', symbol='F')
+
+            if self.G:
+                y = self._ddsde._avgdiff_
+                self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
+
+    def _print_function_diagnostics(self, f, x, y, name, symbol):
+        y_fit = f(x)
+        (x_, y_fit_), y_ = self._remove_outliers([x, y_fit], y)
+        r2 = 1 - np.nansum((y - y_fit) ** 2) / np.nansum((y - np.nanmean(y)) ** 2)
+        r2_ = 1 - np.nansum((y_ - y_fit_) ** 2) / np.nansum((y_ - np.nanmean(y_)) ** 2)
+
+        print(f'\n{name}:\n {symbol} = {f}')
+        print(f'    R2 : {r2:.4f}')
+        print(f'    R2 (without outliers) : {r2_:.4f}')
+
+    def _print_function_diagnostics_2d(self, f, x, y, z, name, symbol):
+        z_fit = f(x, y)
+        (x_, y_, z_fit_), z_ = self._remove_outliers([x, y, z_fit], z)
+        r2 = 1 - np.nanmean((z - z_fit) ** 2) / np.nanmean((z - np.nanmean(z)) ** 2)
+        r2_ = 1 - np.nanmean((z_ - z_fit_) ** 2) / np.nanmean((z_ - np.nanmean(z_)) ** 2)
+
+        print(f'\n{name}:\n {symbol} = {f}')
+        print(f'    R2 : {r2:.4f}')
+        print(f'    R2 (without outliers) : {r2_:.4f}')
 
 
 class Error(Exception):

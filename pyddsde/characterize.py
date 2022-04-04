@@ -110,7 +110,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             binwidth_y = 2 * iqr(self._data[1], nan_policy='omit') / np.cbrt(len(self._data[1]))
             n_y = int((np.nanmax(self._data[1]) - np.nanmin(self._data[1])) / binwidth_y)
             n = max(n, n_y)
-        print(f'Number of bins chosen: {n}')
+        # print(f'Number of bins chosen: {n}')
         return n
 
     def _slider_data(self, Mx, My, update=False):
