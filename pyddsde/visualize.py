@@ -42,11 +42,11 @@ class Visualize(Metrics):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
-        ax.set_title(title, fontsize=title_size)
+        ax.set_title(title)#, fontsize=title_size)
 
-        ax.set_xlabel(x_label, fontsize=label_size, labelpad=label_pad)
-        ax.set_ylabel(y_label, fontsize=label_size, labelpad=label_pad)
-        ax.tick_params(axis='both', which='major', labelsize=tick_size)
+        ax.set_xlabel(x_label) #, fontsize=label_size, labelpad=label_pad)
+        ax.set_ylabel(y_label) #, fontsize=label_size, labelpad=label_pad)
+        # ax.tick_params(axis='both', which='major', labelsize=tick_size)
 
         return None
 
@@ -144,8 +144,8 @@ class Visualize(Metrics):
             Mx, My, driftX, driftY, diffX, diffY, diffXY = data
             # M = np.sqrt(Mx ** 2 + My ** 2)  # Not plotting |M| anymore.
 
-            fig = plt.figure(constrained_layout=True, figsize=(15, 12), dpi=100)
-            gs = gridspec.GridSpec(nrows=3, ncols=4, wspace=0.5, hspace=0.5, figure=fig)
+            fig = plt.figure(constrained_layout=True, figsize=(12, 9), dpi=100)
+            gs = gridspec.GridSpec(nrows=3, ncols=4, width_ratios=(2, 2, 3, 3), figure=fig)
 
             # Mx, My timeseries
             Mx_axis = fig.add_subplot(gs[0, 0:2])
@@ -309,6 +309,7 @@ class Visualize(Metrics):
             pdf_axis = fig.add_subplot(gs[1, 0], projection='3d')
             pdf_axis = self._plot_3d_hisogram(Mx, My, ax=pdf_axis, title='', title_size=title_size, tick_size=tick_size,
                                               label_size=label_size, label_pad=label_pad)
+            plt.tight_layout()
 
             # FIXME: Plot function fits.
 
@@ -397,7 +398,7 @@ class Visualize(Metrics):
         # plt.subplots_adjust(bottom=0.3)
         # fig.add_axes([0,0,1,1]).axis("off")
         plt.tight_layout()
-        return fig
+        # return fig
 
     def _plot_timeseries(self,
                          timeseries,
@@ -731,8 +732,8 @@ class Visualize(Metrics):
         ax.set_xticks(np.linspace(round(np.nanmin(Mx), 2), round(np.nanmax(Mx), 2), 3))
         ax.set_yticks(np.linspace(round(np.nanmin(My), 2), round(np.nanmax(My), 2), 3))
         ax.set_title(title, fontsize=title_size)
-        ticks = [str(i) + "K" for i in (np.array(ax.get_zticks()) / 1000).round(1)]
-        ax.set_zticklabels(ticks)
+        # ticks = [str(i) + "K" for i in (np.array(ax.get_zticks()) / 1000).round(1)]
+        # ax.set_zticklabels(ticks)
         ax.tick_params(axis='both', which='major', labelsize=tick_size, pad=5)
         if r_fig:
             return fig, ax
@@ -902,7 +903,7 @@ class Visualize(Metrics):
                         row=r,
                         col=c,
                     )
-                    if func[c - 1] and type(func[c - 1]) is not tuple: #isinstance(order, int):
+                    if func[c - 1] and (type(func[c - 1]) is not tuple): #isinstance(order, int):
                         # x, y = np.meshgrid(self.op_x, self.op_y)
                         z = func[c - 1](x, y)
                         # z[np.isnan(data[k])] = np.nan
@@ -939,8 +940,8 @@ class Visualize(Metrics):
             scene2_aspectmode='cube',
             scene1=scene1,
             scene2=scene2,
-            scene1_zaxis_range=[np.nanmin(data[0]), np.nanmax(data[0])],
-            scene2_zaxis_range=[np.nanmin(data[1]), np.nanmax(data[1])],
+            # scene1_zaxis_range=[np.nanmin(data[0]), np.nanmax(data[0])],
+            # scene2_zaxis_range=[np.nanmin(data[1]), np.nanmax(data[1])],
             # scene3 = scene,
             # scene4 = scene,
             title_text=t,

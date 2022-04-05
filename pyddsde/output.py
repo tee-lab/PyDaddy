@@ -1444,8 +1444,8 @@ class Output(Preprocessing, Visualize):
     def _print_function_diagnostics_2d(self, f, x, y, z, name, symbol):
         z_fit = f(x, y)
         (x_, y_, z_fit_), z_ = self._remove_outliers([x, y, z_fit], z)
-        r2 = 1 - np.nanmean((z - z_fit) ** 2) / np.nanmean((z - np.nanmean(z)) ** 2)
-        r2_ = 1 - np.nanmean((z_ - z_fit_) ** 2) / np.nanmean((z_ - np.nanmean(z_)) ** 2)
+        r2 = 1 - np.nansum((z - z_fit) ** 2) / np.nansum((z - np.nanmean(z)) ** 2)
+        r2_ = 1 - np.nansum((z_ - z_fit_) ** 2) / np.nansum((z_ - np.nanmean(z_)) ** 2)
 
         print(f'\n{name}:\n {symbol} = {f}')
         print(f'    R2 : {r2:.4f}')
