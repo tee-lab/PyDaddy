@@ -165,7 +165,7 @@ class Output(Preprocessing, Visualize):
         gc.collect()
         return None
 
-    def get_data(self, filename=None, raw=False):
+    def export_data(self, filename=None, raw=False):
         """
         Returns a pandas dataframe containing the drift and diffusion values.
         Args
@@ -229,7 +229,7 @@ class Output(Preprocessing, Visualize):
         else:
             return df
 
-    def export_data(self, fname=None, save_mat=True, zip=False):
+    def export_data_(self, fname=None, save_mat=True, zip=False):
         """
         Export all drift and diffusion data, to csv and matlab (mat) files
 
@@ -248,7 +248,7 @@ class Output(Preprocessing, Visualize):
             path where data is exported
         """
 
-        warnings.warn('export_data() is deprecated. Use get_data() instead.', DeprecationWarning)
+        warnings.warn('export_data_() is deprecated. Use export_data() instead.', DeprecationWarning)
 
         if fname is None:
             fname = ''
@@ -1298,16 +1298,16 @@ class Output(Preprocessing, Visualize):
 
             lags, acf = self._ddsde._acf(res_m, t_lag=min(100, len(res_m)))
             (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
-            act = int(np.ceil(b))
+            act = b
 
             _, acf_x = self._ddsde._acf(res_x, t_lag=min(100, len(res_m)))
             _, acf_y = self._ddsde._acf(res_y, t_lag=min(100, len(res_m)))
 
             (_, bx, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
-            act_x = int(np.ceil(bx))
+            act_x = bx
 
             (_, by, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
-            act_y = int(np.ceil(by))
+            act_y = by
 
             # Summary information
             print('Noise statistics:')
@@ -1317,8 +1317,8 @@ class Output(Preprocessing, Visualize):
                   f'    {noise_corr[1, 0]:+.4f}    {noise_corr[1, 1]:+.4f}')
 
             print('\nNoise autocorrelation time (time-steps):')
-            print(f'    eta_x: {act_x}    eta_y: {act_y}')
-            print(f'    |eta|: {act}')
+            print(f'    eta_x: {act_x:.3f}    eta_y: {act_y:.3f}')
+            print(f'    |eta|: {act:.3f}')
 
             # Summary figures
             fig = plt.figure(figsize=(7, 7))
@@ -1357,7 +1357,7 @@ class Output(Preprocessing, Visualize):
             # Compute residual autocorrelation
             lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))
             (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
-            act = int(np.ceil(b))
+            act = b
 
             # Compute 2nd and 4th Kramers-Moyal coefficients
             km_2 = self._km_coefficient(2, X, t_int)
@@ -1376,7 +1376,7 @@ class Output(Preprocessing, Visualize):
             print(f'\tSkewness: {skew(noise_distribution, nan_policy="omit"):.4f}'
                   f'\tKurtosis: {kurtosis(noise_distribution, nan_policy="omit"):.4f}')
 
-            print(f'\nNoise autocorrelation time: {act} time-steps')
+            print(f'\nNoise autocorrelation time: {act:.3f} time-steps')
 
             # Plot figures
             fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)

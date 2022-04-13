@@ -195,6 +195,8 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
+            self._update_axis_range(driftX_axis, driftX, both=True)
+
             driftY_axis = fig.add_subplot(gs[0, 3], projection='3d')
             _, driftY_axis = self._plot_data(driftY,
                                              ax=driftY_axis,
@@ -207,8 +209,10 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
+            self._update_axis_range(driftY_axis, driftY, both=True)
+
             diffX_axis = fig.add_subplot(gs[1, 2], projection='3d')
-            _, driffX_axis = self._plot_data(diffX,
+            _, diffX_axis = self._plot_data(diffX,
                                              ax=diffX_axis,
                                              title=text['diffusionx_title'],  # "Diffusion X",
                                              x_label=text['diffusionx_xlabel'],  # '$m_{x}$',
@@ -219,7 +223,7 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
-            # # FIXME Pass appropriate args and plot diffXY, diffYX
+            self._update_axis_range(diffX_axis, diffX, both=False)
 
             zlim = (-max(np.nanmax(diffX), np.nanmax(diffY)), max(np.nanmax(diffX), np.nanmax(diffY)))
 
@@ -236,6 +240,8 @@ class Visualize(Metrics):
                                              label_pad=label_pad,
                                              zlim=zlim)
 
+            # self._update_axis_range(diffXY_axis, diffXY, both=True)
+
             diffYX_axis = fig.add_subplot(gs[2, 2], projection='3d')
             _, diffYX_axis = self._plot_data(diffXY,
                                              ax=diffYX_axis,
@@ -249,6 +255,8 @@ class Visualize(Metrics):
                                              label_pad=label_pad,
                                              zlim=zlim)
 
+            # self._update_axis_range(diffYX_axis, diffXY, both=True)
+
             diffY_axis = fig.add_subplot(gs[2, 3], projection='3d')
             _, diffY_axis = self._plot_data(diffY,
                                             ax=diffY_axis,
@@ -260,6 +268,8 @@ class Visualize(Metrics):
                                             title_size=title_size,
                                             label_size=label_size,
                                             label_pad=label_pad)
+
+            self._update_axis_range(diffY_axis, diffY, both=False)
 
             # Histogram of Mx
             # FIXME Don't use histplot.
@@ -399,6 +409,17 @@ class Visualize(Metrics):
         # fig.add_axes([0,0,1,1]).axis("off")
         plt.tight_layout()
         # return fig
+
+    def _update_axis_range(self, ax, x, both=True):
+        quantiles = (np.nanquantile(x, 0.01), np.nanquantile(x, 0.99))
+        q_range = quantiles[1] - quantiles[0]
+        if both:
+            ax_range = (quantiles[0] - 0.05 * q_range, quantiles[1] + 0.05 * q_range)
+        else:
+            ax_range = (0, quantiles[1] + 0.1 * q_range)
+
+        ax.set_zlim3d(ax_range)
+
 
     def _plot_timeseries(self,
                          timeseries,
@@ -1465,7 +1486,7 @@ class Visualize(Metrics):
         ax.set_yticks(ax.get_xticks())
 
     def _acf_plot(self, ax, acf, lags, a, b, c, act, title):
-        acf, lags = acf[:(10 * act)], lags[:(10 * act)]
+        acf, lags = acf[:(10 * int(np.ceil(act)))], lags[:(10 * int(np.ceil(act)))]
 
         expfit = a * np.exp(-lags / b) + c
         ax.plot(lags, acf, label='Autocorrelation')
@@ -1476,7 +1497,7 @@ class Visualize(Metrics):
         ax.legend()
 
     def _acf_plot_multi(self, ax, acf1, acf2, lags, act1, act2, title=None):
-        lim = 10 * max(act1, act2)
+        lim = 10 * max(int(np.ceil(act1)), int(np.ceil(act2)))
         acf1, acf2, lags = acf1[:lim], acf2[:lim], lags[:lim]
         ax.plot(lags, acf1, label='Autocorr. $\\eta_x$')
         ax.plot(lags, acf2, label='Autocorr. $\\eta_y$')
@@ -1485,7 +1506,6 @@ class Visualize(Metrics):
 
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
         ax.legend()
-
 
     def _km_plot(self, ax, km_2, km_4, title):
         ax.axline(xy1=(0, 0), slope=1, color='k')

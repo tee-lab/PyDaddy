@@ -342,26 +342,26 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._diff_slider = dict()
                 self._cross_diff_slider = dict()
                 self._driftX_, self._driftY_, self._diffusionX_, self._diffusionY_, \
-                self._diffusionXY_, self._diffusionYX_, \
-                self._avgdriftX_, self._avgdriftY_, \
-                self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, \
-                self._op_x_, self._op_y_, \
-                self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = self._vector_drift_diff(
-                    self._Mx,
-                    self._My,
-                    inc_x=self.inc_x,
-                    inc_y=self.inc_y,
-                    t_int=self.t_int,
-                    Dt=self.Dt,
-                    dt=self.dt,
-                    fast_mode=self.fast_mode,
-                    drift_threshold=self.drift_threshold,
-                    drift_degree=self.drift_degree,
-                    drift_alpha=self.drift_alpha,
-                    diff_threshold=self.diff_threshold,
-                    diff_degree=self.diff_degree,
-                    diff_alpha=self.diff_alpha
-                )
+                    self._diffusionXY_, self._diffusionYX_, \
+                    self._avgdriftX_, self._avgdriftY_, \
+                    self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, \
+                    self._op_x_, self._op_y_, \
+                    self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = self._vector_drift_diff(
+                        self._Mx,
+                        self._My,
+                        inc_x=self.inc_x,
+                        inc_y=self.inc_y,
+                        t_int=self.t_int,
+                        Dt=self.Dt,
+                        dt=self.dt,
+                        fast_mode=self.fast_mode,
+                        drift_threshold=self.drift_threshold,
+                        drift_degree=self.drift_degree,
+                        drift_alpha=self.drift_alpha,
+                        diff_threshold=self.diff_threshold,
+                        diff_degree=self.diff_degree,
+                        diff_alpha=self.diff_alpha
+                    )
                 self._avgdriftX_ = self._avgdriftX_ / self.n_trials
                 self._avgdriftY_ = self._avgdriftY_ / self.n_trials
                 self._avgdiffX_ = self._avgdiffX_ / self.n_trials
