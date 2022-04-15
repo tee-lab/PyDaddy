@@ -56,6 +56,17 @@ class AutoCorrelation:
         c.insert(0, 1)
         return x, np.array(c)
 
+    def _ccf(self, x, y, t_lag):
+        """" Returns the cross-correlation function between x and y. """
+
+        if np.isnan(x).any() or np.isnan(y).any():
+            return self._nan_ccf(x, y, t_lag)
+
+        lags = np.arange(0, t_lag)
+        c = [np.corrcoef(x[:-i], y[i:])[0][1] for i in lags[1:]]
+        c.insert(0, 1)
+        return lags, np.array(c)
+
     def _acf_fft(self, data, t_lag):
         """
 		Calculates autocorrelation using wiener khinchin theorem.
@@ -82,6 +93,23 @@ class AutoCorrelation:
         for i in range(1, t_lag):
             c.append((np.nanmean((data[:-i] - mue) * (data[i:] - mue))) /
                      (np.sqrt(np.nanvar(data[:-i]) * np.nanvar((data[i:])))))
+        return np.arange(t_lag), np.array(c)
+
+    def _nan_ccf(self, data_x, data_y, t_lag):
+        """
+		Calculates cross-correlation using the correaltion formula, ignoring all points
+		with nan's
+		"""
+
+        c = []
+        mu_x, mu_y = np.nanmean(data_x), np.nanmean(data_y)
+        c.append((np.nanmean(
+            (data_x - mu_x) * (data_y - mu_y))) /
+                 (np.nanstd(data_x - mu_x) * np.nanstd(data_y - mu_y))
+                 )
+        for i in range(1, t_lag):
+            c.append((np.nanmean((data_x[:-i] - mu_x) * (data_y[i:] - mu_y))) /
+                     (np.nanstd(data_x[:-i]) * np.nanstd((data_y[i:]))))
         return np.arange(t_lag), np.array(c)
 
     def _fit_exp(self, x, y):

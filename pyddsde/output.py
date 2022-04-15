@@ -835,7 +835,7 @@ class Output(Preprocessing, Visualize):
         return fig
 
     def histogram(self,
-                  kde=False,
+                  kde=True,
                   dpi=150,
                   title_size=14,
                   label_size=15,
@@ -912,6 +912,18 @@ class Output(Preprocessing, Visualize):
                                     **plot_text)
         plt.show()
         return fig
+
+    def autocorrelation(self):
+        if not self.vector:
+            lags, acf = self._ddsde._acf(self._data_X, min(1000, len(self._data_X)))
+            self._plot_autocorrelation_1d(lags, acf)
+        else:
+            lags, acfm = self._ddsde._acf(self._data_M, min(1000, len(self._data_M)))
+            _, acfx = self._ddsde._acf(self._data_Mx, min(1000, len(self._data_Mx)))
+            _, acfy = self._ddsde._acf(self._data_My, min(1000, len(self._data_My)))
+            _, ccf = self._ddsde._ccf(self._data_Mx, self._data_My, min(1000, len(self._data_Mx)))
+            self._plot_autocorrelation_2d(lags, acfx, acfy, acfm, ccf)
+
 
     def _update_slider_data(self, slider_timescales):
         if self._is_valid_slider_timescale_list(slider_timescales):
