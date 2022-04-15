@@ -131,7 +131,7 @@ class AutoCorrelation:
 		-----
 		Reference : scipy.optimize.curve_fit
 		"""
-        fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
+        fn = lambda t, a, b, c: a * np.exp((-t / b)) + c
         params, cov = scipy.optimize.curve_fit(fn, x, y)
         return params, cov
 

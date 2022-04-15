@@ -1576,7 +1576,7 @@ class Visualize(Metrics):
 
         expfit = a * np.exp(-lags / b) + c
         ax.plot(lags, acf, label='Autocorrelation')
-        ax.plot(lags, expfit, '--', label='Exponential fit')
+        # ax.plot(lags, expfit, '--', label='Exponential fit')
         ax.axvline(act, label='Autocorr. time', color='k')
 
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
@@ -1598,7 +1598,7 @@ class Visualize(Metrics):
         ax.plot(3 * (km_2 ** 2), km_4, '.')
 
         ax.axis('equal')
-        ax.set(xlabel='3 * K(2)^2', ylabel='K(4)', title=title)
+        ax.set(xlabel='$3 \cdot K(2)^2$', ylabel='$K(4)$', title=title)
         ax.set_yticks(ax.get_xticks())
 
 

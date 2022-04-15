@@ -1384,7 +1384,7 @@ class Output(Preprocessing, Visualize):
 
             # Print summary data
             print('Noise statistics:')
-            print(f'\tMean: {np.nanmean(noise_distribution):.4f} \t\t Std. Dev.: {np.nanstd(noise_distribution):.4f}')
+            print(f'\tMean: {np.nanmean(noise_distribution):.4f} \t\tStd. Dev.: {np.nanstd(noise_distribution):.4f}')
             print(f'\tSkewness: {skew(noise_distribution, nan_policy="omit"):.4f}'
                   f'\tKurtosis: {kurtosis(noise_distribution, nan_policy="omit"):.4f}')
 
@@ -1452,6 +1452,7 @@ class Output(Preprocessing, Visualize):
         print(f'\n{name}:\n {symbol} = {f}')
         print(f'    R2 : {r2:.4f}')
         print(f'    R2 (without outliers) : {r2_:.4f}')
+        print('\n(Coefficients are shown with standard errors.)')
 
     def _print_function_diagnostics_2d(self, f, x, y, z, name, symbol):
         z_fit = f(x, y)
