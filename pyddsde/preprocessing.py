@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 import numpy as np
 from pyddsde.analysis import GaussianTest
 
@@ -35,6 +37,19 @@ class Preprocessing(GaussianTest):
 			sample_size = len(x)
 		idx = np.linspace(0, len(x)-1, sample_size, dtype=np.int)
 		return x[idx], y[idx]
+
+	def _remove_outliers(self, xs, y, quantile=0.01):
+		""" Remove points corresponding to outliers in y. xs is a list of one or more arrays, indices corresponding
+		to outliers in y will be removed from each array in xs as well. """
+
+		lb = np.nanquantile(y, quantile)
+		ub = np.nanquantile(y, 1 - quantile)
+
+		cond = (lb <= y) & (y <= ub)
+		y = y[cond]
+		xs = [x[cond] for x in xs]
+
+		return xs, y
 
 	def _r2_vs_order_multi_dt(self,
 							  X,
@@ -206,7 +221,7 @@ class Preprocessing(GaussianTest):
 		Initailize and validate all inputs.
 		"""
 
-		if not isinstance(self._data, list):
+		if not isinstance(self._data, Iterable):
 			raise InputError('Characterize(data=[Mx,My],...)',
 							 'data input must be a list of length 1 or 2!')
 		for d in self._data:
@@ -247,25 +262,25 @@ class Preprocessing(GaussianTest):
 
 		if not self._isValidRange(self.op_range):
 			if self.op_range is None:
-				self.op_range = (min(self._X), max(self._X))
+				self.op_range = (np.nanmin(self._X), np.nanmax(self._X))
 			else:
 				print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-				self.op_range = (min(self._X), max(self._X))
+				self.op_range = (np.nanmin(self._X), np.nanmax(self._X))
 
 		if self.vector:
 			if not self._isValidRange(self.op_x_range):
 				if self.op_x_range is None:
-					self.op_x_range = (min(self._Mx), max(self._Mx))
+					self.op_x_range = (np.nanmin(self._Mx), np.nanmax(self._Mx))
 				else:
 					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-					self.op_x_range = (min(self._Mx), max(self._Mx))
+					self.op_x_range = (np.nanmin(self._Mx), np.nanmax(self._Mx))
 
 			if not self._isValidRange(self.op_y_range):
 				if self.op_y_range is None:
-					self.op_y_range = (min(self._My), max(self._My))
+					self.op_y_range = (np.nanmin(self._My), np.nanmax(self._My))
 				else:
 					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
-					self.op_y_range = (min(self._My), max(self._My))
+					self.op_y_range = (np.nanmin(self._My), np.nanmax(self._My))
 
 
 		if self.bins:

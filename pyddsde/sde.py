@@ -1,6 +1,7 @@
 from collections import namedtuple
 import numpy as np
 from .fitters import PolyFit1D, PolyFit2D
+from scipy.special import factorial
 
 class SDE:
     """
@@ -74,8 +75,8 @@ class SDE:
         """
         p = len(X) - max(dt, Dt)
         drift = self._drift(X, t_int, Dt)[:p]
-        res = (X[dt:] - X[:-dt])[:p]
-        return res - drift*(t_int*dt)
+        res = (X[dt:] - X[:-dt])[:p] - drift*(t_int*dt)
+        return res
 
     def _diffusion_from_residual(self, X, F, t_int, dt=1):
         """
@@ -175,6 +176,9 @@ class SDE:
                 cross-correlation coefficients between y and x data
         """
         return ((x[dt:] - x[:-dt]) * (y[dt:] - y[:-dt])) / (dt * t_int)
+
+    def _km_coefficient(self, order, X, t_int):
+        return (X[1:] - X[:-1]) ** order #/ (t_int) # * factorial(order))
 
     def _isValidRange(self, r):
         """
@@ -338,6 +342,7 @@ class SDE:
             [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, op_x, op_y]
         """
 
+        # FIXME diffusionYX = diffusionXY, so all diffusionYX variables can be removed.
         op_x = self._order_parameter(x, inc_x, self.op_x_range)
         op_y = self._order_parameter(y, inc_y, self.op_y_range)
 
@@ -396,7 +401,6 @@ class SDE:
         avgdiffXY = np.zeros((len(op_x), len(op_y)))
         avgdiffYX = np.zeros((len(op_x), len(op_y)))
 
-
         m = 0
         x_, y_ = x[0 : -max(Dt, dt)], y[0 : -max(Dt, dt)]
         for bin_x in op_y:
@@ -417,8 +421,12 @@ class SDE:
                 n = n + 1
             m = m + 1
         DD = namedtuple('DD',
-                        'avgdriftX avgdriftY avgdiffX avgdiffY avgdiffXY avgdiffYX op_x op_y A1 A2 B11 B22 B12 B21')
+                        'driftX driftY diffusionX diffusionY diffusionXY diffusionYX '
+                        'avgdriftX avgdriftY avgdiffX avgdiffY avgdiffXY avgdiffYX '
+                        'op_x op_y A1 A2 B11 B22 B12 B21')
         return DD(
+            driftX=driftX, driftY=driftY, diffusionX=diffusionX, diffusionY=diffusionY,
+            diffusionXY=diffusionXY, diffusionYX=diffusionYX,
             avgdriftX=avgdriftX, avgdriftY=avgdriftY,
             avgdiffX=avgdiffX, avgdiffY=avgdiffY, avgdiffXY=avgdiffXY, avgdiffYX=avgdiffYX,
             op_x=op_x, op_y=op_y,

@@ -322,7 +322,7 @@ class Metrics:
 		"""
 		Get range of the values in x, (min(x), max(x)), rounded to 3 decimal places.
 		"""
-		return (round(min(x), 3),round(max(x), 3))
+		return (round(np.nanmin(x), 3),round(np.nanmax(x), 3))
 
 	def _remove_nan(self, x, y):
 		"""
