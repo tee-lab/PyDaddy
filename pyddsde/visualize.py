@@ -201,6 +201,7 @@ class Visualize(Metrics):
                                              label_pad=label_pad)
 
             self._update_axis_range(driftX_axis, driftX, both=True)
+            driftX_axis.set_title(text['driftx_title'], size=title_size, y=1.0)
 
             driftY_axis = fig.add_subplot(gs[0, 3], projection='3d')
             _, driftY_axis = self._plot_data(driftY,
@@ -215,6 +216,7 @@ class Visualize(Metrics):
                                              label_pad=label_pad)
 
             self._update_axis_range(driftY_axis, driftY, both=True)
+            driftY_axis.set_title(text['drifty_title'], size=title_size, y=1.0)
 
             diffX_axis = fig.add_subplot(gs[1, 2], projection='3d')
             _, diffX_axis = self._plot_data(diffX,
@@ -229,6 +231,7 @@ class Visualize(Metrics):
                                              label_pad=label_pad)
 
             self._update_axis_range(diffX_axis, diffX, both=False)
+            diffX_axis.set_title(text['diffusionx_title'], size=title_size, y=1.0)
 
             zlim = (-max(np.nanmax(diffX), np.nanmax(diffY)), max(np.nanmax(diffX), np.nanmax(diffY)))
 
@@ -244,6 +247,9 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad,
                                              zlim=zlim)
+
+            diffXY_axis.set_title(text['diffusionxy_title'], size=title_size, y=1.0)
+
 
             # self._update_axis_range(diffXY_axis, diffXY, both=True)
 
@@ -261,6 +267,7 @@ class Visualize(Metrics):
                                              zlim=zlim)
 
             # self._update_axis_range(diffYX_axis, diffXY, both=True)
+            diffYX_axis.set_title(text['diffusionyx_title'], size=title_size, y=1.0)
 
             diffY_axis = fig.add_subplot(gs[2, 3], projection='3d')
             _, diffY_axis = self._plot_data(diffY,
@@ -275,6 +282,8 @@ class Visualize(Metrics):
                                             label_pad=label_pad)
 
             self._update_axis_range(diffY_axis, diffY, both=False)
+            diffY_axis.set_title(text['diffusiony_title'], size=title_size, y=1.0)
+
 
             # # Histogram of Mx
             # distMx_axis = fig.add_subplot(gs[2, 0])
@@ -338,15 +347,6 @@ class Visualize(Metrics):
                                x_label=text['autocorr_xlabel'],
                                y_label=text['autocorr_ylabel_2d'],
                                title=text['autocorr_title'],
-                               tick_size=tick_size,
-                               title_size=title_size,
-                               label_size=label_size,
-                               label_pad=label_pad)
-
-            self._stylize_axes(distM_axis,
-                               x_label=text['2dhist3_title'],  # '|M|',
-                               y_label=text['2dhist3_ylabel'],  # 'Frequency',
-                               title=text['2dhist3_title'],  # '',
                                tick_size=tick_size,
                                title_size=title_size,
                                label_size=label_size,
