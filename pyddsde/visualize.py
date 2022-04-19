@@ -220,15 +220,15 @@ class Visualize(Metrics):
 
             diffX_axis = fig.add_subplot(gs[1, 2], projection='3d')
             _, diffX_axis = self._plot_data(diffX,
-                                             ax=diffX_axis,
-                                             title=text['diffusionx_title'],  # "Diffusion X",
-                                             x_label=text['diffusionx_xlabel'],  # '$m_{x}$',
-                                             y_label=text['diffusionx_ylabel'],  # '$m_{y}$',
-                                             z_label=text['diffusionx_zlabel'],  # '$B_{11}$',
-                                             tick_size=tick_size,
-                                             title_size=title_size,
-                                             label_size=label_size,
-                                             label_pad=label_pad)
+                                            ax=diffX_axis,
+                                            title=text['diffusionx_title'],  # "Diffusion X",
+                                            x_label=text['diffusionx_xlabel'],  # '$m_{x}$',
+                                            y_label=text['diffusionx_ylabel'],  # '$m_{y}$',
+                                            z_label=text['diffusionx_zlabel'],  # '$B_{11}$',
+                                            tick_size=tick_size,
+                                            title_size=title_size,
+                                            label_size=label_size,
+                                            label_pad=label_pad)
 
             self._update_axis_range(diffX_axis, diffX, both=False)
             diffX_axis.set_title(text['diffusionx_title'], size=title_size, y=1.0)
@@ -284,35 +284,6 @@ class Visualize(Metrics):
             self._update_axis_range(diffY_axis, diffY, both=False)
             diffY_axis.set_title(text['diffusiony_title'], size=title_size, y=1.0)
 
-
-            # # Histogram of Mx
-            # distMx_axis = fig.add_subplot(gs[2, 0])
-            # distMx_axis = sns.distplot(Mx, kde=kde, ax=distMx_axis, norm_hist=True)
-            # # ticks = [str(i) + "K" for i in (np.array(distMx_axis.get_yticks()) / 1000).round(1)]
-            # # distMx_axis.set_yticklabels(ticks)
-            # self._stylize_axes(distMx_axis,
-            #                    x_label=text['2dhist1_xlabel'],  # '$M_{x}$',
-            #                    y_label=text['2dhist1_ylabel'],  # 'Frequency',
-            #                    title=text['2dhist1_title'],  # '',
-            #                    tick_size=tick_size,
-            #                    title_size=title_size,
-            #                    label_size=label_size,
-            #                    label_pad=label_pad)
-            #
-            # # Histogram of My
-            # distMy_axis = fig.add_subplot(gs[2, 1])
-            # distMy_axis = sns.distplot(My, kde=kde, ax=distMy_axis, norm_hist=True)
-            # # ticks = [str(i) + "K" for i in (np.array(distMy_axis.get_yticks()) / 1000).round(1)]
-            # # distMy_axis.set_yticklabels(ticks)
-            # self._stylize_axes(distMy_axis,
-            #                    x_label=text['2dhist2_xlabel'],  # '$M_{y}$',
-            #                    y_label=text['2dhist2_ylabel'],  # 'Frequency',
-            #                    title=text['2dhist2_title'],  # '',
-            #                    tick_size=tick_size,
-            #                    title_size=title_size,
-            #                    label_size=label_size,
-            #                    label_pad=label_pad)
-
             # Histogram of |M|
             distM_axis = fig.add_subplot(gs[2, 1])
             distM_axis = sns.distplot(np.sqrt(Mx ** 2 + My ** 2), kde=kde, ax=distM_axis, norm_hist=True)
@@ -337,11 +308,11 @@ class Visualize(Metrics):
 
             lags, acf_x = self._ddsde._acf(Mx, t_lag=min(timeseries_end, len(Mx)))
             _, acf_y = self._ddsde._acf(My, t_lag=min(timeseries_end, len(My)))
-            _, acf_m = self._ddsde._acf(np.sqrt(Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
+            _, acf_m = self._ddsde._acf((Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
 
             ac_axis.plot(lags, acf_x, label='$\\sigma_{M_x}$')
             ac_axis.plot(lags, acf_y, label='$\\sigma_{M_y}$')
-            ac_axis.plot(lags, acf_m, label='$\\sigma_{|M|}$')
+            ac_axis.plot(lags, acf_m, label='$\\sigma_{|M|^2}$')
             ac_axis.legend()
             self._stylize_axes(ac_axis,
                                x_label=text['autocorr_xlabel'],
@@ -353,8 +324,6 @@ class Visualize(Metrics):
                                label_pad=label_pad)
 
             plt.tight_layout()
-
-            # FIXME: Plot function fits.
 
         else:
             # Time Series
@@ -667,7 +636,7 @@ class Visualize(Metrics):
 
         ax[0].plot(lags, acfx, label='$\\sigma_{M_x}$')
         ax[0].plot(lags, acfy, label='$\\sigma_{M_y}$')
-        ax[0].plot(lags, acfm, label='$\\sigma_{|M|}$')
+        ax[0].plot(lags, acfm, label='$\\sigma_{|M|^2}$')
 
         ax[1].plot(lags, ccf, label='$\\sigma_{M_x M_y}$')
         ax[1].set_ylim(ax[0].get_ylim())

@@ -920,7 +920,7 @@ class Output(Preprocessing, Visualize):
             lags, acf = self._ddsde._acf(self._data_X, min(1000, len(self._data_X)))
             self._plot_autocorrelation_1d(lags, acf)
         else:
-            lags, acfm = self._ddsde._acf(self._data_M, min(1000, len(self._data_M)))
+            lags, acfm = self._ddsde._acf(self._data_M ** 2, min(1000, len(self._data_M)))
             _, acfx = self._ddsde._acf(self._data_Mx, min(1000, len(self._data_Mx)))
             _, acfy = self._ddsde._acf(self._data_My, min(1000, len(self._data_My)))
             _, ccf = self._ddsde._ccf(self._data_Mx, self._data_My, min(1000, len(self._data_Mx)))
@@ -1308,7 +1308,8 @@ class Output(Preprocessing, Visualize):
 
             noise_dist_x = res_x[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
             noise_dist_y = res_y[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
-            noise_corr = np.corrcoef([noise_dist_x, noise_dist_y])
+            noise_corr = np.na.corrcoef([np.ma.masked_invalid(noise_dist_x),
+                                         np.ma.masked_invalid(noise_dist_y)])
 
             lags, acf = self._ddsde._acf(res_m, t_lag=min(100, len(res_m)))
             (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
