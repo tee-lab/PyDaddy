@@ -835,7 +835,8 @@ class Output(Preprocessing, Visualize):
         return fig
 
     def histogram(self,
-                  kde=True,
+                  kde=False,
+                  heatmap=False,
                   dpi=150,
                   title_size=14,
                   label_size=15,
@@ -903,6 +904,7 @@ class Output(Preprocessing, Visualize):
             data = [self._data_X]
         fig = self._plot_histograms(data,
                                     self.vector,
+                                    heatmap=heatmap,
                                     dpi=dpi,
                                     kde=kde,
                                     title_size=title_size,
