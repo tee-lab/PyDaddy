@@ -220,15 +220,15 @@ class Visualize(Metrics):
 
             diffX_axis = fig.add_subplot(gs[1, 2], projection='3d')
             _, diffX_axis = self._plot_data(diffX,
-                                             ax=diffX_axis,
-                                             title=text['diffusionx_title'],  # "Diffusion X",
-                                             x_label=text['diffusionx_xlabel'],  # '$m_{x}$',
-                                             y_label=text['diffusionx_ylabel'],  # '$m_{y}$',
-                                             z_label=text['diffusionx_zlabel'],  # '$B_{11}$',
-                                             tick_size=tick_size,
-                                             title_size=title_size,
-                                             label_size=label_size,
-                                             label_pad=label_pad)
+                                            ax=diffX_axis,
+                                            title=text['diffusionx_title'],  # "Diffusion X",
+                                            x_label=text['diffusionx_xlabel'],  # '$m_{x}$',
+                                            y_label=text['diffusionx_ylabel'],  # '$m_{y}$',
+                                            z_label=text['diffusionx_zlabel'],  # '$B_{11}$',
+                                            tick_size=tick_size,
+                                            title_size=title_size,
+                                            label_size=label_size,
+                                            label_pad=label_pad)
 
             self._update_axis_range(diffX_axis, diffX, both=False)
             diffX_axis.set_title(text['diffusionx_title'], size=title_size, y=1.0)
@@ -284,35 +284,6 @@ class Visualize(Metrics):
             self._update_axis_range(diffY_axis, diffY, both=False)
             diffY_axis.set_title(text['diffusiony_title'], size=title_size, y=1.0)
 
-
-            # # Histogram of Mx
-            # distMx_axis = fig.add_subplot(gs[2, 0])
-            # distMx_axis = sns.distplot(Mx, kde=kde, ax=distMx_axis, norm_hist=True)
-            # # ticks = [str(i) + "K" for i in (np.array(distMx_axis.get_yticks()) / 1000).round(1)]
-            # # distMx_axis.set_yticklabels(ticks)
-            # self._stylize_axes(distMx_axis,
-            #                    x_label=text['2dhist1_xlabel'],  # '$M_{x}$',
-            #                    y_label=text['2dhist1_ylabel'],  # 'Frequency',
-            #                    title=text['2dhist1_title'],  # '',
-            #                    tick_size=tick_size,
-            #                    title_size=title_size,
-            #                    label_size=label_size,
-            #                    label_pad=label_pad)
-            #
-            # # Histogram of My
-            # distMy_axis = fig.add_subplot(gs[2, 1])
-            # distMy_axis = sns.distplot(My, kde=kde, ax=distMy_axis, norm_hist=True)
-            # # ticks = [str(i) + "K" for i in (np.array(distMy_axis.get_yticks()) / 1000).round(1)]
-            # # distMy_axis.set_yticklabels(ticks)
-            # self._stylize_axes(distMy_axis,
-            #                    x_label=text['2dhist2_xlabel'],  # '$M_{y}$',
-            #                    y_label=text['2dhist2_ylabel'],  # 'Frequency',
-            #                    title=text['2dhist2_title'],  # '',
-            #                    tick_size=tick_size,
-            #                    title_size=title_size,
-            #                    label_size=label_size,
-            #                    label_pad=label_pad)
-
             # Histogram of |M|
             distM_axis = fig.add_subplot(gs[2, 1])
             distM_axis = sns.distplot(np.sqrt(Mx ** 2 + My ** 2), kde=kde, ax=distM_axis, norm_hist=True)
@@ -337,11 +308,11 @@ class Visualize(Metrics):
 
             lags, acf_x = self._ddsde._acf(Mx, t_lag=min(timeseries_end, len(Mx)))
             _, acf_y = self._ddsde._acf(My, t_lag=min(timeseries_end, len(My)))
-            _, acf_m = self._ddsde._acf(np.sqrt(Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
+            _, acf_m = self._ddsde._acf((Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
 
             ac_axis.plot(lags, acf_x, label='$\\sigma_{M_x}$')
             ac_axis.plot(lags, acf_y, label='$\\sigma_{M_y}$')
-            ac_axis.plot(lags, acf_m, label='$\\sigma_{|M|}$')
+            ac_axis.plot(lags, acf_m, label='$\\sigma_{|M|^2}$')
             ac_axis.legend()
             self._stylize_axes(ac_axis,
                                x_label=text['autocorr_xlabel'],
@@ -353,8 +324,6 @@ class Visualize(Metrics):
                                label_pad=label_pad)
 
             plt.tight_layout()
-
-            # FIXME: Plot function fits.
 
         else:
             # Time Series
@@ -553,6 +522,7 @@ class Visualize(Metrics):
     def _plot_histograms(self,
                          timeseries,
                          vector,
+                         heatmap=False,
                          dpi=150,
                          kde=False,
                          title_size=14,
@@ -593,37 +563,43 @@ class Visualize(Metrics):
         if vector:
             Mx, My = timeseries
             M = np.sqrt(Mx ** 2 + My ** 2)
-            fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(8, 8))
+            fig, ax = plt.subplots(nrows=2, ncols=2, dpi=150, figsize=(10, 8))
             plt.subplots_adjust(wspace=0.4, hspace=0.4)
-            ax[0][0] = sns.distplot(Mx, kde=kde, ax=ax[0][0])
-            if not kde:
-                ticks = [str(i) + "K" for i in (np.array(ax[0][0].get_yticks()) / 1000).round(1)]
-                ax[0][0].set_yticklabels(ticks)
+            ax[0][0] = sns.distplot(Mx, kde=kde, ax=ax[0][0], norm_hist=True)
+            # if not kde:
+            #     ticks = [str(i) + "K" for i in (np.array(ax[0][0].get_yticks()) / 1000).round(1)]
+            #     ax[0][0].set_yticklabels(ticks)
             self._stylize_axes(ax[0][0], x_label=text['hist1_xlabel'], y_label=text['hist1_ylabel'],
                                title=text['hist1_title'], tick_size=tick_size, label_size=label_size,
                                title_size=title_size, label_pad=label_pad)
 
-            ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1])
-            if not kde:
-                ticks = [str(i) + "K" for i in (np.array(ax[0][1].get_yticks()) / 1000).round(1)]
-                ax[0][1].set_yticklabels(ticks)
+            ax[0][1] = sns.distplot(My, kde=kde, ax=ax[0][1], norm_hist=True)
+            # if not kde:
+            #     ticks = [str(i) + "K" for i in (np.array(ax[0][1].get_yticks()) / 1000).round(1)]
+            #     ax[0][1].set_yticklabels(ticks)
             self._stylize_axes(ax[0][1], x_label=text['hist2_xlabel'], y_label=text['hist2_ylabel'],
                                title=text['hist2_title'], tick_size=tick_size, label_size=label_size,
                                title_size=title_size, label_pad=label_pad)
 
-            ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0])
-            if not kde:
-                ticks = [str(i) + "K" for i in (np.array(ax[1][0].get_yticks()) / 1000).round(1)]
-                ax[1][0].set_yticklabels(ticks)
+            ax[1][0] = sns.distplot(M, kde=kde, ax=ax[1][0], norm_hist=True)
+            # if not kde:
+            #     ticks = [str(i) + "K" for i in (np.array(ax[1][0].get_yticks()) / 1000).round(1)]
+            #     ax[1][0].set_yticklabels(ticks)
             self._stylize_axes(ax[1][0], x_label=text['hist3_xlabel'], y_label=text['hist3_ylabel'],
                                title=text['hist3_title'], tick_size=tick_size, label_size=label_size,
                                title_size=title_size, label_pad=label_pad)
-
-            ax[1][1].remove()
-            ax[1][1] = fig.add_subplot(2, 2, 4, projection='3d')
-            ax[1][1].set_title('3d Histogram')
-            ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title=text['hist4_title'], title_size=title_size,
-                                              label_size=label_size, tick_size=tick_size, label_pad=label_pad)
+            if heatmap:
+                _, _, _, hist = ax[1][1].hist2d(Mx, My, self._ddsde.bins, density=True)
+                plt.colorbar(hist, ax=ax[1][1])
+                self._stylize_axes(ax[1][1], x_label=text['hist4_xlabel'], y_label=text['hist4_ylabel'],
+                                   title='', tick_size=tick_size, label_size=label_size,
+                                   title_size=title_size, label_pad=label_pad)
+            else:
+                ax[1][1].remove()
+                ax[1][1] = fig.add_subplot(2, 2, 4, projection='3d')
+                ax[1][1].set_title('3d Histogram')
+                ax[1][1] = self._plot_3d_hisogram(Mx, My, ax=ax[1][1], title=text['hist4_title'], title_size=title_size,
+                                                  label_size=label_size, tick_size=tick_size, label_pad=label_pad)
 
         else:
             M = timeseries[0]
@@ -660,7 +636,7 @@ class Visualize(Metrics):
 
         ax[0].plot(lags, acfx, label='$\\sigma_{M_x}$')
         ax[0].plot(lags, acfy, label='$\\sigma_{M_y}$')
-        ax[0].plot(lags, acfm, label='$\\sigma_{|M|}$')
+        ax[0].plot(lags, acfm, label='$\\sigma_{|M|^2}$')
 
         ax[1].plot(lags, ccf, label='$\\sigma_{M_x M_y}$')
         ax[1].set_ylim(ax[0].get_ylim())
@@ -846,7 +822,7 @@ class Visualize(Metrics):
             return fig, ax
         return ax
 
-    def _slider_3d(self, slider_data, init_pos=0, prefix='dt', zlim=None, order=None, **plot_text):
+    def _slider_3d(self, slider_data, init_pos=0, prefix='dt', zlim=None, order=None, polar=False, **plot_text):
         """
         Get slider for analysed vector data.
         """
@@ -936,7 +912,7 @@ class Visualize(Metrics):
             func_name = ['$B_{11}(x, y)$', '$B_{22}(x, y)$']
         else:
             prefix = 'dt'
-            t = 'Cross Correlation'
+            t = 'Cross Diffusion'
             t_tex = "\delta t"
             sub_titles = (text['title1'], text['title2'])
             scene1 = dict(
@@ -975,6 +951,12 @@ class Visualize(Metrics):
         )
 
         x, y = np.meshgrid(self.op_x, self.op_y)
+        if polar:
+            r, theta = np.meshgrid(np.linspace(0, 1, 50), np.linspace(-np.pi, np.pi, 90))
+            x_, y_ = r * np.cos(theta), r * np.sin(theta)
+        else:
+            x_, y_ = x, y
+
         n = list(sub_titles)
         for dt in slider_data:
             data = slider_data[dt]
@@ -1012,7 +994,7 @@ class Visualize(Metrics):
                     )
                     if func[c - 1] and (type(func[c - 1]) is not tuple): #isinstance(order, int):
                         # x, y = np.meshgrid(self.op_x, self.op_y)
-                        z = func[c - 1](x, y)
+                        z = func[c - 1](x_, y_)
                         # z[np.isnan(data[k])] = np.nan
                         # c_s = []
                         # for _ in range(len(x.flatten())):
@@ -1026,8 +1008,8 @@ class Visualize(Metrics):
                         #     continue
                         fig.append_trace(
                             go.Surface(
-                                x=x,
-                                y=y,
+                                x=x_,
+                                y=y_,
                                 z=z,
                                 opacity=0.3,
                                 name=func_name[c - 1],
@@ -1047,6 +1029,8 @@ class Visualize(Metrics):
             scene2_aspectmode='cube',
             scene1=scene1,
             scene2=scene2,
+            scene1_zaxis_range=zlim,
+            scene2_zaxis_range=zlim,
             # scene1_zaxis_range=[np.nanmin(data[0]), np.nanmax(data[0])],
             # scene2_zaxis_range=[np.nanmin(data[1]), np.nanmax(data[1])],
             # scene3 = scene,
@@ -1126,7 +1110,7 @@ class Visualize(Metrics):
 
         return fig
 
-    def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', polynomial_order=None, **plot_text):
+    def _slider_2d(self, slider_data, init_pos=0, limits=None, prefix='Dt', **plot_text):
         """
         Get slider for analysed scalar data
         """
@@ -1211,11 +1195,13 @@ class Visualize(Metrics):
         fig.update_xaxes(title=dict(text=text['x_label']))
         fig.update_yaxes(title=dict(text=text['y_label']))
 
+        if limits:
+            fig.update_yaxes(range=limits)
+
+
         # Create and add slider
         steps = []
         step_n = 1
-        if isinstance(polynomial_order, int):
-            step_n = 2
         for i in range(len(dt_s)):
             step = dict(
                 method="update",
@@ -1415,18 +1401,18 @@ class Visualize(Metrics):
         """
         fig = plt.figure()
         plt.suptitle(title, verticalalignment='center', ha='right')
-        ticks = self.op_x.copy()
-        ticks_loc = np.linspace(0, len(ticks), num_ticks)
-        ticks = np.linspace(min(ticks), max(ticks), num_ticks).round(2)
+        # ticks = self.op_x.copy()
+        # ticks_loc = np.linspace(0, len(ticks), num_ticks)
+        # ticks = np.linspace(min(ticks), max(ticks), num_ticks).round(2)
         ax = sns.heatmap(data,
-                         xticklabels=ticks[::-1],
-                         yticklabels=ticks,
+                         # xticklabels=ticks[::-1],
+                         # yticklabels=ticks,
                          cmap=plt.cm.coolwarm,
                          center=0)
         ax.set_xlabel('$m_x$', fontsize=16, labelpad=10)
         ax.set_ylabel('$m_y$', fontsize=16, labelpad=10)
-        ax.set_xticks(ticks_loc)
-        ax.set_yticks(ticks_loc)
+        # ax.set_xticks(ticks_loc)
+        # ax.set_yticks(ticks_loc)
         ax.tick_params(axis='both', which='major', labelsize=14)
         plt.tight_layout()
         return fig, ax

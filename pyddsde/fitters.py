@@ -49,6 +49,9 @@ class Poly1D:
         else:
             return '0'
 
+    def __repr__(self):
+        return self.__str__()
+
 
 class Poly2D:
     """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
@@ -102,6 +105,9 @@ class Poly2D:
             return ' + '.join(terms_with_coeffs)
         else:
             return '0'
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class PolyFitBase:

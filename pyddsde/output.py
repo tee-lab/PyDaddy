@@ -229,57 +229,6 @@ class Output(Preprocessing, Visualize):
         else:
             return df
 
-    def export_data_(self, fname=None, save_mat=True, zip=False):
-        """
-        Export all drift and diffusion data, to csv and matlab (mat) files
-
-        Args
-        ----
-        fname : str, optional(default=None)
-            path to save the results, if None, data will be saved in 'results' folder in current working directory
-        save_mat : bool, optional(default=True)
-            If True, export data as mat files also.
-        zip : bool, optional(default=False)
-            If True, creates zip files of exported data
-
-        Returns
-        -------
-        path : str
-            path where data is exported
-        """
-
-        warnings.warn('export_data_() is deprecated. Use export_data() instead.', DeprecationWarning)
-
-        if fname is None:
-            fname = ''
-        base, name = os.path.split(fname)
-        if base == '':
-            base = os.getcwd()
-        if not os.path.exists(base):
-            raise PathNotFound(base, "Entered directory path does not exists.")
-
-        if name == '':
-            self.res_dir = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-            name = os.path.join(base, 'pyddsde_exports', self.res_dir)
-            os.makedirs(name, exist_ok=True)
-        else:
-            self.res_dir = name
-            os.path.join(base, 'pyddsde_exports', self.res_dir)
-            os.makedirs(name, exist_ok=True)
-
-        data_dict = self._get_stacked_data()
-        for key in data_dict:
-            self._save_csv(dir_path=name, file_name=key, data=data_dict[key], fmt='%.4f', add_headers=True)
-
-        if save_mat:
-            savedict = self._combined_data_dict()
-            scipy.io.savemat(os.path.join(name, 'drift_diff_data.mat'), savedict)
-
-        if zip:
-            self._zip_dir(name)
-
-        return "Exported to {}".format(name)
-
     def data(self, drift_time_scale=None, diff_time_scale=None):
         """
         Get the drift, diffusion and order parameter data for any timescale the analysis is done.
@@ -835,7 +784,8 @@ class Output(Preprocessing, Visualize):
         return fig
 
     def histogram(self,
-                  kde=True,
+                  kde=False,
+                  heatmap=False,
                   dpi=150,
                   title_size=14,
                   label_size=15,
@@ -903,6 +853,7 @@ class Output(Preprocessing, Visualize):
             data = [self._data_X]
         fig = self._plot_histograms(data,
                                     self.vector,
+                                    heatmap=heatmap,
                                     dpi=dpi,
                                     kde=kde,
                                     title_size=title_size,
@@ -911,14 +862,14 @@ class Output(Preprocessing, Visualize):
                                     label_pad=label_pad,
                                     **plot_text)
         plt.show()
-        return fig
+        # return fig
 
     def autocorrelation(self):
         if not self.vector:
             lags, acf = self._ddsde._acf(self._data_X, min(1000, len(self._data_X)))
             self._plot_autocorrelation_1d(lags, acf)
         else:
-            lags, acfm = self._ddsde._acf(self._data_M, min(1000, len(self._data_M)))
+            lags, acfm = self._ddsde._acf(self._data_M ** 2, min(1000, len(self._data_M)))
             _, acfx = self._ddsde._acf(self._data_Mx, min(1000, len(self._data_Mx)))
             _, acfy = self._ddsde._acf(self._data_My, min(1000, len(self._data_My)))
             _, ccf = self._ddsde._ccf(self._data_Mx, self._data_My, min(1000, len(self._data_Mx)))
@@ -949,7 +900,7 @@ class Output(Preprocessing, Visualize):
             self._diff_slider = OrderedDict(sorted(self._diff_slider.items()))
         return None
 
-    def drift(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def drift(self, limits=None, polar=False, slider_timescales=None, **plot_text):
         """
 		Display drift slider figure
 
@@ -992,15 +943,15 @@ class Output(Preprocessing, Visualize):
             return None
         init_pos = np.abs(np.array(dt_s) - self._ddsde.Dt).argmin()
         if self.vector:
-            fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, order=polynomial_order,
+            fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, zlim=limits, polar=polar,
                                   **plot_text)
         else:
-            fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, polynomial_order=polynomial_order,
+            fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, limits=limits,
                                   **plot_text)
         fig.show()
         return None
 
-    def diffusion(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
 		Display diffusion slider figure
 
@@ -1017,14 +968,15 @@ class Output(Preprocessing, Visualize):
         if not len(dt_s):  # empty slider
             return None
         if self.vector:
-            fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, order=polynomial_order, **plot_text)
+            fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, zlim=limits, polar=polar,
+                                  **plot_text)
         else:
-            fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, polynomial_order=polynomial_order,
+            fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, limits=limits,
                                   **plot_text)
         fig.show()
         return None
 
-    def cross_diffusion(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def cross_diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
 		Display diffusion cross correlation slider figure
 
@@ -1044,10 +996,14 @@ class Output(Preprocessing, Visualize):
         if not len(dt_s):  # empty slider
             return None
 
-        zlim = (-max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)),
-                 max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)))
-        fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order,
-                              zlim=zlim, **plot_text)
+        if limits:
+            zlim = limits
+        else:
+            zlim = (-max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)),
+                    max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)))
+
+        fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, zlim=zlim, polar=polar,
+                              **plot_text)
         fig.show()
         return None
 
@@ -1209,86 +1165,6 @@ class Output(Preprocessing, Visualize):
                                       title_size=16)
         return None
 
-    def acf_diagnostic(self):
-        """
-        Show autocorrealtion and autocorrelation time calculation plots.
-
-        Args
-        ----
-
-        Returns
-        -------
-        displays figures : None
-        """
-        exp_fn = lambda t, a, b, c: a * np.exp((-1 / b) * t) + c
-
-        print("Exponential function of the form: ")
-        expression = r'a*\exp(\frac{-t}{\tau}) + C'
-        ax = plt.axes([0, 0, 0.1, 0.1])  # left,bottom,width,height
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.axis('off')
-        plt.text(0.4, 0.4, '${}$'.format(expression), size=20, color="black")
-        plt.show()
-        print(
-            "is fitted. `\\tau` is the autocorrelation time and, `a`, `c` are scalling and fitting parameters respectively.\n")
-
-        if not self.vector:
-            x_M, acf_M = self._acf(self._data_X, t_lag=self._ddsde.t_lag)
-            [a_M, b_M, c_M], _ = self._fit_exp(x_M, acf_M)
-            exp_M = exp_fn(x_M, a_M, b_M, c_M)
-
-            fig1 = plt.figure(dpi=150)
-            plt.suptitle("$Autocorrealtion\ M$")
-            plt.plot(x_M, acf_M)
-            plt.plot(x_M, exp_M)
-            plt.legend(('acf', 'exp fit'))
-            plt.xlabel('Time Lag')
-            plt.ylabel('$ACF\ (M)$')
-            print("acf_M : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
-            return
-
-        x_M, acf_M = self._acf(self._data_M ** 2, t_lag=self._ddsde.t_lag)
-        [a_M, b_M, c_M], _ = self._fit_exp(x_M, acf_M)
-        exp_M = exp_fn(x_M, a_M, b_M, c_M)
-
-        x_Mx, acf_Mx = self._acf(self._data_Mx, t_lag=self._ddsde.t_lag)
-        [a_Mx, b_Mx, c_Mx], _ = self._fit_exp(x_Mx, acf_Mx)
-        exp_Mx = exp_fn(x_Mx, a_Mx, b_Mx, c_Mx)
-
-        x_My, acf_My = self._acf(self._data_My, t_lag=self._ddsde.t_lag)
-        [a_My, b_My, c_My], _ = self._fit_exp(x_My, acf_My)
-        exp_My = exp_fn(x_My, a_My, b_My, c_My)
-
-        fig1 = plt.figure(dpi=150)
-        plt.suptitle("$Autocorrealtion\ |M|^{2}$")
-        plt.plot(x_M, acf_M)
-        plt.plot(x_M, exp_M)
-        plt.legend(('acf', 'exp fit'))
-        plt.xlabel('Time Lag')
-        plt.ylabel('$ACF\ (|M|^{2})$')
-        print("acf_|M|^2 : a = {}, tau = {}, c = {}".format(a_M, b_M, c_M))
-
-        fig2 = plt.figure(dpi=150)
-        plt.suptitle("$Autocorrealtion\ M_{x}$")
-        plt.plot(x_Mx, acf_Mx)
-        plt.plot(x_Mx, exp_Mx)
-        plt.legend(('acf', 'exp fit'))
-        plt.xlabel('Time Lag')
-        plt.ylabel('$ACF\ (M_{x})$')
-        print("acf_M_x : a = {}, tau = {}, c = {}".format(a_Mx, b_Mx, c_Mx))
-
-        fig3 = plt.figure(dpi=150)
-        plt.suptitle("$Autocorrealtion\ M_{y}$")
-        plt.plot(x_My, acf_My)
-        plt.plot(x_My, exp_My)
-        plt.legend(('acf', 'exp fit'))
-        plt.xlabel('Time Lag')
-        plt.ylabel('$ACF\ (M_{y})$')
-        print("acf_My : a = {}, tau = {}, c = {}".format(a_My, b_My, c_My))
-
-        plt.show()
-
     def noise_diagnostics(self):
         if self.vector:
             X, Y = self._ddsde._Mx, self._ddsde._My
@@ -1306,7 +1182,8 @@ class Output(Preprocessing, Visualize):
 
             noise_dist_x = res_x[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
             noise_dist_y = res_y[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
-            noise_corr = np.corrcoef([noise_dist_x, noise_dist_y])
+            noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
+                                         np.ma.masked_invalid(noise_dist_y)])
 
             lags, acf = self._ddsde._acf(res_m, t_lag=min(100, len(res_m)))
             (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
