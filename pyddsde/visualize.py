@@ -822,7 +822,7 @@ class Visualize(Metrics):
             return fig, ax
         return ax
 
-    def _slider_3d(self, slider_data, init_pos=0, prefix='dt', zlim=None, order=None, **plot_text):
+    def _slider_3d(self, slider_data, init_pos=0, prefix='dt', zlim=None, order=None, polar=False, **plot_text):
         """
         Get slider for analysed vector data.
         """
@@ -912,7 +912,7 @@ class Visualize(Metrics):
             func_name = ['$B_{11}(x, y)$', '$B_{22}(x, y)$']
         else:
             prefix = 'dt'
-            t = 'Cross Correlation'
+            t = 'Cross Diffusion'
             t_tex = "\delta t"
             sub_titles = (text['title1'], text['title2'])
             scene1 = dict(
@@ -951,6 +951,12 @@ class Visualize(Metrics):
         )
 
         x, y = np.meshgrid(self.op_x, self.op_y)
+        if polar:
+            r, theta = np.meshgrid(np.linspace(0, 1, 50), np.linspace(-np.pi, np.pi, 90))
+            x_, y_ = r * np.cos(theta), r * np.sin(theta)
+        else:
+            x_, y_ = x, y
+
         n = list(sub_titles)
         for dt in slider_data:
             data = slider_data[dt]
@@ -988,7 +994,7 @@ class Visualize(Metrics):
                     )
                     if func[c - 1] and (type(func[c - 1]) is not tuple): #isinstance(order, int):
                         # x, y = np.meshgrid(self.op_x, self.op_y)
-                        z = func[c - 1](x, y)
+                        z = func[c - 1](x_, y_)
                         # z[np.isnan(data[k])] = np.nan
                         # c_s = []
                         # for _ in range(len(x.flatten())):
@@ -1002,8 +1008,8 @@ class Visualize(Metrics):
                         #     continue
                         fig.append_trace(
                             go.Surface(
-                                x=x,
-                                y=y,
+                                x=x_,
+                                y=y_,
                                 z=z,
                                 opacity=0.3,
                                 name=func_name[c - 1],
@@ -1023,6 +1029,8 @@ class Visualize(Metrics):
             scene2_aspectmode='cube',
             scene1=scene1,
             scene2=scene2,
+            scene1_zaxis_range=zlim,
+            scene2_zaxis_range=zlim,
             # scene1_zaxis_range=[np.nanmin(data[0]), np.nanmax(data[0])],
             # scene2_zaxis_range=[np.nanmin(data[1]), np.nanmax(data[1])],
             # scene3 = scene,
@@ -1102,7 +1110,7 @@ class Visualize(Metrics):
 
         return fig
 
-    def _slider_2d(self, slider_data, init_pos=0, prefix='Dt', polynomial_order=None, **plot_text):
+    def _slider_2d(self, slider_data, init_pos=0, limits=None, prefix='Dt', **plot_text):
         """
         Get slider for analysed scalar data
         """
@@ -1187,11 +1195,13 @@ class Visualize(Metrics):
         fig.update_xaxes(title=dict(text=text['x_label']))
         fig.update_yaxes(title=dict(text=text['y_label']))
 
+        if limits:
+            fig.update_yaxes(range=limits)
+
+
         # Create and add slider
         steps = []
         step_n = 1
-        if isinstance(polynomial_order, int):
-            step_n = 2
         for i in range(len(dt_s)):
             step = dict(
                 method="update",

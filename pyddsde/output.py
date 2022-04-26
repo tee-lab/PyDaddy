@@ -862,7 +862,7 @@ class Output(Preprocessing, Visualize):
                                     label_pad=label_pad,
                                     **plot_text)
         plt.show()
-        return fig
+        # return fig
 
     def autocorrelation(self):
         if not self.vector:
@@ -900,7 +900,7 @@ class Output(Preprocessing, Visualize):
             self._diff_slider = OrderedDict(sorted(self._diff_slider.items()))
         return None
 
-    def drift(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def drift(self, limits=None, polar=False, slider_timescales=None, **plot_text):
         """
 		Display drift slider figure
 
@@ -943,15 +943,15 @@ class Output(Preprocessing, Visualize):
             return None
         init_pos = np.abs(np.array(dt_s) - self._ddsde.Dt).argmin()
         if self.vector:
-            fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, order=polynomial_order,
+            fig = self._slider_3d(self._drift_slider, prefix='Dt', init_pos=init_pos, zlim=limits, polar=polar,
                                   **plot_text)
         else:
-            fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, polynomial_order=polynomial_order,
+            fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, limits=limits,
                                   **plot_text)
         fig.show()
         return None
 
-    def diffusion(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
 		Display diffusion slider figure
 
@@ -968,14 +968,15 @@ class Output(Preprocessing, Visualize):
         if not len(dt_s):  # empty slider
             return None
         if self.vector:
-            fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, order=polynomial_order, **plot_text)
+            fig = self._slider_3d(self._diff_slider, prefix='dt', init_pos=0, zlim=limits, polar=polar,
+                                  **plot_text)
         else:
-            fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, polynomial_order=polynomial_order,
+            fig = self._slider_2d(self._diff_slider, prefix='dt', init_pos=0, limits=limits,
                                   **plot_text)
         fig.show()
         return None
 
-    def cross_diffusion(self, polynomial_order=None, slider_timescales=None, **plot_text):
+    def cross_diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
 		Display diffusion cross correlation slider figure
 
@@ -995,10 +996,14 @@ class Output(Preprocessing, Visualize):
         if not len(dt_s):  # empty slider
             return None
 
-        zlim = (-max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)),
-                 max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)))
-        fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, order=polynomial_order,
-                              zlim=zlim, **plot_text)
+        if limits:
+            zlim = limits
+        else:
+            zlim = (-max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)),
+                    max(np.nanmax(self._data_avgdiffX), np.nanmax(self._data_avgdiffY)))
+
+        fig = self._slider_3d(self._cross_diff_slider, prefix='c_dt', init_pos=0, zlim=zlim, polar=polar,
+                              **plot_text)
         fig.show()
         return None
 
@@ -1177,7 +1182,7 @@ class Output(Preprocessing, Visualize):
 
             noise_dist_x = res_x[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
             noise_dist_y = res_y[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
-            noise_corr = np.na.corrcoef([np.ma.masked_invalid(noise_dist_x),
+            noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
             lags, acf = self._ddsde._acf(res_m, t_lag=min(100, len(res_m)))
