@@ -1322,25 +1322,34 @@ class Output(Preprocessing, Visualize):
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
 
     def _print_function_diagnostics(self, f, x, y, name, symbol):
+        n, k = len(x), len(f)
+
         y_fit = f(x)
         (x_, y_fit_), y_ = self._remove_outliers([x, y_fit], y)
         r2 = 1 - np.nansum((y - y_fit) ** 2) / np.nansum((y - np.nanmean(y)) ** 2)
         r2_ = 1 - np.nansum((y_ - y_fit_) ** 2) / np.nansum((y_ - np.nanmean(y_)) ** 2)
 
+        r2 = 1 - ((1 - r2) * (n - 1) / (n - k - 1))
+        r2_ = 1 - ((1 - r2_) * (n - 1) / (n - k - 1))
+
         print(f'\n{name}:\n {symbol} = {f}')
-        print(f'    R2 : {r2:.4f}')
-        print(f'    R2 (without outliers) : {r2_:.4f}')
-        print('\n(Coefficients are shown with standard errors.)')
+        print(f'    Adjusted R-squared : {r2:.4f}')
+        print(f'    Adjusted R-squared (without outliers) : {r2_:.4f}')
 
     def _print_function_diagnostics_2d(self, f, x, y, z, name, symbol):
+        n, k = len(x), len(f)
+
         z_fit = f(x, y)
         (x_, y_, z_fit_), z_ = self._remove_outliers([x, y, z_fit], z)
         r2 = 1 - np.nansum((z - z_fit) ** 2) / np.nansum((z - np.nanmean(z)) ** 2)
         r2_ = 1 - np.nansum((z_ - z_fit_) ** 2) / np.nansum((z_ - np.nanmean(z_)) ** 2)
 
+        r2 = 1 - ((1 - r2) * (n - 1) / (n - k - 1))
+        r2_ = 1 - ((1 - r2_) * (n - 1) / (n - k - 1))
+
         print(f'\n{name}:\n {symbol} = {f}')
-        print(f'    R2 : {r2:.4f}')
-        print(f'    R2 (without outliers) : {r2_:.4f}')
+        print(f'    Adjusted R-squared : {r2:.4f}')
+        print(f'    Adjusted R-squared (without outliers) : {r2_:.4f}')
 
 
 class Error(Exception):
