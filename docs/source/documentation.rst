@@ -1,73 +1,36 @@
 Modules
 =======
 
-.. contents::
-    :depth: 2
-    :local:
+.. toctree::
+   :maxdepth: 1
 
-Key submodules
-''''''''''''''
+Key Modules
+'''''''''''
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-Characterize
-------------
-.. autoclass:: pyddsde.Characterize
-   :members:
+   modules/characterize
 
-load_sample_dataset
--------------------
-.. autoclass:: pyddsde.load_sample_dataset
-   :members:
+   modules/load_sample_dataset
 
-output
-------
-.. automodule:: pyddsde.output
-   :members:
+   modules/output
 
-.. toctree::
-   :maxdepth: 2
 
 Additional Modules
 ''''''''''''''''''
 
-SDE
----
-.. automodule:: pyddsde.sde
-   :members:
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   
+   modules/sde
 
-metrics
--------
-.. automodule:: pyddsde.metrics
-   :members:
+   modules/metrics
 
-.. toctree::
-   :maxdepth: 2
+   modules/fitters
 
-analysis
---------
-.. automodule:: pyddsde.analysis
-   :members:
+   modules/analysis
 
-.. toctree::
-   :maxdepth: 2
+   modules/preprocessing
 
-preprocessing
--------------
-.. automodule:: pyddsde.preprocessing
-   :members:
-
-.. toctree::
-   :maxdepth: 2
-
-visualize
----------
-.. automodule:: pyddsde.visualize
-   :members:
-
-.. toctree::
-   :maxdepth: 2
+   modules/visulize
