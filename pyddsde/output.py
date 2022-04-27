@@ -1229,6 +1229,7 @@ class Output(Preprocessing, Visualize):
             plt.tight_layout()
             plt.show()
 
+
         else:
             X = self._ddsde._X
             inc = self._ddsde.inc
