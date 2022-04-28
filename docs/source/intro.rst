@@ -3,7 +3,7 @@
 pydaddy
 =======
 
-A package to derive an SDE equation form the data.
+A package to derive an SDE form the data.
 
 |Documentation Status| |image1| |Binder|
 |enter image description here| |image2| |image3| |Conda|
