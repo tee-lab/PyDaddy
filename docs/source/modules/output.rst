@@ -1,4 +1,4 @@
 output
 ------
-.. automodule:: pyddsde.output
+.. automodule:: pydaddy.output
    :members:

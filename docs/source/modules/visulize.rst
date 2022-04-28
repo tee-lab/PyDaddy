@@ -1,4 +1,4 @@
 visualize
 ---------
-.. automodule:: pyddsde.visualize
+.. automodule:: pydaddy.visualize
    :members:

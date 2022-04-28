@@ -1,4 +1,4 @@
 Characterize
 ------------
-.. autoclass:: pyddsde.Characterize
+.. autoclass:: pydaddy.Characterize
    :members:

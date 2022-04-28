@@ -16,15 +16,15 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 
 
-import pyddsde
+import pydaddy
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'inherited-members', 'show-inheritance']
-#autodoc_mock_imports = ["pyddsde.sde.SDE"]
+#autodoc_mock_imports = ["pydaddy.sde.SDE"]
 autodoc_default_options = {"members": True, "undoc-members": True, "private-members": True, 'show-inheritance': False, 'inherited-members':False}
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'pyddsde'
+project = 'pydaddy'
 copyright = '2021, TEE-Lab'
 author = 'Ashwin Karichannavar'
 
