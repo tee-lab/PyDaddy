@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 import pydaddy
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'inherited-members', 'show-inheritance']
 #autodoc_mock_imports = ["pydaddy.sde.SDE"]
+autodoc_mock_import = ["sklearn"]
 autodoc_default_options = {"members": True, "undoc-members": True, "private-members": True, 'show-inheritance': False, 'inherited-members':False}
 
 
