@@ -1,4 +1,4 @@
 analysis
 --------
-.. automodule:: pyddsde.analysis
+.. automodule:: pydaddy.analysis
    :members:

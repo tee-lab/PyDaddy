@@ -1,4 +1,4 @@
 SDE
 ---
-.. automodule:: pyddsde.sde
+.. automodule:: pydaddy.sde
    :members:

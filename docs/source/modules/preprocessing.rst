@@ -1,4 +1,4 @@
 preprocessing
 -------------
-.. automodule:: pyddsde.preprocessing
+.. automodule:: pydaddy.preprocessing
    :members:

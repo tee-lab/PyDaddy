@@ -1,4 +1,4 @@
 fitters
 -------
-.. automodule:: pyddsde.fitters
+.. automodule:: pydaddy.fitters
    :members:

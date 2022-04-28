@@ -1,4 +1,4 @@
 metrics
 -------
-.. automodule:: pyddsde.metrics
+.. automodule:: pydaddy.metrics
    :members:
