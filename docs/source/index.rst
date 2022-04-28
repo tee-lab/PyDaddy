@@ -38,7 +38,6 @@ Code Documentation
    documentation
 
 
-
 Indices and tables
 ==================
 
