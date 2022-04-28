@@ -7,8 +7,30 @@ from sklearn.model_selection import KFold
 
 from plotly.subplots import make_subplots
 
+class Poly:
 
-class Poly1D:
+    def __init__(self, coeffs, degree, stderr):
+        self.coeffs = np.array(coeffs)
+        self.degree = degree
+        self.stderr = stderr
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __array__(self):
+        return self.coeffs
+
+    def __len__(self):
+        return len(self.coeffs)
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def __str__(self):
+        raise NotImplementedError
+
+
+class Poly1D(Poly):
     """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
         Returns polynomial objects that can be called or pretty-printed. """
 
@@ -17,17 +39,13 @@ class Poly1D:
             f'For degree {degree}, number of coefficients mut be {(degree + 1)}'
         assert (stderr is None) or len(stderr) == len(coeffs), \
             'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
-        self.coeffs = np.array(coeffs)
-        self.degree = degree
-        self.stderr = stderr
+
+        super().__init__(coeffs, degree, stderr)
 
     def __call__(self, x):
         terms = np.array([x ** n for n in range(self.degree + 1)])
         terms_with_coeffs = self.coeffs * np.moveaxis(terms, 0, -1)
         return terms_with_coeffs.sum(axis=-1)
-
-    def __array__(self):
-        return self.coeffs
 
     def __str__(self):
         def term(n):
@@ -49,11 +67,8 @@ class Poly1D:
         else:
             return '0'
 
-    def __repr__(self):
-        return self.__str__()
 
-
-class Poly2D:
+class Poly2D(Poly):
     """ A rudimentary 2D polynomial class for polynomials with optional error intervals for coefficients.
         Returns polynomial objects that can be called or pretty-printed. """
 
@@ -62,9 +77,8 @@ class Poly2D:
             f'For degree {degree}, number of coefficients mut be {(degree + 1) * (degree + 2) / 2}'
         assert (stderr is None) or len(stderr) == len(coeffs), \
             'Coefficient array `coeffs` and coefficients error array `stderr` should have the same length.'
-        self.coeffs = np.array(coeffs)
-        self.degree = degree
-        self.stderr = stderr
+
+        super().__init__(coeffs, degree, stderr)
 
     def __call__(self, x, y):
         terms = np.array([(x ** n) * (y ** m)
@@ -72,9 +86,6 @@ class Poly2D:
                           for n in range(self.degree - m + 1)])
         terms_with_coeffs = self.coeffs * np.moveaxis(terms, 0, -1)
         return terms_with_coeffs.sum(axis=-1)
-
-    def __array__(self):
-        return self.coeffs
 
     def __str__(self):
         def term(m, n):
@@ -105,9 +116,6 @@ class Poly2D:
             return ' + '.join(terms_with_coeffs)
         else:
             return '0'
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class PolyFitBase:

@@ -149,7 +149,7 @@ class Visualize(Metrics):
             Mx, My, driftX, driftY, diffX, diffY, diffXY = data
             # M = np.sqrt(Mx ** 2 + My ** 2)  # Not plotting |M| anymore.
 
-            fig = plt.figure(constrained_layout=True, figsize=(12, 9), dpi=100)
+            fig = plt.figure(figsize=(12, 9), dpi=100)
             gs = gridspec.GridSpec(nrows=3, ncols=4, width_ratios=(2, 2, 3, 3), figure=fig)
 
             # Mx, My timeseries
@@ -311,8 +311,8 @@ class Visualize(Metrics):
             _, acf_m = self._ddsde._acf((Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
 
             ac_axis.plot(lags, acf_x, label='$\\sigma_{M_x}$')
-            ac_axis.plot(lags, acf_y, label='$\\sigma_{M_y}$')
-            ac_axis.plot(lags, acf_m, label='$\\sigma_{|M|^2}$')
+            ac_axis.plot(lags, acf_y, color='r', label='$\\sigma_{M_y}$')
+            ac_axis.plot(lags, acf_m, color='k', label='$\\sigma_{|M|^2}$')
             ac_axis.legend()
             self._stylize_axes(ac_axis,
                                x_label=text['autocorr_xlabel'],
@@ -1524,7 +1524,7 @@ class Visualize(Metrics):
         x = np.linspace(-6 * sigma, 6 * sigma, 100)
         gaussian = norm.pdf(x, scale=sigma)
 
-        ax.hist(residual, bins=100, density=True, label='Actual')
+        ax.hist(residual, bins=100, density=True, histtype='stepfilled', label='Actual')
         ax.plot(x, gaussian, label='Theoretical')
 
         ax.set(xlabel='Residual', ylabel='Density', title=title)
@@ -1534,7 +1534,7 @@ class Visualize(Metrics):
         H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(res_x, res_y))
         colors = plt.cm.YlGnBu(dz.flatten() / float(dz.max()))
         ax.bar3d(X, Y, Z, dx, dy, dz, alpha=0.6, cmap=plt.cm.YlGnBu, color=colors)
-        ax.set(xlabel='X', ylabel='Y', title=title)
+        ax.set(xlabel='$\eta_x$', ylabel='$\eta_y$', title=title)
 
     def _matrix_plot(self, ax, mat):
         ax.imshow(mat, vmin=-1, vmax=1, cmap='RdBu')
@@ -1584,7 +1584,7 @@ class Visualize(Metrics):
         ax.plot(3 * (km_2 ** 2), km_4, '.')
 
         ax.axis('equal')
-        ax.set(xlabel='$3 \cdot K(2)^2$', ylabel='$K(4)$', title=title)
+        ax.set(xlabel='$3 \cdot K_2^2$', ylabel='$K_4$', title=title)
         ax.set_yticks(ax.get_xticks())
 
 

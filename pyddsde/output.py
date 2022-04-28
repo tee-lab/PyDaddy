@@ -1165,8 +1165,11 @@ class Output(Preprocessing, Visualize):
                                       title_size=16)
         return None
 
-    def noise_diagnostics(self):
+    def noise_diagnostics(self, loc=None):
         if self.vector:
+            if loc is None:
+                loc = (0, 0)
+
             X, Y = self._ddsde._Mx, self._ddsde._My
             inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y
             t_int = self._ddsde.t_int
@@ -1180,8 +1183,8 @@ class Output(Preprocessing, Visualize):
             )
             res_m = np.sqrt(res_x ** 2 + res_y ** 2)
 
-            noise_dist_x = res_x[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
-            noise_dist_y = res_y[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
+            noise_dist_x = res_x[(loc[0] <= X[:-1]) & (X[:-1] < loc[0] + inc_x) & (loc[1] <= Y[:-1]) & (Y[:-1] < loc[1] + inc_y)]
+            noise_dist_y = res_y[(loc[0] <= X[:-1]) & (X[:-1] < loc[0] + inc_x) & (loc[1] <= Y[:-1]) & (Y[:-1] < loc[1] + inc_y)]
             noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
@@ -1213,23 +1216,26 @@ class Output(Preprocessing, Visualize):
             fig = plt.figure(figsize=(7, 7))
             gs = fig.add_gridspec(4, 2)
             ax_2d = fig.add_subplot(gs[:2, 0], projection='3d')
-            ax_acf1 = fig.add_subplot(gs[0, 1])
-            ax_acf2 = fig.add_subplot(gs[1, 1])
+            ax_acf = fig.add_subplot(gs[:2, 1])
+            # ax_acf2 = fig.add_subplot(gs[1, 1])
             ax_qqx = fig.add_subplot(gs[2:, 0])
             ax_qqy = fig.add_subplot(gs[2:, 1])
             ax_corr = inset_axes(ax_2d, width='30%', height='39%', loc='upper left')
 
             self._noise_plot_2d(ax_2d, noise_dist_x, noise_dist_y, title='Residual Distribution')
             self._matrix_plot(ax_corr, noise_corr)
-            self._acf_plot(ax_acf1, acf, lags, a, b, c, act, title='Autocorrelation: $|\\eta|$')
-            self._acf_plot_multi(ax_acf2, acf_x, acf_y, lags, act_x, act_y, title='Autocorrelation: $\\eta_x, \\eta_y$')
+            # self._acf_plot(ax_acf1, acf, lags, a, b, c, act, title='Autocorrelation: $|\\eta|$')
+            self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, act_x, act_y, title='Autocorrelation: $\\eta_x, \\eta_y$')
             self._qq_plot(ax_qqx, noise_dist_x, title='QQ Plot: $\\eta_x$')
             self._qq_plot(ax_qqy, noise_dist_y, title='QQ Plot: $\\eta_y$')
 
             plt.tight_layout()
             plt.show()
 
+
         else:
+            if loc is None:
+                loc = 0
             X = self._ddsde._X
             inc = self._ddsde.inc
             t_int = self._ddsde.t_int
@@ -1241,7 +1247,7 @@ class Output(Preprocessing, Visualize):
                                                         t_int=t_int,
                                                         )
 
-            noise_distribution = residual[(0 <= X[:-1]) & (X[:-1] < inc)]
+            noise_distribution = residual[(loc <= X[:-1]) & (X[:-1] < loc + inc)]
 
             # Compute residual autocorrelation
             lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))
@@ -1321,25 +1327,34 @@ class Output(Preprocessing, Visualize):
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
 
     def _print_function_diagnostics(self, f, x, y, name, symbol):
+        n, k = len(x), len(f)
+
         y_fit = f(x)
         (x_, y_fit_), y_ = self._remove_outliers([x, y_fit], y)
         r2 = 1 - np.nansum((y - y_fit) ** 2) / np.nansum((y - np.nanmean(y)) ** 2)
         r2_ = 1 - np.nansum((y_ - y_fit_) ** 2) / np.nansum((y_ - np.nanmean(y_)) ** 2)
 
+        r2 = 1 - ((1 - r2) * (n - 1) / (n - k - 1))
+        r2_ = 1 - ((1 - r2_) * (n - 1) / (n - k - 1))
+
         print(f'\n{name}:\n {symbol} = {f}')
-        print(f'    R2 : {r2:.4f}')
-        print(f'    R2 (without outliers) : {r2_:.4f}')
-        print('\n(Coefficients are shown with standard errors.)')
+        print(f'    Adjusted R-squared : {r2:.4f}')
+        print(f'    Adjusted R-squared (without outliers) : {r2_:.4f}')
 
     def _print_function_diagnostics_2d(self, f, x, y, z, name, symbol):
+        n, k = len(x), len(f)
+
         z_fit = f(x, y)
         (x_, y_, z_fit_), z_ = self._remove_outliers([x, y, z_fit], z)
         r2 = 1 - np.nansum((z - z_fit) ** 2) / np.nansum((z - np.nanmean(z)) ** 2)
         r2_ = 1 - np.nansum((z_ - z_fit_) ** 2) / np.nansum((z_ - np.nanmean(z_)) ** 2)
 
+        r2 = 1 - ((1 - r2) * (n - 1) / (n - k - 1))
+        r2_ = 1 - ((1 - r2_) * (n - 1) / (n - k - 1))
+
         print(f'\n{name}:\n {symbol} = {f}')
-        print(f'    R2 : {r2:.4f}')
-        print(f'    R2 (without outliers) : {r2_:.4f}')
+        print(f'    Adjusted R-squared : {r2:.4f}')
+        print(f'    Adjusted R-squared (without outliers) : {r2_:.4f}')
 
 
 class Error(Exception):
