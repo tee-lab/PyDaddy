@@ -1534,7 +1534,7 @@ class Visualize(Metrics):
         H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(res_x, res_y))
         colors = plt.cm.YlGnBu(dz.flatten() / float(dz.max()))
         ax.bar3d(X, Y, Z, dx, dy, dz, alpha=0.6, cmap=plt.cm.YlGnBu, color=colors)
-        ax.set(xlabel='X', ylabel='Y', title=title)
+        ax.set(xlabel='$\eta_x$', ylabel='$\eta_y$', title=title)
 
     def _matrix_plot(self, ax, mat):
         ax.imshow(mat, vmin=-1, vmax=1, cmap='RdBu')
