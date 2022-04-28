@@ -1165,8 +1165,11 @@ class Output(Preprocessing, Visualize):
                                       title_size=16)
         return None
 
-    def noise_diagnostics(self):
+    def noise_diagnostics(self, loc=None):
         if self.vector:
+            if loc is None:
+                loc = (0, 0)
+
             X, Y = self._ddsde._Mx, self._ddsde._My
             inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y
             t_int = self._ddsde.t_int
@@ -1180,8 +1183,8 @@ class Output(Preprocessing, Visualize):
             )
             res_m = np.sqrt(res_x ** 2 + res_y ** 2)
 
-            noise_dist_x = res_x[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
-            noise_dist_y = res_y[(0 <= X[:-1]) & (X[:-1] < inc_x) & (0 <= Y[:-1]) & (Y[:-1] < inc_y)]
+            noise_dist_x = res_x[(loc[0] <= X[:-1]) & (X[:-1] < loc[0] + inc_x) & (loc[1] <= Y[:-1]) & (Y[:-1] < loc[1] + inc_y)]
+            noise_dist_y = res_y[(loc[0] <= X[:-1]) & (X[:-1] < loc[0] + inc_x) & (loc[1] <= Y[:-1]) & (Y[:-1] < loc[1] + inc_y)]
             noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
@@ -1231,6 +1234,8 @@ class Output(Preprocessing, Visualize):
 
 
         else:
+            if loc is None:
+                loc = 0
             X = self._ddsde._X
             inc = self._ddsde.inc
             t_int = self._ddsde.t_int
@@ -1242,7 +1247,7 @@ class Output(Preprocessing, Visualize):
                                                         t_int=t_int,
                                                         )
 
-            noise_distribution = residual[(0 <= X[:-1]) & (X[:-1] < inc)]
+            noise_distribution = residual[(loc <= X[:-1]) & (X[:-1] < loc + inc)]
 
             # Compute residual autocorrelation
             lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))
