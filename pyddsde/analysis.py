@@ -207,10 +207,9 @@ class UnderlyingNoise(SDE):
     # cond = (point <= x) & (x < point + inc_x) & (point <= y) & (point <= y + inc_y)
     # return noise[cond]
 
-    def _residual_timeseries(self, X, bins, avg_drift, t_int):
-        # TODO: Presently does not support multiple Dt/dt. Add if required.
-        res = (X[1:] - X[:-1])
-        for i, x in enumerate(X[:-1]):
+    def _residual_timeseries(self, X, Dt, bins, avg_drift, t_int):
+        res = (X[Dt:] - X[:-Dt])
+        for i, x in enumerate(X[:-Dt]):
             # Find bin-index corresponding to x: minimum i such that x < bins[i], assuming bins is sorted
             try:
                 bin = np.argwhere(x < bins)[0][0]
@@ -218,13 +217,13 @@ class UnderlyingNoise(SDE):
                 bin = len(bins) - 1
             res[i] -= avg_drift[bin] * t_int
 
-        return res / np.sqrt(t_int)
+        return res / np.sqrt(t_int * Dt)
 
-    def _residual_timeseries_vector(self, X, Y, bins_x, bins_y, avg_drift_x, avg_drift_y, t_int):
-        res_x = X[1:] - X[:-1]
-        res_y = Y[1:] - Y[:-1]
+    def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, avg_drift_x, avg_drift_y, t_int):
+        res_x = X[Dt:] - X[:-Dt]
+        res_y = Y[Dt:] - Y[:-Dt]
 
-        for i, (x, y) in enumerate(zip(X[:-1], Y[:-1])):
+        for i, (x, y) in enumerate(zip(X[:-Dt], Y[:-Dt])):
             try:
                 bin_x = np.argwhere(x < bins_x)[0][0]
             except IndexError:
@@ -238,7 +237,7 @@ class UnderlyingNoise(SDE):
             res_x[i] -= avg_drift_x[bin_x, bin_y] * t_int
             res_y[i] -= avg_drift_y[bin_x, bin_y] * t_int
 
-        return res_x / np.sqrt(t_int), res_y / np.sqrt(t_int)
+        return res_x / np.sqrt(Dt * t_int), res_y / np.sqrt(Dt * t_int)
 
 
 class GaussianTest(UnderlyingNoise, Metrics, AutoCorrelation):

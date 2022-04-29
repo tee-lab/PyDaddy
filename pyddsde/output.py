@@ -1171,34 +1171,30 @@ class Output(Preprocessing, Visualize):
                 loc = (0, 0)
 
             X, Y = self._ddsde._Mx, self._ddsde._My
+            Dt = self._ddsde.Dt
             inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y
             t_int = self._ddsde.t_int
             op_x, op_y = self._ddsde._op_x_, self._ddsde._op_y_
             avg_drift_x, avg_drift_y = self._ddsde._avgdriftX_, self._ddsde._avgdriftY_
             res_x, res_y = self._ddsde._residual_timeseries_vector(
-                X=X, Y=Y,
+                X=X, Y=Y, Dt=Dt,
                 bins_x=op_x, bins_y=op_y,
                 avg_drift_x=avg_drift_x, avg_drift_y=avg_drift_y,
                 t_int=t_int
             )
-            res_m = np.sqrt(res_x ** 2 + res_y ** 2)
 
-            noise_dist_x = res_x[(loc[0] <= X[:-1]) & (X[:-1] < loc[0] + inc_x) & (loc[1] <= Y[:-1]) & (Y[:-1] < loc[1] + inc_y)]
-            noise_dist_y = res_y[(loc[0] <= X[:-1]) & (X[:-1] < loc[0] + inc_x) & (loc[1] <= Y[:-1]) & (Y[:-1] < loc[1] + inc_y)]
+            noise_dist_x = res_x[(loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
+            noise_dist_y = res_y[(loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
             noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
-            lags, acf = self._ddsde._acf(res_m, t_lag=min(100, len(res_m)))
-            (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
-            act = b
+            lags, acf_x = self._ddsde._acf(res_x, t_lag=min(100, len(res_x)))
+            _, acf_y = self._ddsde._acf(res_y, t_lag=min(100, len(res_y)))
 
-            _, acf_x = self._ddsde._acf(res_x, t_lag=min(100, len(res_m)))
-            _, acf_y = self._ddsde._acf(res_y, t_lag=min(100, len(res_m)))
-
-            (_, bx, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            (_, bx, _), _ = self._ddsde._fit_exp(lags, acf_x)  # Fit a * exp(-t / b) + c
             act_x = bx
 
-            (_, by, _), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            (_, by, _), _ = self._ddsde._fit_exp(lags, acf_y)  # Fit a * exp(-t / b) + c
             act_y = by
 
             # Summary information
@@ -1208,9 +1204,9 @@ class Output(Preprocessing, Visualize):
                   f'    {noise_corr[0, 0]:+.4f}    {noise_corr[0, 1]:+.4f}\n'
                   f'    {noise_corr[1, 0]:+.4f}    {noise_corr[1, 1]:+.4f}')
 
-            print('\nNoise autocorrelation time (time-steps):')
-            print(f'    eta_x: {act_x:.3f}    eta_y: {act_y:.3f}')
-            print(f'    |eta|: {act:.3f}')
+            print('\nNoise autocorrelation time:')
+            print(f'    eta_x: {act_x:.3f} timesteps ({act_x * Dt * t_int:.3f}s)'
+                  f'    eta_y: {act_y:.3f} timesteps ({act_y * Dt * t_int:.3f}s)')
 
             # Summary figures
             fig = plt.figure(figsize=(7, 7))
@@ -1231,23 +1227,23 @@ class Output(Preprocessing, Visualize):
 
             plt.tight_layout()
             plt.show()
-
-
         else:
             if loc is None:
                 loc = 0
             X = self._ddsde._X
+            Dt = self._ddsde.Dt
             inc = self._ddsde.inc
             t_int = self._ddsde.t_int
             op = self._ddsde._op_
             avg_drift = self._ddsde._avgdrift_
             residual = self._ddsde._residual_timeseries(X=X,
+                                                        Dt=Dt,
                                                         bins=op,
                                                         avg_drift=avg_drift,
                                                         t_int=t_int,
                                                         )
 
-            noise_distribution = residual[(loc <= X[:-1]) & (X[:-1] < loc + inc)]
+            noise_distribution = residual[(loc <= X[:-Dt]) & (X[:-Dt] < loc + inc)]
 
             # Compute residual autocorrelation
             lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))
@@ -1271,7 +1267,7 @@ class Output(Preprocessing, Visualize):
             print(f'\tSkewness: {skew(noise_distribution, nan_policy="omit"):.4f}'
                   f'\tKurtosis: {kurtosis(noise_distribution, nan_policy="omit"):.4f}')
 
-            print(f'\nNoise autocorrelation time: {act:.3f} time-steps')
+            print(f'\nNoise autocorrelation time: {act:.3f} time-steps ({act * Dt * t_int:.3f}s)')
 
             # Plot figures
             fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)
@@ -1342,12 +1338,12 @@ class Output(Preprocessing, Visualize):
         print(f'    Adjusted R-squared (without outliers) : {r2_:.4f}')
 
     def _print_function_diagnostics_2d(self, f, x, y, z, name, symbol):
-        n, k = len(x), len(f)
+        n, k = x.size, np.count_nonzero(f)
 
         z_fit = f(x, y)
         (x_, y_, z_fit_), z_ = self._remove_outliers([x, y, z_fit], z)
-        r2 = 1 - np.nansum((z - z_fit) ** 2) / np.nansum((z - np.nanmean(z)) ** 2)
-        r2_ = 1 - np.nansum((z_ - z_fit_) ** 2) / np.nansum((z_ - np.nanmean(z_)) ** 2)
+        r2 = 1 - (np.nansum((z - z_fit) ** 2) / np.nansum((z - np.nanmean(z)) ** 2))
+        r2_ = 1 - (np.nansum((z_ - z_fit_) ** 2) / np.nansum((z_ - np.nanmean(z_)) ** 2))
 
         r2 = 1 - ((1 - r2) * (n - 1) / (n - k - 1))
         r2_ = 1 - ((1 - r2_) * (n - 1) / (n - k - 1))
