@@ -12,13 +12,13 @@ pydaddy
    
    intro
 
-Code Examples
-=============
+Tutorials
+=========
 
 .. toctree::
-   :maxdepth: 2
-   
-   examples
+   :maxdepth: 1
+
+   tutorial
 
 Installation Guide
 ==================

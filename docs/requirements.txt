@@ -1,4 +1,5 @@
 sphinxcontrib-contentui
+sphinx-rtd-theme >= 1.0.0
 matplotlib
 scipy
 numpy
@@ -10,3 +11,6 @@ sdeint
 scikit-learn
 pandas
 setuptools
+ipykernel
+nbsphinx
+myst-nb
