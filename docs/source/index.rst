@@ -1,10 +1,10 @@
-Welcome to pyddsde
+Welcome to pydaddy
 ==================
 
-pyddsde : a package to derive governing stocastic differential equations from timeseries data.  
+pydaddy : a package to derive governing stocastic differential equations from timeseries data.  
 
 
-pyddsde
+pydaddy
 =======
 
 .. toctree::
@@ -12,13 +12,13 @@ pyddsde
    
    intro
 
-Code Examples
-=============
+Tutorials
+=========
 
 .. toctree::
-   :maxdepth: 2
-   
-   examples
+   :maxdepth: 1
+
+   tutorial
 
 Installation Guide
 ==================
@@ -36,7 +36,6 @@ Code Documentation
    :maxdepth: 2
 
    documentation
-
 
 
 Indices and tables

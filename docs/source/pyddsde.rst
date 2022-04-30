@@ -1,4 +1,4 @@
-pyddsde package
+pydaddy package
 ===============
 
 Subpackages
@@ -7,63 +7,63 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   pyddsde.tests
+   pydaddy.tests
 
 Submodules
 ----------
 
-pyddsde.Characterize module
+pydaddy.Characterize module
 ---------------------------
 
-.. automodule:: pyddsde.Characterize
+.. automodule:: pydaddy.Characterize
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyddsde.analysis module
+pydaddy.analysis module
 -----------------------
 
-.. automodule:: pyddsde.analysis
+.. automodule:: pydaddy.analysis
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyddsde.metrics module
+pydaddy.metrics module
 ----------------------
 
-.. automodule:: pyddsde.metrics
+.. automodule:: pydaddy.metrics
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyddsde.output module
+pydaddy.output module
 ---------------------
 
-.. automodule:: pyddsde.output
+.. automodule:: pydaddy.output
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyddsde.preprocessing module
+pydaddy.preprocessing module
 ----------------------------
 
-.. automodule:: pyddsde.preprocessing
+.. automodule:: pydaddy.preprocessing
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyddsde.sde module
+pydaddy.sde module
 ------------------
 
-.. automodule:: pyddsde.sde
+.. automodule:: pydaddy.sde
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyddsde.visualize module
+pydaddy.visualize module
 ------------------------
 
-.. automodule:: pyddsde.visualize
+.. automodule:: pydaddy.visualize
    :members:
    :undoc-members:
    :show-inheritance:
@@ -71,7 +71,7 @@ pyddsde.visualize module
 Module contents
 ---------------
 
-.. automodule:: pyddsde
+.. automodule:: pydaddy
    :members:
    :undoc-members:
    :show-inheritance:
