@@ -7,7 +7,7 @@ from pydaddy.analysis import AutoCorrelation
 from pydaddy.analysis import GaussianTest
 from pydaddy.preprocessing import Preprocessing
 from pydaddy.preprocessing import InputError
-from pydaddy.output import Output
+from pydaddy.daddy import Daddy
 from pydaddy.fitters import PolyFit1D, PolyFit2D
 
 warnings.filterwarnings("ignore")
@@ -381,7 +381,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         # self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
         #	self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
         # X, Dt, dt, t_int, inc=0.01, point=0,
-        return Output(self)
+        return Daddy(self)
 
 
 class Characterize(object):
@@ -423,7 +423,7 @@ class Characterize(object):
 
     returns
     -------
-    output : pydaddy.output.Output
+    output : pydaddy.daddy.Daddy
         object to access the analysed data, parameters, plots and save them.
     """
 
