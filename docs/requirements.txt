@@ -13,3 +13,4 @@ pandas
 setuptools
 ipykernel
 nbsphinx
+myst-nb
