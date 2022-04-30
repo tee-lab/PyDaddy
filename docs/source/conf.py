@@ -14,7 +14,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
-
+#import sphinx_bootstrap_theme
+#import sphinx_theme
 
 import pydaddy
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'inherited-members', 'show-inheritance']
@@ -44,8 +45,24 @@ extensions = ['sphinx.ext.autodoc',
 				'sphinx.ext.mathjax', 
 				'sphinxcontrib.contentui', 
 				'sphinx.ext.autosectionlabel',
+				'myst_nb'
 			]
 
+myst_enable_extensions = [
+    "amsmath",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "html_image",
+]
+myst_url_schemes = ("http", "https", "mailto")
+
+
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.ipynb': 'myst-nb',
+    '.myst': 'myst-nb',
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -63,6 +80,13 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'README_necsim.rst', 'RE
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+#html_theme = 'bootstrap'
+#html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+#html_theme = 'furo'
+#html_theme = 'insegel'
+#html_theme = 'stanford_theme'
+#html_theme_path = [sphinx_theme.get_html_theme_path('stanford-theme')]
+
 
 html_logo = 'logo.png'
 
@@ -70,3 +94,20 @@ html_logo = 'logo.png'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# needed for plotly, see https://myst-nb.readthedocs.io/en/latest/render/interactive.html#plotly
+html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"]
+
+#nbsphinx_prolog = r"""
+#.. raw:: html
+#
+#    <script src='https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js'></script>
+#    <script>require=requirejs;</script>
+#
+#
+#"""
+
+nb_number_source_lines = True
+nb_merge_streams = True
+nb_execution_timeout = None
+nb_execution_mode = "cache"
