@@ -30,7 +30,7 @@ from pydaddy.analysis import AutoCorrelation
 from pydaddy.analysis import GaussianTest
 from pydaddy.preprocessing import Preprocessing
 from pydaddy.metrics import Metrics
-from pydaddy.output import Output
+from pydaddy.daddy import Daddy
 from pydaddy.visualize import Visualize
 from pydaddy.characterize import Characterize
 from pydaddy.characterize import load_sample_dataset
