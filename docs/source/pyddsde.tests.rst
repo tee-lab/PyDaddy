@@ -1,13 +1,13 @@
-pyddsde.tests package
+pydaddy.tests package
 =====================
 
 Submodules
 ----------
 
-pyddsde.tests.tests module
+pydaddy.tests.tests module
 --------------------------
 
-.. automodule:: pyddsde.tests.tests
+.. automodule:: pydaddy.tests.tests
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ pyddsde.tests.tests module
 Module contents
 ---------------
 
-.. automodule:: pyddsde.tests
+.. automodule:: pydaddy.tests
    :members:
    :undoc-members:
    :show-inheritance:
