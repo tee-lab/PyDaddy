@@ -110,5 +110,5 @@ html_js_files = ["https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/requir
 
 nb_number_source_lines = True
 nb_merge_streams = True
-nb_execution_timeout = None
+nb_execution_timeout = -1
 nb_execution_mode = "cache"
