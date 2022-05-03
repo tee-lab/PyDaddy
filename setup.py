@@ -9,7 +9,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
 	name='pydaddy',
-	version='1.0.0',
+	version='0.1.0',
 	description='Package to analyse stochastic time series data',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
