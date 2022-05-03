@@ -22,7 +22,7 @@ __name__ = "pydaddy"
 __author__ = "Ashwin Karichannavar, (e-mail: ashwinkk.23@gmail.com)"
 __license__ = "GNU General Public License v3.0"
 __copyright__ = "Copyright (C) 2020 Theoritical Evolution and Ecology Lab (TEE Lab), IISc, Bengaluru"
-__version__ = '1.0.0'
+__version__ = '0.1.0'
 
 from pydaddy.sde import SDE
 from pydaddy.analysis import UnderlyingNoise
