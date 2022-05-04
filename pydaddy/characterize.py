@@ -137,27 +137,73 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             if update and time_scale in self._drift_slider.keys():
                 continue
             if self.vector:
-                _, _, _, _, _, _, \
-                avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = \
-                    self._vector_drift_diff(Mx,
-                                            My,
-                                            inc_x=self.inc_x,
-                                            inc_y=self.inc_y,
-                                            t_int=self.t_int,
-                                            Dt=time_scale,
-                                            dt=time_scale)
-                drift_data = [avgdriftX / self.n_trials, avgdriftY / self.n_trials, op_x, op_y]
-                diff_data = [avgdiffX / self.n_trials, avgdiffY / self.n_trials, op_x, op_y]
-                cross_diff_data = [avgdiffXY / self.n_trials, avgdiffYX / self.n_trials, op_x, op_y]
+                dd = self._vector_drift_diff(
+                        Mx,
+                        My,
+                        inc_x=self.inc_x,
+                        inc_y=self.inc_y,
+                        t_int=self.t_int,
+                        Dt=time_scale,
+                        dt=time_scale,
+                        fast_mode=True,
+                        drift_threshold=None,
+                        drift_degree=None,
+                        drift_alpha=None,
+                        diff_threshold=None,
+                        diff_degree=None,
+                        diff_alpha=None
+                    )
+                #avgdriftX = dd.avgdriftX
+                #avgdriftY = dd.avgdriftY
+                #avgdiffX = dd.avgdiffX
+                #avgdiffY = dd.avgdiffY
+                #avgdiffXY = dd.avgdiffXY
+                #avgdiffYX = dd.avgdiffYX
+                #op_x = dd.op_x
+                #op_y = dd.op_y
+                self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = [None]*6
+                #if time_scale == 1:
+                #    self._driftX_ = dd.driftX
+                #    self._driftY_ = dd.driftY
+                #    self._diffusionX_ = dd.diffusionX
+                #    self._diffusionY_ = dd.diffusionY
+                #    self._diffusionXY_ = dd.diffusionXY
+                #    self._diffusionYX_ = dd.diffusionYX
+                #_, _, _, _, _, _, \
+                #avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = \
+                #    self._vector_drift_diff(Mx,
+                #                            My,
+                #                            inc_x=self.inc_x,
+                #                            inc_y=self.inc_y,
+                #                            t_int=self.t_int,
+                #                            Dt=time_scale,
+                #                            dt=time_scale)
+                drift_data = [dd.avgdriftX / self.n_trials, dd.avgdriftY / self.n_trials, dd.op_x, dd.op_y]
+                diff_data = [dd.avgdiffX / self.n_trials, dd.avgdiffY / self.n_trials, dd.op_x, dd.op_y]
+                cross_diff_data = [dd.avgdiffXY / self.n_trials, dd.avgdiffYX / self.n_trials, dd.op_x, dd.op_y]
             else:
-                _, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_num, diff_num, _, _ \
-                    = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
-                drift_data = [avgdrift / self.n_trials, op]
-                diff_data = [avgdiff / self.n_trials, op]
-                ebar_drift_dict[time_scale] = drift_ebar
-                ebar_diff_dict[time_scale] = diff_ebar
-                num_drift_dict[time_scale] = drift_num
-                num_diff_dict[time_scale] = diff_num
+                dd = self._drift_and_diffusion(self._X,
+                                          self.t_int,
+                                          Dt=time_scale,
+                                          dt=time_scale,
+                                          inc=self.inc,
+                                          fast_mode=True,
+                                          drift_threshold=None,
+                                          drift_degree=None,
+                                          drift_alpha=None,
+                                          diff_threshold=None,
+                                          diff_degree=None,
+                                          diff_alpha=None)
+
+                #_, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_num, diff_num, _, _ \
+                #    = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
+                self.F, self.G = None, None
+                drift_data = [dd.avgdrift / self.n_trials, dd.op]
+                diff_data = [dd.avgdiff / self.n_trials, dd.op]
+                ebar_drift_dict[time_scale] = dd.drift_ebar
+                ebar_diff_dict[time_scale] = dd.diff_ebar
+                num_drift_dict[time_scale] = dd.drift_num
+                num_diff_dict[time_scale] = dd.diff_num
 
             drift_data_dict[time_scale] = drift_data
             diff_data_dict[time_scale] = diff_data
@@ -299,89 +345,89 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                                            inc=self.inc_x)
         """
         if not self.vector:
-            if not self._is_valid_slider_timescale_list(self.slider_timescales):
-                self._drift_slider = dict()
-                self._diff_slider = dict()
-                self._scalar_drift_ebars = dict()
-                self._scalar_diff_ebars = dict()
-                self._scalar_drift_nums = dict()
-                self._scalar_diff_nums = dict()
+            #if not self._is_valid_slider_timescale_list(self.slider_timescales):
+            self._drift_slider = dict()
+            self._diff_slider = dict()
+            self._scalar_drift_ebars = dict()
+            self._scalar_diff_ebars = dict()
+            self._scalar_drift_nums = dict()
+            self._scalar_diff_nums = dict()
 
-                self._diffusion_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_, self._drift_ebar, self._diff_ebar, \
-                self._drift_num, self._diff_num, F, G = self._drift_and_diffusion(self._X,
-                                                                                  self.t_int,
-                                                                                  Dt=self.Dt,
-                                                                                  dt=self.dt,
-                                                                                  inc=self.inc,
-                                                                                  fast_mode=self.fast_mode,
-                                                                                  drift_threshold=self.drift_threshold,
-                                                                                  drift_degree=self.drift_degree,
-                                                                                  drift_alpha=self.drift_alpha,
-                                                                                  diff_threshold=self.diff_threshold,
-                                                                                  diff_degree=self.diff_degree,
-                                                                                  diff_alpha=self.diff_alpha)
-                self._avgdiff_ = self._avgdiff_ / self.n_trials
-                self._avgdrift_ = self._avgdrift_ / self.n_trials
-                self._drift_slider[self.Dt] = [self._avgdrift_, self._op_]
-                self._diff_slider[self.dt] = [self._avgdiff_, self._op_]
-                self._scalar_drift_ebars[self.Dt] = self._drift_ebar
-                self._scalar_diff_ebars[self.dt] = self._diff_ebar
-                self._scalar_drift_nums[self.dt] = self._drift_num
-                self._scalar_diff_nums[self.dt] = self._diff_num
-                self.F = F
-                self.G = G
-            else:
-                # FIXME self._drift_ and self._diffusion_ variable need to be set here.
-                self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars, \
-                self._scalar_drift_nums, self._scalar_diff_nums = self._slider_data(self._X, None)
-                self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
-                self._avgdiff_ = self._diff_slider[self.dt][0]
-                self._drift_ebar = self._scalar_drift_ebars[self.Dt]
-                self._diff_ebar = self._scalar_diff_ebars[self.dt]
-                self._drift_num = self._scalar_drift_nums[self.Dt]
-                self._diff_num = self._scalar_diff_nums[self.Dt]
+            self._diffusion_, self._drift_, self._avgdiff_, self._avgdrift_, self._op_, self._drift_ebar, self._diff_ebar, \
+            self._drift_num, self._diff_num, F, G = self._drift_and_diffusion(self._X,
+                                                                              self.t_int,
+                                                                              Dt=self.Dt,
+                                                                              dt=self.dt,
+                                                                              inc=self.inc,
+                                                                              fast_mode=self.fast_mode,
+                                                                              drift_threshold=self.drift_threshold,
+                                                                              drift_degree=self.drift_degree,
+                                                                              drift_alpha=self.drift_alpha,
+                                                                              diff_threshold=self.diff_threshold,
+                                                                              diff_degree=self.diff_degree,
+                                                                              diff_alpha=self.diff_alpha)
+            self._avgdiff_ = self._avgdiff_ / self.n_trials
+            self._avgdrift_ = self._avgdrift_ / self.n_trials
+            self._drift_slider[self.Dt] = [self._avgdrift_, self._op_]
+            self._diff_slider[self.dt] = [self._avgdiff_, self._op_]
+            self._scalar_drift_ebars[self.Dt] = self._drift_ebar
+            self._scalar_diff_ebars[self.dt] = self._diff_ebar
+            self._scalar_drift_nums[self.dt] = self._drift_num
+            self._scalar_diff_nums[self.dt] = self._diff_num
+            self.F = F
+            self.G = G
+            #else:
+            #    # FIXME self._drift_ and self._diffusion_ variable need to be set here.
+            #    self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars, \
+            #    self._scalar_drift_nums, self._scalar_diff_nums = self._slider_data(self._X, None)
+            #    self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
+            #    self._avgdiff_ = self._diff_slider[self.dt][0]
+            #    self._drift_ebar = self._scalar_drift_ebars[self.Dt]
+            #    self._diff_ebar = self._scalar_diff_ebars[self.dt]
+            #    self._drift_num = self._scalar_drift_nums[self.Dt]
+            #    self._diff_num = self._scalar_diff_nums[self.Dt]
             self._cross_diff_slider = None
 
         else:
-            if not self._is_valid_slider_timescale_list(self.slider_timescales):
-                self._drift_slider = dict()
-                self._diff_slider = dict()
-                self._cross_diff_slider = dict()
-                self._driftX_, self._driftY_, self._diffusionX_, self._diffusionY_, \
-                    self._diffusionXY_, self._diffusionYX_, \
-                    self._avgdriftX_, self._avgdriftY_, \
-                    self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, \
-                    self._op_x_, self._op_y_, \
-                    self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = self._vector_drift_diff(
-                        self._Mx,
-                        self._My,
-                        inc_x=self.inc_x,
-                        inc_y=self.inc_y,
-                        t_int=self.t_int,
-                        Dt=self.Dt,
-                        dt=self.dt,
-                        fast_mode=self.fast_mode,
-                        drift_threshold=self.drift_threshold,
-                        drift_degree=self.drift_degree,
-                        drift_alpha=self.drift_alpha,
-                        diff_threshold=self.diff_threshold,
-                        diff_degree=self.diff_degree,
-                        diff_alpha=self.diff_alpha
-                    )
-                self._avgdriftX_ = self._avgdriftX_ / self.n_trials
-                self._avgdriftY_ = self._avgdriftY_ / self.n_trials
-                self._avgdiffX_ = self._avgdiffX_ / self.n_trials
-                self._avgdiffY_ = self._avgdiffY_ / self.n_trials
-                self._avgdiffXY_ = self._avgdiffXY_ / self.n_trials
-                self._drift_slider[self.Dt] = [self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_]
-                self._diff_slider[self.dt] = [self._avgdiffX_, self._avgdiffY_, self._op_x_, self._op_y_]
-                self._cross_diff_slider[self.dt] = [self._avgdiffXY_, self._avgdiffYX_, self._op_x_, self._op_y_]
-            else:
-                # FIXME self._driftX_, etc. need to be set here.
-                self._drift_slider, self._diff_slider, self._cross_diff_slider = self._slider_data(self._Mx, self._My)
-                self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.Dt]
-                self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
-                self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
+            #if not self._is_valid_slider_timescale_list(self.slider_timescales):
+            self._drift_slider = dict()
+            self._diff_slider = dict()
+            self._cross_diff_slider = dict()
+            self._driftX_, self._driftY_, self._diffusionX_, self._diffusionY_, \
+                self._diffusionXY_, self._diffusionYX_, \
+                self._avgdriftX_, self._avgdriftY_, \
+                self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, \
+                self._op_x_, self._op_y_, \
+                self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = self._vector_drift_diff(
+                    self._Mx,
+                    self._My,
+                    inc_x=self.inc_x,
+                    inc_y=self.inc_y,
+                    t_int=self.t_int,
+                    Dt=self.Dt,
+                    dt=self.dt,
+                    fast_mode=self.fast_mode,
+                    drift_threshold=self.drift_threshold,
+                    drift_degree=self.drift_degree,
+                    drift_alpha=self.drift_alpha,
+                    diff_threshold=self.diff_threshold,
+                    diff_degree=self.diff_degree,
+                    diff_alpha=self.diff_alpha
+                )
+            self._avgdriftX_ = self._avgdriftX_ / self.n_trials
+            self._avgdriftY_ = self._avgdriftY_ / self.n_trials
+            self._avgdiffX_ = self._avgdiffX_ / self.n_trials
+            self._avgdiffY_ = self._avgdiffY_ / self.n_trials
+            self._avgdiffXY_ = self._avgdiffXY_ / self.n_trials
+            self._drift_slider[self.Dt] = [self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_]
+            self._diff_slider[self.dt] = [self._avgdiffX_, self._avgdiffY_, self._op_x_, self._op_y_]
+            self._cross_diff_slider[self.dt] = [self._avgdiffXY_, self._avgdiffYX_, self._op_x_, self._op_y_]
+            #else:
+            #    # FIXME self._driftX_, etc. need to be set here.
+            #    self._drift_slider, self._diff_slider, self._cross_diff_slider = self._slider_data(self._Mx, self._My)
+            #    self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.Dt]
+            #    self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
+            #    self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
 
         # inc = self.inc_x if self.vector else self.inc
         # self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
@@ -443,16 +489,16 @@ class Characterize(object):
             inc=None,
             inc_x=None,
             inc_y=None,
-            slider_timescales=None,
+            #slider_timescales=None,
             n_trials=1,
             show_summary=True,
-            drift_threshold=None,
-            diff_threshold=None,
-            drift_degree=5,
-            diff_degree=5,
-            drift_alpha=0,
-            diff_alpha=0,
-            fit_functions=False,
+            #drift_threshold=None,
+            #diff_threshold=None,
+            #drift_degree=5,
+            #diff_degree=5,
+            #drift_alpha=0,
+            #diff_alpha=0,
+            #fit_functions=False,
             **kwargs):
         ddsde = Main(
             data=data,
@@ -463,16 +509,17 @@ class Characterize(object):
             inc=inc,
             inc_x=inc_x,
             inc_y=inc_y,
-            slider_timescales=slider_timescales,
+            slider_timescales=None,
             n_trials=n_trials,
             show_summary=show_summary,
-            drift_threshold=drift_threshold,
-            diff_threshold=diff_threshold,
-            drift_degree=drift_degree,
-            diff_degree=diff_degree,
-            drift_alpha=drift_alpha,
-            diff_alpha=diff_alpha,
-            fast_mode=not fit_functions,
+            drift_threshold=None,
+            diff_threshold=None,
+            drift_degree=None,
+            diff_degree=None,
+            drift_alpha=None,
+            diff_alpha=None,
+            #fast_mode=not fit_functions,
+            fast_mode=True,
             **kwargs)
 
         return ddsde(data=data, t=t, Dt=Dt)
