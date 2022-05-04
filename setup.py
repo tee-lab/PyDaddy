@@ -39,7 +39,7 @@ setup(
 		'Topic :: Documentation :: Sphinx',
 	],
 	include_package_data=True,
-	package_data={'': ['data/fish_data/*.csv', 'data/model_data/scalar/*.csv', 'data/model_data/vector/*.csv']},
+	package_data={'': ['data/fish_data/*.csv', 'data/model_data/scalar/*.csv', 'data/model_data/vector/*.csv', 'report/*.ipynb']},
 	install_requires=INSTALL_REQUIREMENTS, #external packages as dependencies
 	entry_points={'console_scripts': [
 			'pydaddy=pydaddy.__console__:main',
