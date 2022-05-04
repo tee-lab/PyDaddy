@@ -196,16 +196,22 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
         if self.vector:
             # x = [self._Mx[:-1], self._My[:-1]]
-            x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
+            #x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
+            x = np.stack((self._Mx, self._My), axis=1)
             if function_name == 'A1':
+                x = x[:-self.Dt]
                 y = self._driftX_
             elif function_name == 'A2':
+                x = x[:-self.Dt]
                 y = self._driftY_
             elif function_name == 'B11':
+                x = x[:-self.dt]
                 y = self._diffusionX_
             elif function_name == 'B22':
+                x = x[:-self.dt]
                 y = self._diffusionY_
             elif function_name in ['B12', 'B21']:
+                x = x[:-self.dt]
                 y = self._diffusionXY_
             else:
                 raise TypeError('Invalid function name for vector analysis')
