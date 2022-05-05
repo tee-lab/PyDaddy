@@ -8,4 +8,6 @@ sympy
 sdeint
 scikit-learn
 pandas
+notebook
+nbconvert
 setuptools
