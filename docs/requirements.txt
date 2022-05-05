@@ -6,7 +6,6 @@ numpy
 seaborn
 tqdm
 plotly
-sympy
 sdeint
 scikit-learn
 pandas
