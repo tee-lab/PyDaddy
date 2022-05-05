@@ -1,0 +1,768 @@
+{
+ "cells": [
+  {
+   "cell_type": "raw",
+   "id": "fdd46df4",
+   "metadata": {},
+   "source": [
+    "<style>\n",
+    ".button {\n",
+    "  border: none;\n",
+    "  color: white;\n",
+    "  padding: 15px 32px;\n",
+    "  text-align: center;\n",
+    "  text-decoration: none;\n",
+    "  display: inline-block;\n",
+    "  font-size: 16px;\n",
+    "  margin: 4px 2px;\n",
+    "  cursor: pointer;\n",
+    "}\n",
+    "\n",
+    ".button1 {background-color: #008CBA;} /* Blue */\n",
+    "</style>\n",
+    "<div style = \"display: flex; justify-content:flex-end\">\n",
+    "<button class=\"button button1\", id=\"btn\">Save Data</button>\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "d9d1312c",
+   "metadata": {},
+   "source": [
+    "<script>\n",
+    "/*\n",
+    "* FileSaver.js\n",
+    "* A saveAs() FileSaver implementation.\n",
+    "*\n",
+    "* By Eli Grey, http://eligrey.com\n",
+    "*\n",
+    "* License : https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md (MIT)\n",
+    "* source  : http://purl.eligrey.com/github/FileSaver.js\n",
+    "*/\n",
+    "\n",
+    "// The one and only way of getting global scope in all environments\n",
+    "// https://stackoverflow.com/q/3277182/1008999\n",
+    "var _global = typeof window === 'object' && window.window === window\n",
+    "  ? window : typeof self === 'object' && self.self === self\n",
+    "  ? self : typeof global === 'object' && global.global === global\n",
+    "  ? global\n",
+    "  : this\n",
+    "\n",
+    "function bom (blob, opts) {\n",
+    "  if (typeof opts === 'undefined') opts = { autoBom: false }\n",
+    "  else if (typeof opts !== 'object') {\n",
+    "    console.warn('Deprecated: Expected third argument to be a object')\n",
+    "    opts = { autoBom: !opts }\n",
+    "  }\n",
+    "\n",
+    "  // prepend BOM for UTF-8 XML and text/* types (including HTML)\n",
+    "  // note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF\n",
+    "  if (opts.autoBom && /^\\s*(?:text\\/\\S*|application\\/xml|\\S*\\/\\S*\\+xml)\\s*;.*charset\\s*=\\s*utf-8/i.test(blob.type)) {\n",
+    "    return new Blob([String.fromCharCode(0xFEFF), blob], { type: blob.type })\n",
+    "  }\n",
+    "  return blob\n",
+    "}\n",
+    "\n",
+    "function download (url, name, opts) {\n",
+    "  var xhr = new XMLHttpRequest()\n",
+    "  xhr.open('GET', url)\n",
+    "  xhr.responseType = 'blob'\n",
+    "  xhr.onload = function () {\n",
+    "    saveAs(xhr.response, name, opts)\n",
+    "  }\n",
+    "  xhr.onerror = function () {\n",
+    "    console.error('could not download file')\n",
+    "  }\n",
+    "  xhr.send()\n",
+    "}\n",
+    "\n",
+    "function corsEnabled (url) {\n",
+    "  var xhr = new XMLHttpRequest()\n",
+    "  // use sync to avoid popup blocker\n",
+    "  xhr.open('HEAD', url, false)\n",
+    "  try {\n",
+    "    xhr.send()\n",
+    "  } catch (e) {}\n",
+    "  return xhr.status >= 200 && xhr.status <= 299\n",
+    "}\n",
+    "\n",
+    "// `a.click()` doesn't work for all browsers (#465)\n",
+    "function click (node) {\n",
+    "  try {\n",
+    "    node.dispatchEvent(new MouseEvent('click'))\n",
+    "  } catch (e) {\n",
+    "    var evt = document.createEvent('MouseEvents')\n",
+    "    evt.initMouseEvent('click', true, true, window, 0, 0, 0, 80,\n",
+    "                          20, false, false, false, false, 0, null)\n",
+    "    node.dispatchEvent(evt)\n",
+    "  }\n",
+    "}\n",
+    "\n",
+    "// Detect WebView inside a native macOS app by ruling out all browsers\n",
+    "// We just need to check for 'Safari' because all other browsers (besides Firefox) include that too\n",
+    "// https://www.whatismybrowser.com/guides/the-latest-user-agent/macos\n",
+    "var isMacOSWebView = _global.navigator && /Macintosh/.test(navigator.userAgent) && /AppleWebKit/.test(navigator.userAgent) && !/Safari/.test(navigator.userAgent)\n",
+    "\n",
+    "var saveAs = _global.saveAs || (\n",
+    "  // probably in some web worker\n",
+    "  (typeof window !== 'object' || window !== _global)\n",
+    "    ? function saveAs () { /* noop */ }\n",
+    "\n",
+    "  // Use download attribute first if possible (#193 Lumia mobile) unless this is a macOS WebView\n",
+    "  : ('download' in HTMLAnchorElement.prototype && !isMacOSWebView)\n",
+    "  ? function saveAs (blob, name, opts) {\n",
+    "    var URL = _global.URL || _global.webkitURL\n",
+    "    var a = document.createElement('a')\n",
+    "    name = name || blob.name || 'download'\n",
+    "\n",
+    "    a.download = name\n",
+    "    a.rel = 'noopener' // tabnabbing\n",
+    "\n",
+    "    // TODO: detect chrome extensions & packaged apps\n",
+    "    // a.target = '_blank'\n",
+    "\n",
+    "    if (typeof blob === 'string') {\n",
+    "      // Support regular links\n",
+    "      a.href = blob\n",
+    "      if (a.origin !== location.origin) {\n",
+    "        corsEnabled(a.href)\n",
+    "          ? download(blob, name, opts)\n",
+    "          : click(a, a.target = '_blank')\n",
+    "      } else {\n",
+    "        click(a)\n",
+    "      }\n",
+    "    } else {\n",
+    "      // Support blobs\n",
+    "      a.href = URL.createObjectURL(blob)\n",
+    "      setTimeout(function () { URL.revokeObjectURL(a.href) }, 4E4) // 40s\n",
+    "      setTimeout(function () { click(a) }, 0)\n",
+    "    }\n",
+    "  }\n",
+    "\n",
+    "  // Use msSaveOrOpenBlob as a second approach\n",
+    "  : 'msSaveOrOpenBlob' in navigator\n",
+    "  ? function saveAs (blob, name, opts) {\n",
+    "    name = name || blob.name || 'download'\n",
+    "\n",
+    "    if (typeof blob === 'string') {\n",
+    "      if (corsEnabled(blob)) {\n",
+    "        download(blob, name, opts)\n",
+    "      } else {\n",
+    "        var a = document.createElement('a')\n",
+    "        a.href = blob\n",
+    "        a.target = '_blank'\n",
+    "        setTimeout(function () { click(a) })\n",
+    "      }\n",
+    "    } else {\n",
+    "      navigator.msSaveOrOpenBlob(bom(blob, opts), name)\n",
+    "    }\n",
+    "  }\n",
+    "\n",
+    "  // Fallback to using FileReader and a popup\n",
+    "  : function saveAs (blob, name, opts, popup) {\n",
+    "    // Open a popup immediately do go around popup blocker\n",
+    "    // Mostly only available on user interaction and the fileReader is async so...\n",
+    "    popup = popup || open('', '_blank')\n",
+    "    if (popup) {\n",
+    "      popup.document.title =\n",
+    "      popup.document.body.innerText = 'downloading...'\n",
+    "    }\n",
+    "\n",
+    "    if (typeof blob === 'string') return download(blob, name, opts)\n",
+    "\n",
+    "    var force = blob.type === 'application/octet-stream'\n",
+    "    var isSafari = /constructor/i.test(_global.HTMLElement) || _global.safari\n",
+    "    var isChromeIOS = /CriOS\\/[\\d]+/.test(navigator.userAgent)\n",
+    "\n",
+    "    if ((isChromeIOS || (force && isSafari) || isMacOSWebView) && typeof FileReader !== 'undefined') {\n",
+    "      // Safari doesn't allow downloading of blob URLs\n",
+    "      var reader = new FileReader()\n",
+    "      reader.onloadend = function () {\n",
+    "        var url = reader.result\n",
+    "        url = isChromeIOS ? url : url.replace(/^data:[^;]*;/, 'data:attachment/file;')\n",
+    "        if (popup) popup.location.href = url\n",
+    "        else location = url\n",
+    "        popup = null // reverse-tabnabbing #460\n",
+    "      }\n",
+    "      reader.readAsDataURL(blob)\n",
+    "    } else {\n",
+    "      var URL = _global.URL || _global.webkitURL\n",
+    "      var url = URL.createObjectURL(blob)\n",
+    "      if (popup) popup.location = url\n",
+    "      else location.href = url\n",
+    "      popup = null // reverse-tabnabbing #460\n",
+    "      setTimeout(function () { URL.revokeObjectURL(url) }, 4E4) // 40s\n",
+    "    }\n",
+    "  }\n",
+    ")\n",
+    "\n",
+    "_global.saveAs = saveAs.saveAs = saveAs\n",
+    "\n",
+    "if (typeof module !== 'undefined') {\n",
+    "  module.exports = saveAs;\n",
+    "}\n",
+    "\n",
+    "      const b64toBlob = (b64Data, contentType='', sliceSize=512) => {\n",
+    "  const byteCharacters = atob(b64Data);\n",
+    "  const byteArrays = [];\n",
+    "\n",
+    "  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {\n",
+    "    const slice = byteCharacters.slice(offset, offset + sliceSize);\n",
+    "\n",
+    "    const byteNumbers = new Array(slice.length);\n",
+    "    for (let i = 0; i < slice.length; i++) {\n",
+    "      byteNumbers[i] = slice.charCodeAt(i);\n",
+    "    }\n",
+    "\n",
+    "    const byteArray = new Uint8Array(byteNumbers);\n",
+    "    byteArrays.push(byteArray);\n",
+    "  }\n",
+    "\n",
+    "  const blob = new Blob(byteArrays, {type: contentType});\n",
+    "  return blob;\n",
+    "}\n",
+    "</script>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0c9a4e1a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from IPython.display import display, Javascript\n",
+    "def add_cell(text,  type='code', direct='above'):\n",
+    "    text = text.replace('\\n','\\\\n').replace(\"\\\"\", \"\\\\\\\"\").replace(\"'\", \"\\\\'\")\n",
+    "\n",
+    "    display(Javascript('''\n",
+    "    var cell = IPython.notebook.insert_cell_{}(\"{}\")\n",
+    "    cell.set_text(\"{}\")\n",
+    "    '''.format(direct, type, text)));"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c0369daa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from IPython.display import display, Javascript, Markdown\n",
+    "import base64\n",
+    "\n",
+    "def embed_data(data_file):\n",
+    "    with open(data_file, 'rb') as f:\n",
+    "        b64 = base64.b64encode(f.read())\n",
+    "    stream = b64.decode().replace('\\n','\\\\n').replace(\"\\\"\", \"\\\\\\\"\")\n",
+    "    display(Javascript(\"const b64Data='{}';\".format(stream)));"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "72609691",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import sys\n",
+    "import pydaddy\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "9fe4bf0f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "nb_out = sys.stdout\n",
+    "def t_print(t):\n",
+    "    sys.stdout = sys.__stdout__\n",
+    "    print(t)\n",
+    "    sys.stdout = nb_out"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f20acaf1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def decode_fmt(fmt):\n",
+    "    c_fmt = {\n",
+    "    'X': None,\n",
+    "    'Y': None,\n",
+    "    'T': None\n",
+    "    }\n",
+    "    fmt = list(fmt.upper())\n",
+    "    if len(fmt) == 0:\n",
+    "        c_fmt['X'] = 0\n",
+    "    for c in fmt:\n",
+    "        c_fmt[c] = fmt.index(c)\n",
+    "    return list(c_fmt.values())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7e3e2663",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "file = os.environ['pydaddy_data_file']\n",
+    "delimiter = os.environ['pydaddy_data_delimiter']\n",
+    "fmt = os.environ['pydaddy_data_col_fmt']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6f4d1e3e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Loading data\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4a786057",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "data_sets = ['fish-data-etroplus',\n",
+    "             'model-data-scalar-pairwise',\n",
+    "             'model-data-scalar-ternary',\n",
+    "             'model-data-vector-pairwise',\n",
+    "             'model-data-vector-ternary']\n",
+    "\n",
+    "if file in data_sets:\n",
+    "    data, t = pydaddy.load_sample_dataset(file)\n",
+    "    scalar = False\n",
+    "    if 'scalar' in file:\n",
+    "        scalar = True\n",
+    "else:\n",
+    "    data = np.loadtxt(file, delimiter=delimiter)\n",
+    "    x, y, t = decode_fmt(fmt)\n",
+    "    if t != None:\n",
+    "        t = data[:,t]\n",
+    "    else:\n",
+    "        t = float(os.environ['pydaddy_t'])\n",
+    "        data_x = data[:, x]\n",
+    "        if y != None: \n",
+    "            scalar = False\n",
+    "            data_y = data[:,y]\n",
+    "            data = [data_x, data_y]\n",
+    "        else:\n",
+    "            scalar = True\n",
+    "            data = [data_x]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0122e14d-32d7-4781-accc-d65d12907226",
+   "metadata": {},
+   "source": [
+    "# Summary"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c4e9ac4d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Characterizing\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "070284f0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#data, t = pydaddy.load_sample_dataset('model-data-vector-ternary')\n",
+    "#if scalar:\n",
+    "#    ddsde = pydaddy.Characterize([data_x], t, bins=30)\n",
+    "#else:    \n",
+    "#    ddsde = pydaddy.Characterize([data_x, data_y], t, bins=30)\n",
+    "ddsde = pydaddy.Characterize(data, t, bins=30)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9cf47058",
+   "metadata": {},
+   "source": [
+    "# Recovering functional forms for drift and diffusion"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "17cfa92d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Recovering functional forms\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a26f89f8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if scalar:\n",
+    "    t_print(\"[*] F\")    \n",
+    "    display(Markdown(\"## F\"))\n",
+    "else:\n",
+    "    t_print(\"[*] A1\")    \n",
+    "    display(Markdown(\"## A1\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "805a7b09",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if scalar:\n",
+    "    F = ddsde.fit('F', order=3, tune=True)\n",
+    "    print(F)\n",
+    "else:\n",
+    "    A1 = ddsde.fit('A1', order=3, tune=True)\n",
+    "    print(A1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e958403f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    t_print(\"[*] A2\")    \n",
+    "    display(Markdown(\"## A2\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5a2bceb0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    A2 = ddsde.fit('A2', order=3, tune=True)\n",
+    "    print(A2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8bb94790",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if scalar:\n",
+    "    t_print(\"[*] G\")    \n",
+    "    display(Markdown(\"## G\"))\n",
+    "else:\n",
+    "    t_print(\"[*] B11\")\n",
+    "    display(Markdown(\"## B11\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1517163f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if scalar:\n",
+    "    G = ddsde.fit('G', order=3, tune=True)\n",
+    "    print(G)\n",
+    "else:\n",
+    "    B11 = ddsde.fit('B11', order=3, tune=True)\n",
+    "    print(B11)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8dca49fc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    t_print(\"[*] B22\")\n",
+    "    display(Markdown(\"## B22\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e11052a1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    B22 = ddsde.fit('B22', order=3, tune=True)\n",
+    "    print(B22)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3b6de8f5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    t_print(\"[*] B12\")\n",
+    "    display(Markdown(\"## B12\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0047cffc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    B12 = ddsde.fit('B12', order=3, tune=True)\n",
+    "    print(B12)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a33db3fa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    t_print(\"[*] B21\")\n",
+    "    display(Markdown(\"## B21\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "550d96e9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    B21 = ddsde.fit('B21', order=3, tune=True)\n",
+    "    print(B21)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "58f67075",
+   "metadata": {},
+   "source": [
+    "# Drift"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "38b8c57c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Generating interactive drift plot\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dadd3214",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ddsde.drift()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "60a3d37f",
+   "metadata": {},
+   "source": [
+    "# Diffusion"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "aa8b63d9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Generating interactive diffusion plot\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c99215fd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ddsde.diffusion()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "69202338",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    t_print(\"[*] Generating interactive cross-diffusion plot\")    \n",
+    "    display(Markdown(\"# Cross Diffusion\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7c8279b4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if not scalar:\n",
+    "    ddsde.cross_diffusion()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "160a3f4f",
+   "metadata": {},
+   "source": [
+    "# Noise Diagnostics"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f33f4e7e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Generating noise statistics\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c8582baf",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ddsde.noise_diagnostics()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "fb1d8dda",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t_print(\"[*] Embedding data\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a04a59d7-e3d2-4923-a7bc-ddb422940bfc",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ddsde.export_data(filename='data.pydaddy.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4ad4ea12",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "embed_data('data.pydaddy.csv')"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "453b5986",
+   "metadata": {},
+   "source": [
+    "<script>\n",
+    "const contentType = 'application/octet-stream';\n",
+    "\n",
+    "const blob = b64toBlob(b64Data, contentType);\n",
+    "              \n",
+    "// Start file download.\n",
+    "document.getElementById(\"btn\")\n",
+    ".addEventListener(\"click\", function() {\n",
+    "    saveAs(blob, 'data.csv');\n",
+    "\n",
+    "}, false);\n",
+    "</script>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ac13e4fc",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "35a3371a",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
