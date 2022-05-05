@@ -9,7 +9,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
 	name='pydaddy',
-	version='0.1.2',
+	version='0.1.4',
 	description='Package to analyse stochastic time series data',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
@@ -39,7 +39,7 @@ setup(
 		'Topic :: Documentation :: Sphinx',
 	],
 	include_package_data=True,
-	package_data={'': ['data/fish_data/*.csv', 'data/model_data/scalar/*.csv', 'data/model_data/vector/*.csv', 'report/*.ipynb']},
+	package_data={'': ['data/fish_data/*.csv', 'data/model_data/scalar/*.csv', 'data/model_data/vector/*.csv', 'report/report']},
 	install_requires=INSTALL_REQUIREMENTS, #external packages as dependencies
 	entry_points={'console_scripts': [
 			'pydaddy=pydaddy.__console__:main',
