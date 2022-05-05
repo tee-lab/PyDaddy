@@ -35,8 +35,10 @@ Alternatively, the package can also be installed by cloning/downloading the git 
     git clone https://github.com/tee-lab/PyDaddy.git
     cd PyDaddy
     python setup.py install
-   *Click [here](https://github.com/tee-lab/PyDaddy/archive/master.zip) to download source repository zip file.*
     
+<!---
+   *Click [here](https://github.com/tee-lab/PyDaddy/archive/master.zip) to download source repository zip file.*
+--->
 # How it works
 
 Suppose we have a time-series data of an observation, and we wish to discover a stochastic differential equation describing the dynamics of the system of the form:
@@ -48,7 +50,8 @@ Suppose we have a time-series data of an observation, and we wish to discover a 
 PyDaddy works in a two step process:
 1. The drift and diffusion components, corresponding to f and g<sup>2</sup> are extracted from the time-series data using conditional moments.
 >  ![](https://latex.codecogs.com/svg.image?F(%5Ctilde%7Bx%7D)%20=%20%5Cleft%3C%20%5Cfrac%7Bx(t&plus;%5CDelta%20t)%20-%20x(t)%7D%7B%5CDelta%20t%7D%5Cmiddle%7C%20%5Ctilde%7Bx%7D%20%5Cleq%20x(t)%20%3C%20%5Ctilde%7Bx%7D%20&plus;%20%5Cepsilon%20%5Cright%3E)
- ![](https://latex.codecogs.com/svg.image?G(%5Ctilde%7Bx%7D)%20=%20%5Cleft%3C%20%5Cfrac%7B(x(t&plus;%5Cdelta%20t)%20-%20x(t))%5E2%7D%7B%5Cdelta%20t%7D%5Cmiddle%7C%20%5Ctilde%7Bx%7D%20%5Cleq%20x(t)%20%3C%20%5Ctilde%7Bx%7D%20&plus;%20%5Cepsilon%20%5Cright%3E)
+
+> ![](https://latex.codecogs.com/svg.image?G(%5Ctilde%7Bx%7D)%20=%20%5Cleft%3C%20%5Cfrac%7B(x(t&plus;%5Cdelta%20t)%20-%20x(t))%5E2%7D%7B%5Cdelta%20t%7D%5Cmiddle%7C%20%5Ctilde%7Bx%7D%20%5Cleq%20x(t)%20%3C%20%5Ctilde%7Bx%7D%20&plus;%20%5Cepsilon%20%5Cright%3E)
 2. The estimated drift and diffusion are used to fit functional forms for f and g<sup>2</sup> using sparse-regression.
 
 By combining the traditional techniques for reconstructing the drift and diffusion components with the novel equation learning techniques, PyDaddy reliably reconstructs governing equations for wide range of dynamics.
