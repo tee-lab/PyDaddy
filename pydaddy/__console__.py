@@ -54,6 +54,7 @@ def main():
     print("*Experimental feature*")
     os.system(cmd)
     os.remove('sample_report.ipynb')
+    os.remove('data.pydaddy.csv')
 
 if __name__ == "__main__":
     main()
