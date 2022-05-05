@@ -5,7 +5,6 @@ import numpy.linalg
 import scipy.linalg
 import matplotlib.pyplot as plt
 import shutil
-import sympy
 import os
 from scipy.spatial.distance import jensenshannon
 from sklearn.linear_model import ridge_regression
@@ -631,13 +630,13 @@ class Metrics:
 			return False      # Probably standard Python interpreter
 
 
-
+"""
 class Plane:
-	"""
+	""
 	Create first or second order plane surfaces.
 	
 	:meta private:
-	"""
+	""
 	def __init__(self, coefficients, order):
 		self.coeff = coefficients
 		self.order = order
@@ -665,4 +664,4 @@ class Plane:
 		for k in range(n+1):
 			a = np.column_stack((a, X**(n-k)*Y**k))
 		return np.dot(a, self.coeff).reshape(x.shape)
-
+"""

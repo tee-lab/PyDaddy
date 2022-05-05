@@ -6,11 +6,12 @@ numpy
 seaborn
 tqdm
 plotly
-sympy
 sdeint
 scikit-learn
 pandas
 setuptools
 ipykernel
 nbsphinx
+notebook
+nbconvert
 myst-nb
