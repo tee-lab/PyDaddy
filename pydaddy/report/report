@@ -705,7 +705,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "embed_data('data.csv')"
+    "embed_data('data.pydaddy.csv')"
    ]
   },
   {
