@@ -51,6 +51,7 @@ def main():
 
     subprocess.call("clear")
     print(banner)
+    print("*Experimental feature*")
     os.system(cmd)
     os.remove('sample_report.ipynb')
 
