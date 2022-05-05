@@ -282,8 +282,9 @@ Pairwise interaction of fish simulated in single dimension.
 
 > The simulation method is inspired from the work done in *Noise-induced Effects in Collective Dynamics and Inferring Local Interactions from Data*
 
+<!---
 # Acknowledgement
-
+--->
 # Licence
 Distributed under **GNU General Public License v3.0**. See `Licence.txt` for more information.
 
