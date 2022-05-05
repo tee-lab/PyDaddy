@@ -1,262 +1,342 @@
-|Characterizing Noise|
+|Characterizing Noise| 
 
-pydaddy
+PyDaddy
 =======
 
-A package to derive an SDE form the data.
+Python Data Driven Dynamics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|Documentation Status| |image1| |Binder|
-|enter image description here| |image2| |image3| |Conda|
+A python package to discover SDE equation from time-series data.
 
-pydaddy is a python package implementing a data driven SDE method.
-pydaddy provides an interface which takes time series data as input,
-runs the analysis and returns an output object through which data and
-analysed results can be systematically visualized and saved.
+|Documentation Status| |image2| |Binder| |enter image description here|
+|enter image description here| |enter image description here| |Conda|
+
+PyDaddy is a comprehensive and easy to use python package to obtain
+data-derived stochastic differential equations from time series data.
+PyDaddy provides a workflow that takes time series of state variable (x)
+as input and gives an SDE of the form: > |image8|
+
+where η(t) is uncorrelated white noise. The function f is called the
+*drift*, and governs the deterministic part of the dynamics. g2 is
+called the *diffusion* and governs the stochastic part of the dynamics.
+
+PyDaddy is packed with tailored visualization and analysis
+functionalities that help the user to interpret their data. |image9| 
+
+Installation 
+============
+
+PyDaddy is available both on PyPi and anaconda cloud and
+requires an environment with python>=3.7
+
+Using pip
+~~~~~~~~~
+
+::
+
+   pip install pydaddy
+   or
+   pip install git+https://github.com/tee-lab/PyDaddy.git
+
+.. raw:: html
+
+   <!---
+   Using anaconda
+   ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg) ![Conda](https://img.shields.io/conda/pn/ashwinkk23/pyddsde) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/license.svg)
+
+       conda install -c tee-lab pydaddy
+   --->
+
+Manual installation
+~~~~~~~~~~~~~~~~~~~
+
+Alternatively, the package can also be installed by cloning/downloading
+the git repository and running setup.py file.
+
+::
+
+   git clone https://github.com/tee-lab/PyDaddy.git
+   cd PyDaddy
+   python setup.py install
+
+`Click here <https://github.com/tee-lab/PyDaddy/archive/master.zip>`_ to download latest source.
 
 How it works
 ============
 
-Suppose m(t) is a SDE time series data.
+Suppose we have a time-series data of an observation, and we wish to
+discover a stochastic differential equation describing the dynamics of
+the system of the form: > |image10|
 
-   |image4|
+PyDaddy works in a two step process: 1. The drift and diffusion
+components, corresponding to f and g2 are extracted from the time-series
+data using conditional moments. > |image11|
 
-The the package calculates the deterministic (drift) and stochastic
-(diffusion) component of dm/dt.
+   |image12| 2. The estimated drift and diffusion are used to fit
+   functional forms for f and g2 using sparse-regression.
 
-======== ========
-|image5| |image6|
-======== ========
-|image7| |image8|
-======== ========
+By combining the traditional techniques for reconstructing the drift and
+diffusion components with the novel equation learning techniques,
+PyDaddy reliably reconstructs governing equations for wide range of
+dynamics.
 
-This data driven SDE method is based on the assumption that the noise in
-the time series is uncorrelated and Gaussian in nature, with zero mean
-and unit variance.
-
-|image9|
-
-pydaddy extracts the noise form the data and checks if it holds true to
-its assumptions.
-
-========= =========
-|image10| |image11|
-========= =========
-|image12| |image13|
-========= =========
+   PyDaddy extends this approach to vector time-series data as well!
 
 Features
 ========
 
 -  Simple one line execution of analysis.
+-  Able to distinguish between system with similar steady state
+   behavior.
 -  Produces intuitive visuals of data and obtained result.
 -  Supports time series data with both scalar and vector order
    parameters.
--  Generates interactive, drift and diffusion sliders for user defined
-   timescale range or list.
 -  Diagnostics help understand change in order of drift and diffusion
    with varying timescale.
-
-Requirements
-============
-
-Python:
-
--  python version >=3.5 , <=3.8
-
-Packages dependencies:
-
--  statsmodels, version 0.11.1
--  matplotlib, version 3.2.2
--  scipy, version 1.5.2
--  numpy, version 1.19.1
--  seaborn, version 0.10.1
--  tqdm, version 4.48.2
--  plotly, version 4.14.3
-
-Installation
-============
-
-pydaddy is available both on pypi and anaconda cloud, which offers two
-recommended methods of installations, using pip python package manager
-or anaconda package manager.
-
-.. note::
-    To run the example notebooks on your system after installing
-    the package, please download the notebook files to your PC from the
-    `github <https://github.com/tee-lab/pydaddy>`__ repo.
-
-    Alternately, its recommended to simply clone or download git the
-    repository.
-
-Installing via conda
-~~~~~~~~~~~~~~~~~~~~
-
-|image14| |enter image description here| |image15| |Conda| |image16|
-
-`Conda <https://conda.io/docs/>`__ is a package manager that handles
-sourcing of all dependencies in a relatively straight-forward,
-cross-platform manner. pydaddy is available on the ``tee-lab`` channel.
-
-.. important::
-   Make sure you have anaconda or miniconda installed and have activated
-   the conda default (base) environment using ``conda activate base`` ,
-   before proceeding.
-
-Install pydaddy package with all its dependencies using conda simply
-requires executing the command
-
-::
-
-   conda install -c tee-lab pydaddy
-
-To install pydaddy in a clean virtual environment use
-
-::
-
-    conda create --name MY_ENV_NAME -c tee-lab pydaddy
-
-Replace ``MY_ENV_NAME`` with your desired name for environment.
-
-You can now access pydaddy package by activating the newly created
-environment, ``conda activate MY_ENV_NAME``
-
-Installing via pip
-~~~~~~~~~~~~~~~~~~
-
-To install using pip package manager, run:
-
-::
-
-   python -m pip install pydaddy
-
-Manual installation
-~~~~~~~~~~~~~~~~~~~
-
-.. sidebar:: Installing Latest unreleased version
-
-    Without git, you will need to download the zip-file of the code, extract
-    it and follow the above instructions.
-
-    *Click* `here <https://github.com/tee-lab/pydaddy/archive/master.zip>`__ *to
-    download source code zip file.*
-
-This method is not recommended unless you experience problems with conda
-or pip. To install using setuptools, download the source code manually
-and run ``python setup.py install`` from the terminal.
-
-This will install the package in your current environment (if you are
-working in any environment).
-
-If you have git installed, you can clone the repo and install using the
-following commands.
-
-::
-
-   $ git clone https://github.com/tee-lab/pydaddy.git
-   $ cd pydaddy
-   $ python setup.py install
-
-.. important::
-
-    Without git, you will need to download the zip-file of the code, extract
-    it and follow the above instructions.
-
-    *Click* `here <https://github.com/tee-lab/pydaddy/archive/master.zip>`__ *to
-    download source code zip file.*
+-  Generates interactive, drift and diffusion sliders for user defined
+   timescale range or list.
 
 Usage
 =====
 
-The time series data is given as input to the ``Characterize`` method
-along with all other optional parameters.
+Initializing a ``pydaddy`` object
+---------------------------------
 
-  .. toggle-header::
-      :header: Show ``pydaddy.Characterize`` documentation
+To start analysis, we need to create a ``pydaddy`` object with our
+dataset. This will compute the drift and diffusion parts, and generate a
+summary plot. To initialize a ``pydaddy`` object, we need to provide the
+following arguments: - ``data``: the timeseries data, could be either
+one or two dimensional. This example will deal with 1D data. ``pydaddy``
+assumes that the samples are evenly spaced. ``data`` should be a list of
+Numpy arrays; with one array for the scalar case, and two arrays for the
+vector case. - ``t``: This could either be scalar, denoting the
+time-interval between samples, or an array denoting the timestamp of
+each sample.
 
-      .. admonition:: Characterize
+Following are some useful optional arguments (see
+`documentation <https://pydaddy.readthedocs.io>`__ for detailed
+descriptions of every optional argument).
 
-        .. autoclass:: pydaddy.Characterize
-           :members:
-           :noindex:
+This example uses a sample data-set, loaded using a helper function. For
+details about data formats and loading/saving data.
 
+.. code:: python
 
-Key parameters
-~~~~~~~~~~~~~~
+   import pydaddy
 
-   data: list
-       time series data to be analysed, 
-       data = [x] for scalar data and data = [x1, x2] for vector
-       where x, x1 and x2 are of numpy.array types.
-   t: array or float
-       float if its time increment between observation
-       numpy.array if time stamp of time series
+.. code:: python
 
-See doc strings or code documentation for more information.
-
-
-Example using sample data set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See :ref:`Data set description` for more information about the datasets.
+   data, t = pydaddy.load_sample_dataset('model-data-scalar-pairwise')
+   ddsde = pydaddy.Characterize(data, t, bins=20)
 
 ::
 
-   import pydaddy
-   #load data
-   data, t = pydaddy.load_sample_dataset('model-data-vector-ternary')
-   # Analyse
-   ddsde = pydaddy.Characterize(data,t)
+   | M range              :   (-1.0, 1.0)  |
+   | M mean               :      0.014     |
+   | |M| range            :   (0.0, 1.0)   |
+   | |M| mean             :      0.631     |
+   | Autocorr time (M)    :       53       |
+   | (Dt, dt)             :     (1, 1)     |
 
-   # Show drift slider plot
+.. figure:: https://github.com/tee-lab/PyDaddy/blob/refactoring/docs/source/readme_files/1%20-%20Getting%20Started_files/1%20-%20Getting%20Started_5_1.png?raw=true
+   :alt: png
+
+   png
+
+``pydaddy.Characterize`` initializes a ``ddsde`` object which can be
+used for further analysis. It also produces summary plots, showing the
+time-series, histograms, and the estimated drift and diffusion
+functions.
+
+``pydaddy`` can automatically try to fit polynomial functions if called
+with argument ``fit_functions=True``. However, for best results, it is
+recommended to do the fitting separately, with some level of manual
+intervention.
+
+Recovering functional forms for f and g
+---------------------------------------
+
+``pydaddy`` has a ``fit()`` function which can recover functional forms
+for the drift and diffusion functions, using sparse regression. By
+default, ``pydaddy`` fits polynomials (of a specified degree), but it is
+possible to fit arbitrary functions by specifying a custom library.
+
+Two parameters need to be specified during fitting: - ``order``: The
+maximum degree of the polynomial to be fitted - ``threshold``: a
+*sparsification threshold*, that governs the level of sparsity (i.e. the
+number of terms in the polynomial). For ``threshold=theta``, the fitted
+polynomial will only have terms with coefficients greater than
+``theta``.
+
+We can ask ``pydaddy`` to try to automatically find an appropriate
+sparsification threshold by calling ``fit()`` with argument
+``tune=True``.
+
+.. code:: python
+
+   # Fitting with automatic threshold tuning
+   F = ddsde.fit('F', order=3, tune=True)
+   print(F)
+
+::
+
+   (-0.021 ± 0.002)x
+
+.. code:: python
+
+   G = ddsde.fit('G', order=3, tune=True)
+   print(G)
+
+::
+
+   (0.039 ± 0.000) + (-0.039 ± 0.000)x^2
+
+In the above example, automatic model selection (``tune=True``)
+sucessfully found the correct threshold. If the data is too noisy, or if
+``order`` is over-estimated, automatic model selection can give poor
+results. In such cases, good results can be obtained with some manual
+intervention.
+
+Once the functions are fitted, the ``pydaddy`` summary plot will show
+the fitted curves for drift and diffusion, alongside the points.
+
+.. code:: python
+
+   ddsde.summary()
+
+::
+
+   | M range              :   (-1.0, 1.0)  |
+   | M mean               :      0.014     |
+   | |M| range            :   (0.0, 1.0)   |
+   | |M| mean             :      0.631     |
+   | Autocorr time (M)    :       53       |
+   | (Dt, dt)             :     (1, 1)     |
+
+   Drift:
+   (-0.021 ± 0.002)x
+
+   Diffusion:
+   (0.039 ± 0.000) + (-0.039 ± 0.000)x^2
+
+.. figure:: https://github.com/tee-lab/PyDaddy/blob/refactoring/docs/source/readme_files/1%20-%20Getting%20Started_files/1%20-%20Getting%20Started_11_1.png?raw=true
+   :alt: png
+
+   png
+
+The fitted functions can also be printed individually.
+
+.. code:: python
+
+   print(ddsde.F)
+
+::
+
+   (-0.021 ± 0.002)x
+
+.. code:: python
+
+   print(ddsde.G)
+
+::
+
+   (0.039 ± 0.000) + (-0.039 ± 0.000)x^2
+
+``dddsde.F`` and ``ddsde.G`` are, in fact, callable functions: this
+means that you can call ``ddsde.F`` or ``ddsde.G`` with some desired
+arguments and evaluate the drift or diffusion for that value.
+
+.. code:: python
+
+   ddsde.F(0.2)
+
+::
+
+   -0.004170417170682441
+
+Interactive plots for drift and diffusion
+-----------------------------------------
+
+To get interactive plots for the drift and diffusion functions, use
+``ddsde.drift()`` or ``ddsde.diffusion()``. These will be particularly
+useful for the 2-D case, where the drift and diffusion plots will be 3-D
+plots.
+
+.. code:: python
+
    ddsde.drift()
-   # Show diffuision slider plot
+
+|image13|
+
+.. code:: python
+
    ddsde.diffusion()
-   # Show timeseries plot
-   ddsde.timeseries()
-   # Show histograms
-   ddsde.histograms()
-   # Show all inputed, calculated and assumed parameters of the analysis
-   ddsde.parameters()
-   # Export data to disk
-   ddsde.export_data()
 
-``Characterize`` returns an output object in which all analysed results
-are stored. Results can be visualised or stored by calling appropriate
-functions:
+|image14|
 
-  .. toggle-header::
-      :header: Show ``pydaddy.output.output`` documentation
+Diagnostics
+-----------
 
-      .. admonition:: pydaddy.output.output
+For a drift-diffusion model fit to be valid, the data should satisfy
+some underlying assumptions. ``pydaddy.noise_diagnostics()`` allows us
+to verify if the data satisfies these assumptions. The function produces
+4 plots:
 
-        .. autoclass:: pydaddy.output
-           :members:
-           :noindex:
+-  The distribution of the residuals, which should be a Gaussian.
+-  QQ plot of the residual distribution, against a theoretical Gaussian
+   distribution of the same mean and variance. Ideally (i.e. if the
+   residuals are Gaussian distributed), all points of this plot should
+   fall on a straight line of slope 1.
+-  Autocorrelation plot of the residuals. Ideally, the residuals should
+   be uncorrelated, i.e. autocorrelation time should be close to 0.
+-  The plot of the 2nd and 4th Kramer-Moyal coefficients. Theory
+   dictates that :math:`\text{KM}(4)` should equal 3 times
+   :math:`\text{KM}(2)`, i.e. the plot should be a straight line of
+   slope 1.
 
--  ``summary()``: show summary
--  ``drift()`` : drift slider plot
--  ``diffusion()`` : diffusion slider plot
--  ``timeseries()``: time series plot
--  ``histograms()`` : histogram plots
--  ``noise_characterstics()``: noise characteristics plots
--  ``visualise(timescale)``: drift and diffusion plots for a timescale
--  ``diagnostics()``: diagnostics plots
--  ``data(timescale)``: get drift and diffusion data for a timescale
--  ``export_data()``: Save data as csv files and mat files
--  ``plot_data(data)``: plot data on a 3d axis
+.. code:: python
 
-For more examples see
-`this <https://nbviewer.jupyter.org/github/tee-lab/pydaddy/blob/master/notebooks/Examples.ipynb>`__
-notebook.
+   ddsde.noise_diagnostics()
 
-|badge|
+::
+
+   Noise statistics:
+       Mean: 0.0056        Std. Dev.: 0.1999
+       Skewness: -0.0552   Kurtosis: 0.0137
+
+   Noise autocorrelation time: 0.185 time-step
+
+.. figure:: https://github.com/tee-lab/PyDaddy/blob/docs/docs/source/readme_files/1%20-%20Getting%20Started_files/1%20-%20Getting%20Started_21_1.png?raw=true
+   :alt: 1 - Getting Started_21_1.png
+
+   1 - Getting Started_21_1.png
+
+The ``fit_diagnostics()`` function returns the quality of fits for the
+fitted drift and diffusion functions. This function prints: - The fitted
+polynomials, with standard errors of coefficients. - R2 value of the
+fit. - R2 value of the fit, excluding outliers (points in the bottom 0.1
+and top 99.9 percentiles are treated as outliers).
+
+.. code:: python
+
+   ddsde.fit_diagnostics()
+
+::
+
+   Drift:
+    F = (-0.021 ± 0.002)x
+       Adjusted R-squared : 0.7908
+       Adjusted R-squared (without outliers) : 0.8681
+
+   Diffusion:
+    G = (0.039 ± 0.000) + (-0.039 ± 0.000)x^2
+       Adjusted R-squared : 0.9539
+       Adjusted R-squared (without outliers) : 0.9420
 
 Motivation
 ==========
 
-|image17|
-
-This project is motivated by the study of group behaviour
+|image15| This project is motivated by the study of group behavior
 dynamics of animals, especially schooling fish. The sample data
 distributed along with this package is from experiments conducted by
 `TEElab, IISc <https://teelabiisc.wordpress.com/>`__.
@@ -264,65 +344,33 @@ distributed along with this package is from experiments conducted by
 Data set description
 ====================
 
-pydaddy has six data set included along with the package which can be
+PyDaddy has six data set included along with the package which can be
 loaded using ``load_sample_dataset(dataset_name)`` function
-
-  .. toggle-header::
-      :header: Show ``pydaddy.load_sample_dataset`` documentation
-
-      .. admonition:: pydaddy.load_sample_dataset
-
-        .. autoclass:: pydaddy.load_sample_dataset
-           :members:
-           :noindex:
 
 Experiment data (from experimentation or from observations)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  fish-data-ectropus: 
-    A data from experiment conducted with a group of
-    30 fish, in which the group polarity in x and y directions are recorded
-    every 0.12 seconds.
+``fish-data-ectropus``: A data from experiment conducted with a group of
+30 fish, in which the group polarity in x and y directions are recorded
+every 0.12 seconds. > This data is a part of the work done in the
+*Noise-Induced Schooling of Fish* ### Simulation data A synthetic data
+set obtained from the simulation of fish interactions.
 
-.. admonition:: Source
+``model-data-vector-pairwise`` : Pairwise interaction of fish simulated
+in two dimension.
 
-  - The fish data is a part of the work done in the *Noise-Induced Schooling of Fish*
+``model-data-vector-ternary``: Ternary interaction of fish simulated in
+two dimension.
 
-Simulation data
-~~~~~~~~~~~~~~~
+| ``model-data-scalar-pairwise``:
+| Pairwise interaction of fish simulated in single dimension.
 
-A synthetic data set obtained from the simulation of fish interactions.
+``model-data-scalar-ternary``: Ternary interaction of fish simulated in
+single dimension.
 
-  model-data-vector-pairwise : 
-    Pairwise interaction of fish simulated
-    in two dimension.
-
-  model-data-vector-ternary:
-    Ternary interaction of fish simulated in
-    two dimension.
-
-  model-data-scalar-pairwise:
-    Pairwise interaction of fish simulated in single dimension.
-
-  model-data-scalar-ternary: 
-    Ternary interaction of fish simulated in
-    single dimension.
-
-.. admonition:: Source
-
-  - The simulation method is inspired from the work done in *Noise-induced Effects in Collective Dynamics and Inferring Local Interactions from Data*
-
-Glossary
-========
-
- .. glossary::
-
-   drift
-      First jump moment
-
-   diffusion
-      second jump moment
-
+   The simulation method is inspired from the work done in
+   *Noise-induced Effects in Collective Dynamics and Inferring Local
+   Interactions from Data*
 
 Acknowledgement
 ===============
@@ -345,28 +393,22 @@ Interactions from Data `Preprint <https://arxiv.org/abs/1911.09376>`__
 `Github <https://github.com/tee-lab/schooling_fish>`__
 
 .. |Characterizing Noise| image:: https://raw.githubusercontent.com/ashwinkk23/Characterizing_noise/master/.fig.jpg
-.. |Documentation Status| image:: https://readthedocs.org/projects/pydaddy/badge/?version=latest
-   :target: https://pydaddy.readthedocs.io/en/latest/?badge=latest
-.. |image1| image:: https://img.shields.io/github/license/tee-lab/pyFish
+.. |Documentation Status| image:: https://readthedocs.org/projects/pyddsde/badge/?version=latest
+   :target: https://pyddsde.readthedocs.io/en/latest/?badge=latest
+.. |image2| image:: https://img.shields.io/github/license/tee-lab/pyFish
+   :target: https://github.com/tee-lab/pyFish/blob/master/LICENSE.txt
 .. |Binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/tee-lab/pyFish.git/master?filepath=notebooks
-.. |Conda| image:: https://img.shields.io/conda/pn/ashwinkk23/pydaddy
-.. |enter image description here| image:: https://anaconda.org/ashwinkk23/pydaddy/badges/version.svg
-.. |image2| image:: https://anaconda.org/ashwinkk23/pydaddy/badges/latest_release_date.svg
-.. |image3| image:: https://anaconda.org/ashwinkk23/pydaddy/badges/installer/conda.svg
-.. |image4| image:: https://latex.codecogs.com/gif.latex?\frac{dm}{dt}=f(m)+g(m)\eta(t)
-.. |image5| image:: https://latex.codecogs.com/gif.latex?f(m)
-.. |image6| image:: https://latex.codecogs.com/gif.latex?g(m)\eta(t)
-.. |image7| image:: https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/deterministic.png?raw=true
-.. |image8| image:: https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/stochastic.png?raw=True
-.. |image9| image:: https://latex.codecogs.com/gif.latex?<\eta(t)>=0;<\eta(t)\eta(t')>=\delta(t-t')
-.. |image10| image:: https://latex.codecogs.com/gif.latex?<\eta(t)>=0
-.. |image11| image:: https://latex.codecogs.com/gif.latex?<\eta(t)\eta(t')>=\delta(t-t')
-.. |image12| image:: https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/Test_of_hypothesis.png?raw=true
-.. |image13| image:: https://github.com/ashwinkk23/pyFish/blob/master/notebooks/imgs/Noise_ACF.png?raw=true
-.. |image14| image:: https://anaconda.org/ashwinkk23/pydaddy/badges/installer/conda.svg
-.. |image15| image:: https://anaconda.org/ashwinkk23/pydaddy/badges/latest_release_date.svg
-.. |image16| image:: https://anaconda.org/ashwinkk23/pydaddy/badges/license.svg
-.. |badge| image:: https://img.shields.io/badge/run%20notebook-binder-E66581.svg?logo=data:image/png;base64,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
-   :target: https://mybinder.org/v2/gh/tee-lab/pyFish/master?filepath=notebooks/Examples.ipynb
-.. |image17| image:: https://teelabiisc.files.wordpress.com/2019/03/cropped-fish-7.jpg
+.. |enter image description here| image:: https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg
+.. |enter image description here| image:: https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg
+.. |enter image description here| image:: https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg
+.. |Conda| image:: https://img.shields.io/conda/pn/ashwinkk23/pyddsde
+.. |image8| image:: https://latex.codecogs.com/svg.image?\frac%7Bdx%7D%7Bdt%7D&space;=&space;f(x)&space;+&space;g(x)\eta(t)
+.. |image9| image:: https://github.com/tee-lab/PyDaddy/blob/docs/docs/source/tutorials/2/output_3_1.png?raw=true
+.. |image10| image:: https://latex.codecogs.com/svg.image?%5Cdot%7Bx%7D%20=%20f(x)%20+%20g(x)%5Ceta(t)%20%5C%5Cwhere;%20%5C%5C%5Ctext%7Bf%20and%20g%20are%20functions%20of%20x,%20and%7D%20%5C%5C%5Ceta(t)%20%5Ctext%7B%20is%20uncorrelated%20gaussian%20noise%7D%20
+.. |image11| image:: https://latex.codecogs.com/svg.image?F(%5Ctilde%7Bx%7D)%20=%20%5Cleft%3C%20%5Cfrac%7Bx(t+%5CDelta%20t)%20-%20x(t)%7D%7B%5CDelta%20t%7D%5Cmiddle%7C%20%5Ctilde%7Bx%7D%20%5Cleq%20x(t)%20%3C%20%5Ctilde%7Bx%7D%20+%20%5Cepsilon%20%5Cright%3E
+.. |image12| image:: https://latex.codecogs.com/svg.image?G(%5Ctilde%7Bx%7D)%20=%20%5Cleft%3C%20%5Cfrac%7B(x(t+%5Cdelta%20t)%20-%20x(t))%5E2%7D%7B%5Cdelta%20t%7D%5Cmiddle%7C%20%5Ctilde%7Bx%7D%20%5Cleq%20x(t)%20%3C%20%5Ctilde%7Bx%7D%20+%20%5Cepsilon%20%5Cright%3E
+.. |image13| image:: https://github.com/tee-lab/PyDaddy/blob/docs/docs/source/tutorials/1/drift.png?raw=true
+.. |image14| image:: https://github.com/tee-lab/PyDaddy/blob/docs/docs/source/tutorials/1/diffusion.png?raw=true
+.. |image15| image:: https://teelabiisc.files.wordpress.com/2019/03/cropped-fish-7.jpg
+
