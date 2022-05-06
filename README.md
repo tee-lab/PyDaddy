@@ -7,8 +7,7 @@ A python package to discover SDE equation from time-series data.
 
 
 
-[![Documentation Status](https://readthedocs.org/projects/pydaddy/badge/?version=latest)](https://pydaddy.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/PyDaddy) ](https://github.com/tee-lab/PyDaddy/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/PyDaddy.git/master?filepath=notebooks) 
-<!--- ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg) --->
+[![Documentation Status](https://readthedocs.org/projects/pydaddy/badge/?version=latest)](https://pydaddy.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/PyDaddy) ](https://github.com/tee-lab/PyDaddy/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/PyDaddy.git/master?filepath=notebooks) [![](https://img.shields.io/badge/arXiv-PrePrint-red)](https://arxiv.org/abs/2205.02645)
 
 PyDaddy is a comprehensive and easy to use python package to obtain data-derived stochastic differential equations from time series data. PyDaddy provides a workflow that takes time series of state variable (x) as input and gives an SDE of the form:
 > ![](https://latex.codecogs.com/svg.image?\frac{dx}{dt}&space;=&space;f(x)&space;&plus;&space;g(x)\eta(t))
@@ -18,7 +17,7 @@ where &#951;(t) is uncorrelated white noise. The function f is called the _drift
 PyDaddy is packed with tailored visualization and analysis functionalities that help the user to interpret their data.
 ![](https://github.com/tee-lab/PyDaddy/blob/docs/docs/source/tutorials/2/output_3_1.png?raw=true)
 # Installation
-PyDaddy is available both on PyPi and anaconda cloud and requires an environment with python>=3.7
+PyDaddy is available both on PyPi and anaconda cloud and requires an environment with python3 environment.
 
 ### Using pip
 ![PyPI](https://img.shields.io/pypi/v/pydaddy?color=blue) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/pydaddy) ![PyPI - Status](https://img.shields.io/pypi/status/pydaddy)
@@ -27,15 +26,12 @@ PyDaddy is available both on PyPi and anaconda cloud and requires an environment
 or
 
     pip install git+https://github.com/tee-lab/PyDaddy.git
-<!---
-Using anaconda
-![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg) ![Conda](https://img.shields.io/conda/pn/ashwinkk23/pyddsde) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/license.svg)
-![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg)
-![Conda](https://img.shields.io/conda/pn/ashwinkk23/pyddsde)
-![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg)
+
+### Using anaconda
+![](https://anaconda.org/tee-lab/pydaddy/badges/version.svg) ![](https://anaconda.org/tee-lab/pydaddy/badges/latest_release_date.svg) ![](https://anaconda.org/tee-lab/pydaddy/badges/platforms.svg)
 
     conda install -c tee-lab pydaddy
---->
+
 ### Manual installation
 Alternatively, the package can also be installed by cloning/downloading the git repository and running setup.py file.
 
@@ -298,8 +294,10 @@ Distributed under **GNU General Public License v3.0**. See `Licence.txt` for mor
 
 # Reference
 [1] Noise-induced Effects in Collective Dynamics and Inferring Local Interactions from Data
-   [Preprint](https://arxiv.org/abs/1911.09376) [Github](https://github.com/tee-lab/Characterizing_noise)
+   [Preprint](https://arxiv.org/abs/1911.09376) | [Github](https://github.com/tee-lab/Characterizing_noise)
  
 [2] Noise-Induced Schooling of Fish 
-	 [Preprint](https://arxiv.org/abs/1903.12132) [Github](https://github.com/tee-lab/schooling_fish) 
+	 [Preprint](https://arxiv.org/abs/1903.12132) | [Github](https://github.com/tee-lab/schooling_fish) 
 
+[3] PyDaddy: A Python package for discovering stochastic dynamical equations from timeseries data
+   [Preprint](https://arxiv.org/abs/2205.02645)
