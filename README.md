@@ -7,7 +7,8 @@ A python package to discover SDE equation from time-series data.
 
 
 
-[![Documentation Status](https://readthedocs.org/projects/pyddsde/badge/?version=latest)](https://pyddsde.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/pyFish) ](https://github.com/tee-lab/pyFish/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/pyFish.git/master?filepath=notebooks) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg) ![Conda](https://img.shields.io/conda/pn/ashwinkk23/pyddsde)
+[![Documentation Status](https://readthedocs.org/projects/pydaddy/badge/?version=latest)](https://pydaddy.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/PyDaddy) ](https://github.com/tee-lab/PyDaddy/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/PyDaddy.git/master?filepath=notebooks) 
+<!--- ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg) --->
 
 PyDaddy is a comprehensive and easy to use python package to obtain data-derived stochastic differential equations from time series data. PyDaddy provides a workflow that takes time series of state variable (x) as input and gives an SDE of the form:
 > ![](https://latex.codecogs.com/svg.image?\frac{dx}{dt}&space;=&space;f(x)&space;&plus;&space;g(x)\eta(t))
@@ -20,12 +21,18 @@ PyDaddy is packed with tailored visualization and analysis functionalities that 
 PyDaddy is available both on PyPi and anaconda cloud and requires an environment with python>=3.7
 
 ### Using pip
+![PyPI](https://img.shields.io/pypi/v/pydaddy?color=blue) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/pydaddy) ![PyPI - Status](https://img.shields.io/pypi/status/pydaddy)
+
 	pip install pydaddy
-	or
+or
+
     pip install git+https://github.com/tee-lab/PyDaddy.git
 <!---
 Using anaconda
 ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/installer/conda.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg) ![Conda](https://img.shields.io/conda/pn/ashwinkk23/pyddsde) ![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/license.svg)
+![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/latest_release_date.svg)
+![Conda](https://img.shields.io/conda/pn/ashwinkk23/pyddsde)
+![enter image description here](https://anaconda.org/ashwinkk23/pyddsde/badges/version.svg)
 
     conda install -c tee-lab pydaddy
 --->
