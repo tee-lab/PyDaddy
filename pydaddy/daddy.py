@@ -56,7 +56,7 @@ class Daddy(Preprocessing, Visualize):
             self._data_op_x = ddsde._op_x_
             self._data_op_y = ddsde._op_y_
 
-            # FIXME: B12 = B21, no need to keep both.
+            # FIXME: G12 = G21, no need to keep both.
 
             # self._drift_slider = ddsde._drift_slider
             # self._diff_slider = ddsde._diff_slider
@@ -129,28 +129,28 @@ class Daddy(Preprocessing, Visualize):
         return self._ddsde.G
 
     @property
-    def A1(self):
-        return self._ddsde.A1
+    def F1(self):
+        return self._ddsde.F1
 
     @property
-    def A2(self):
-        return self._ddsde.A2
+    def F2(self):
+        return self._ddsde.F2
 
     @property
-    def B11(self):
-        return self._ddsde.B11
+    def G11(self):
+        return self._ddsde.G11
 
     @property
-    def B22(self):
-        return self._ddsde.B22
+    def G22(self):
+        return self._ddsde.G22
 
     @property
-    def B12(self):
-        return self._ddsde.B12
+    def G12(self):
+        return self._ddsde.G12
 
     @property
-    def B21(self):
-        return self._ddsde.B21
+    def G21(self):
+        return self._ddsde.G21
 
     def release(self):
         """
@@ -390,17 +390,17 @@ class Daddy(Preprocessing, Visualize):
 					G : diffusion dunction
 
 				For vector analysis
-					A1 : drift X
+					F1 : drift X
 
-					A2 : drift Y
+					F2 : drift Y
 
-					B11 : diffusion X
+					G11 : diffusion X
 
-					B22 : diffusion Y
+					G22 : diffusion Y
 
-					B12 : diffusion XY
+					G12 : diffusion XY
 
-					B21 : diffusion YX
+					G21 : diffusion YX
 
 		Returns
 		-------
@@ -439,24 +439,24 @@ class Daddy(Preprocessing, Visualize):
 		def diffusion_yx(x,y):
 			rerutn 0
 
-		simulated_data = ddsde.simulate(A1=drift_x,
-						A2=drift_y,
-						B11=diffusion_x,
-						B22=diffusion_y,
-						B12=diffusion_xy.
-						B21=diffusion_yx
+		simulated_data = ddsde.simulate(F1=drift_x,
+						F2=drift_y,
+						G11=diffusion_x,
+						G22=diffusion_y,
+						G12=diffusion_xy.
+						G21=diffusion_yx
 						)
 
 		"""
         func = {
             'F': None,
             'G': None,
-            'A1': None,
-            'A2': None,
-            'B11': None,
-            'B12': None,
-            'B21': None,
-            'B22': None
+            'F1': None,
+            'F2': None,
+            'G11': None,
+            'G12': None,
+            'G21': None,
+            'G22': None
         }
 
         func.update(functions)
@@ -464,7 +464,7 @@ class Daddy(Preprocessing, Visualize):
         if dt is None: dt = self._ddsde.t_int
 
         if self.vector:
-            for k in ['A1', 'A2', 'B11', 'B12', 'B21', 'B22']:
+            for k in ['F1', 'F2', 'G11', 'G12', 'G21', 'G22']:
                 if func[k] == None:
                     print('Insufficient data, provide {}'.format(k))
                     return None
@@ -473,10 +473,10 @@ class Daddy(Preprocessing, Visualize):
             mx = [self._data_Mx[0]]
             my = [self._data_My[0]]
             for i in tqdm.tqdm(range(n_iter)):
-                mx.append(mx[i] + func['A1'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
-                        func['B11'](mx[i], my[i]) + func['B12'](mx[i], my[i])) * np.sqrt(dt))
-                my.append(my[i] + func['A2'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
-                        func['B22'](mx[i], my[i]) + func['B21'](mx[i], my[i])) * np.sqrt(dt))
+                mx.append(mx[i] + func['F1'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
+                        func['G11'](mx[i], my[i]) + func['G12'](mx[i], my[i])) * np.sqrt(dt))
+                my.append(my[i] + func['F2'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
+                        func['G22'](mx[i], my[i]) + func['G21'](mx[i], my[i])) * np.sqrt(dt))
             return np.array(mx), np.array(my)
 
         else:
@@ -680,16 +680,16 @@ class Daddy(Preprocessing, Visualize):
             # print(
             #     "Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
             print(summary_format.format(*summary))
-            if self._ddsde.A1:
-                print(f'Drift (A1): {self._ddsde.A1}')
-            if self._ddsde.A2:
-                print(f'Drift (A2): {self._ddsde.A2}')
-            if self._ddsde.B11:
-                print(f'Diffusion (B11): {self._ddsde.B11}')
-            if self._ddsde.B22:
-                print(f'Diffusion (B22): {self._ddsde.B22}')
-            if self._ddsde.B21:
-                print(f'Cross diffusion (B12, B21): {self._ddsde.B21}')
+            if self._ddsde.F1:
+                print(f'Drift (F1): {self._ddsde.F1}')
+            if self._ddsde.F2:
+                print(f'Drift (F2): {self._ddsde.F2}')
+            if self._ddsde.G11:
+                print(f'Diffusion (G11): {self._ddsde.G11}')
+            if self._ddsde.G22:
+                print(f'Diffusion (G22): {self._ddsde.G22}')
+            if self._ddsde.G21:
+                print(f'Cross diffusion (G12, G21): {self._ddsde.G21}')
             data = [self._data_Mx, self._data_My, self._data_avgdriftX, self._data_avgdriftY, self._data_avgdiffX,
                     self._data_avgdiffY, self._data_avgdiffXY]
 
@@ -1099,7 +1099,7 @@ class Daddy(Preprocessing, Visualize):
             fig5, _ = self._plot_data(driftX,
                                       plot_plane=False,
                                       title='Drift X',
-                                      z_label='$A_{1}(m)$',
+                                      z_label='$F_{1}(m)$',
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
@@ -1112,7 +1112,7 @@ class Daddy(Preprocessing, Visualize):
             fig4, _ = self._plot_data(driftY,
                                       plot_plane=False,
                                       title='Drift Y',
-                                      z_label='$A_{2}(m)$',
+                                      z_label='$F_{2}(m)$',
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
@@ -1125,7 +1125,7 @@ class Daddy(Preprocessing, Visualize):
             fig3, _ = self._plot_data(diffX,
                                       plot_plane=False,
                                       title='Diffusion X',
-                                      z_label='$B_{11}(m)$',
+                                      z_label='$G_{11}(m)$',
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
@@ -1138,7 +1138,7 @@ class Daddy(Preprocessing, Visualize):
             fig2, _ = self._plot_data(diffY,
                                       plot_plane=False,
                                       title='Diffusion Y',
-                                      z_label='$B_{22}(m)$',
+                                      z_label='$G_{22}(m)$',
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
@@ -1151,7 +1151,7 @@ class Daddy(Preprocessing, Visualize):
             fig6, _ = self._plot_data(diffXY,
                                       plot_plane=False,
                                       title='Diffusion XY',
-                                      z_label='$B_{12}(m)$',
+                                      z_label='$G_{12}(m)$',
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
@@ -1159,7 +1159,7 @@ class Daddy(Preprocessing, Visualize):
             fig7, _ = self._plot_data(diffYX,
                                       plot_plane=False,
                                       title='Diffusion YX',
-                                      z_label='$B_{21}(m)$',
+                                      z_label='$G_{21}(m)$',
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
@@ -1281,31 +1281,31 @@ class Daddy(Preprocessing, Visualize):
 
     def fit_diagnostics(self):
         if self.vector:
-            if not (self.A1 or self.A2 or self.B11 or self.B12 or self.B21):
+            if not (self.F1 or self.F2 or self.G11 or self.G12 or self.G21):
                 print('Use fit() to fit functions before calling fit_diagnostics().')
                 return
 
             x, y = np.meshgrid(self._ddsde._op_x_, self._ddsde._op_y_)
 
-            if self.A1:
+            if self.F1:
                 z = self._ddsde._avgdriftX_
-                self._print_function_diagnostics_2d(self.A1, x, y, z, name='Drift', symbol='A1')
+                self._print_function_diagnostics_2d(self.F1, x, y, z, name='Drift', symbol='F1')
 
-            if self.A2:
+            if self.F2:
                 z = self._ddsde._avgdriftY_
-                self._print_function_diagnostics_2d(self.A2, x, y, z, name='Drift', symbol='A2')
+                self._print_function_diagnostics_2d(self.F2, x, y, z, name='Drift', symbol='F2')
 
-            if self.B11:
+            if self.G11:
                 z = self._ddsde._avgdiffX_
-                self._print_function_diagnostics_2d(self.B11, x, y, z, name='Diffusion', symbol='B11')
+                self._print_function_diagnostics_2d(self.G11, x, y, z, name='Diffusion', symbol='G11')
 
-            if self.B22:
+            if self.G22:
                 z = self._ddsde._avgdiffY_
-                self._print_function_diagnostics_2d(self.B22, x, y, z, name='Diffusion', symbol='B22')
+                self._print_function_diagnostics_2d(self.G22, x, y, z, name='Diffusion', symbol='G22')
 
-            if self.B12:
+            if self.G12:
                 z = self._ddsde._avgdiffXY_
-                self._print_function_diagnostics_2d(self.B21, x, y, z, name='Cross-diffusion', symbol='B12 = B21')
+                self._print_function_diagnostics_2d(self.G21, x, y, z, name='Cross-diffusion', symbol='G12 = G21')
 
         else:
             if (self.F is None) and (self.G is None):

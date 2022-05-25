@@ -426,8 +426,8 @@
     "    t_print(\"[*] F\")    \n",
     "    display(Markdown(\"## F\"))\n",
     "else:\n",
-    "    t_print(\"[*] A1\")    \n",
-    "    display(Markdown(\"## A1\"))"
+    "    t_print(\"[*] F1\")    \n",
+    "    display(Markdown(\"## F1\"))"
    ]
   },
   {
@@ -441,8 +441,8 @@
     "    F = ddsde.fit('F', order=3, tune=True)\n",
     "    print(F)\n",
     "else:\n",
-    "    A1 = ddsde.fit('A1', order=3, tune=True)\n",
-    "    print(A1)"
+    "    F1 = ddsde.fit('F1', order=3, tune=True)\n",
+    "    print(F1)"
    ]
   },
   {
@@ -453,8 +453,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    t_print(\"[*] A2\")    \n",
-    "    display(Markdown(\"## A2\"))"
+    "    t_print(\"[*] F2\")    \n",
+    "    display(Markdown(\"## F2\"))"
    ]
   },
   {
@@ -465,8 +465,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    A2 = ddsde.fit('A2', order=3, tune=True)\n",
-    "    print(A2)"
+    "    F2 = ddsde.fit('F2', order=3, tune=True)\n",
+    "    print(F2)"
    ]
   },
   {
@@ -480,8 +480,8 @@
     "    t_print(\"[*] G\")    \n",
     "    display(Markdown(\"## G\"))\n",
     "else:\n",
-    "    t_print(\"[*] B11\")\n",
-    "    display(Markdown(\"## B11\"))"
+    "    t_print(\"[*] G11\")\n",
+    "    display(Markdown(\"## G11\"))"
    ]
   },
   {
@@ -495,8 +495,8 @@
     "    G = ddsde.fit('G', order=3, tune=True)\n",
     "    print(G)\n",
     "else:\n",
-    "    B11 = ddsde.fit('B11', order=3, tune=True)\n",
-    "    print(B11)"
+    "    G11 = ddsde.fit('G11', order=3, tune=True)\n",
+    "    print(G11)"
    ]
   },
   {
@@ -507,8 +507,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    t_print(\"[*] B22\")\n",
-    "    display(Markdown(\"## B22\"))"
+    "    t_print(\"[*] G22\")\n",
+    "    display(Markdown(\"## G22\"))"
    ]
   },
   {
@@ -519,8 +519,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    B22 = ddsde.fit('B22', order=3, tune=True)\n",
-    "    print(B22)"
+    "    G22 = ddsde.fit('G22', order=3, tune=True)\n",
+    "    print(G22)"
    ]
   },
   {
@@ -531,8 +531,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    t_print(\"[*] B12\")\n",
-    "    display(Markdown(\"## B12\"))"
+    "    t_print(\"[*] G12\")\n",
+    "    display(Markdown(\"## G12\"))"
    ]
   },
   {
@@ -543,8 +543,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    B12 = ddsde.fit('B12', order=3, tune=True)\n",
-    "    print(B12)"
+    "    G12 = ddsde.fit('G12', order=3, tune=True)\n",
+    "    print(G12)"
    ]
   },
   {
@@ -555,8 +555,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    t_print(\"[*] B21\")\n",
-    "    display(Markdown(\"## B21\"))"
+    "    t_print(\"[*] G21\")\n",
+    "    display(Markdown(\"## G21\"))"
    ]
   },
   {
@@ -567,8 +567,8 @@
    "outputs": [],
    "source": [
     "if not scalar:\n",
-    "    B21 = ddsde.fit('B21', order=3, tune=True)\n",
-    "    print(B21)"
+    "    G21 = ddsde.fit('G21', order=3, tune=True)\n",
+    "    print(G21)"
    ]
   },
   {

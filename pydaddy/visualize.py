@@ -113,32 +113,32 @@ class Visualize(Metrics):
             'driftx_title': 'Drift X',
             'driftx_xlabel': '$M_{x}$',
             'driftx_ylabel': '$M_{y}$',
-            'driftx_zlabel': '$A_{1}$',
+            'driftx_zlabel': '$F_{1}$',
 
             'drifty_title': 'Drift Y',
             'drifty_xlabel': '$M_{x}$',
             'drifty_ylabel': '$M_{y}$',
-            'drifty_zlabel': '$A_{2}$',
+            'drifty_zlabel': '$F_{2}$',
 
             'diffusionx_title': 'Diffusion X',
             'diffusionx_xlabel': '$M_{x}$',
             'diffusionx_ylabel': '$M_{y}$',
-            'diffusionx_zlabel': '$B_{11}$',
+            'diffusionx_zlabel': '$G_{11}$',
 
             'diffusiony_title': 'Diffusion Y',
             'diffusiony_xlabel': '$M_{x}$',
             'diffusiony_ylabel': '$M_{y}$',
-            'diffusiony_zlabel': '$B_{22}$',
+            'diffusiony_zlabel': '$G_{22}$',
 
             'diffusionxy_title': 'Diffusion XY',
             'diffusionxy_xlabel': '$M_{x}$',
             'diffusionxy_ylabel': '$M_{y}$',
-            'diffusionxy_zlabel': '$B_{12}$',
+            'diffusionxy_zlabel': '$G_{12}$',
 
             'diffusionyx_title': 'Diffusion YX',
             'diffusionyx_xlabel': '$M_{x}$',
             'diffusionyx_ylabel': '$M_{y}$',
-            'diffusionyx_zlabel': '$B_{21}$',
+            'diffusionyx_zlabel': '$G_{21}$',
 
         }
         for k in plot_text.keys():
@@ -194,7 +194,7 @@ class Visualize(Metrics):
                                              title=text['driftx_title'],  # "Drift X",
                                              x_label=text['driftx_xlabel'],  # '$m_{x}$',
                                              y_label=text['driftx_ylabel'],  # '$m_{y}$',
-                                             z_label=text['driftx_zlabel'],  # '$A_{1}$',
+                                             z_label=text['driftx_zlabel'],  # '$F_{1}$',
                                              tick_size=tick_size,
                                              title_size=title_size,
                                              label_size=label_size,
@@ -209,7 +209,7 @@ class Visualize(Metrics):
                                              title=text['drifty_title'],  # "Drift Y",
                                              x_label=text['drifty_xlabel'],  # '$m_{x}$',
                                              y_label=text['drifty_ylabel'],  # '$m_{y}$',
-                                             z_label=text['drifty_zlabel'],  # '$A_{2}$',
+                                             z_label=text['drifty_zlabel'],  # '$F_{2}$',
                                              tick_size=tick_size,
                                              title_size=title_size,
                                              label_size=label_size,
@@ -224,7 +224,7 @@ class Visualize(Metrics):
                                             title=text['diffusionx_title'],  # "Diffusion X",
                                             x_label=text['diffusionx_xlabel'],  # '$m_{x}$',
                                             y_label=text['diffusionx_ylabel'],  # '$m_{y}$',
-                                            z_label=text['diffusionx_zlabel'],  # '$B_{11}$',
+                                            z_label=text['diffusionx_zlabel'],  # '$G_{11}$',
                                             tick_size=tick_size,
                                             title_size=title_size,
                                             label_size=label_size,
@@ -241,7 +241,7 @@ class Visualize(Metrics):
                                              title=text['diffusionxy_title'],  # "Diffusion Y",
                                              x_label=text['diffusionxy_xlabel'],  # '$m_{x}$',
                                              y_label=text['diffusionxy_ylabel'],  # '$m_{y}$',
-                                             z_label=text['diffusionxy_zlabel'],  # '$B_{22}$',
+                                             z_label=text['diffusionxy_zlabel'],  # '$G_{22}$',
                                              tick_size=tick_size,
                                              title_size=title_size,
                                              label_size=label_size,
@@ -259,7 +259,7 @@ class Visualize(Metrics):
                                              title=text['diffusionyx_title'],  # "Diffusion Y",
                                              x_label=text['diffusionyx_xlabel'],  # '$m_{x}$',
                                              y_label=text['diffusionyx_ylabel'],  # '$m_{y}$',
-                                             z_label=text['diffusionyx_zlabel'],  # '$B_{22}$',
+                                             z_label=text['diffusionyx_zlabel'],  # '$G_{22}$',
                                              tick_size=tick_size,
                                              title_size=title_size,
                                              label_size=label_size,
@@ -275,7 +275,7 @@ class Visualize(Metrics):
                                             title=text['diffusiony_title'],  # "Diffusion Y",
                                             x_label=text['diffusiony_xlabel'],  # '$m_{x}$',
                                             y_label=text['diffusiony_ylabel'],  # '$m_{y}$',
-                                            z_label=text['diffusiony_zlabel'],  # '$B_{22}$',
+                                            z_label=text['diffusiony_zlabel'],  # '$G_{22}$',
                                             tick_size=tick_size,
                                             title_size=title_size,
                                             label_size=label_size,
@@ -831,34 +831,34 @@ class Visualize(Metrics):
                 'title1': 'Diffusion X',
                 'x_label1': 'mx',
                 'y_label1': 'my',
-                'z_label1': 'B11',
+                'z_label1': 'G11',
 
                 'title2': 'Diffusion Y',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'B22'},
+                'z_label2': 'G22'},
 
             'Dt': {
                 'title1': 'Drift X',
                 'x_label1': 'mx',
                 'y_label1': 'my',
-                'z_label1': 'A1',
+                'z_label1': 'F1',
 
                 'title2': 'Drift Y',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'A2'},
+                'z_label2': 'F2'},
 
             'c_dt': {
                 'title1': 'Diffusion XY',
                 'x_label1': 'mx',
                 'y_label1': 'my',
-                'z_label1': 'B12',
+                'z_label1': 'G12',
 
                 'title2': 'Diffusion YX',
                 'x_label2': 'mx',
                 'y_label2': 'my',
-                'z_label2': 'B21' }
+                'z_label2': 'G21' }
         }
 
         text = slider_texts[prefix]
@@ -886,8 +886,8 @@ class Visualize(Metrics):
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
             )
-            func = [self.A1, self.A2]
-            func_name = ['$A_1(x, y)$', '$A_2(x, y)$']
+            func = [self.F1, self.F2]
+            func_name = ['$F_1(x, y)$', '$F_2(x, y)$']
         elif prefix == 'dt':
             t = 'Diffusion'
             t_tex = "\delta t"
@@ -908,8 +908,8 @@ class Visualize(Metrics):
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
             )
-            func = [self.B11, self.B22]
-            func_name = ['$B_{11}(x, y)$', '$B_{22}(x, y)$']
+            func = [self.G11, self.G22]
+            func_name = ['$G_{11}(x, y)$', '$G_{22}(x, y)$']
         else:
             prefix = 'dt'
             t = 'Cross Diffusion'
@@ -931,8 +931,8 @@ class Visualize(Metrics):
                 yaxis_title=text['y_label2'],
                 zaxis_title=text['z_label2'],
             )
-            func = [self.B12, self.B21]
-            func_name = ['$B_{12}(x, y)$', '$B_{21}(x, y)$']
+            func = [self.G12, self.G21]
+            func_name = ['$G_{12}(x, y)$', '$G_{21}(x, y)$']
         nrows, ncols = 1, 2
         title_template = r"$\text{{ {0} |  Autocorrelation time (Mx, My, |M^2|) : ({4}, {5}, {1}) }} | \text{{ Slider switched to }}{2}= {3}$"
         fig = make_subplots(
@@ -1117,11 +1117,11 @@ class Visualize(Metrics):
         slider_texts = {
             'Dt': {
                 'x_label': 'm',
-                'y_label': 'A1'
+                'y_label': 'F1'
             },
             'dt': {
                 'x_label': 'm',
-                'y_label': 'A2'
+                'y_label': 'F2'
             }
         }
         text = slider_texts[prefix]
