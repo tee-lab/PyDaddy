@@ -161,7 +161,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 #avgdiffYX = dd.avgdiffYX
                 #op_x = dd.op_x
                 #op_y = dd.op_y
-                self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = [None]*6
+                self.F1, self.F2, self.G11, self.G22, self.G12, self.G21 = [None]*6
                 #if time_scale == 1:
                 #    self._driftX_ = dd.driftX
                 #    self._driftY_ = dd.driftY
@@ -229,12 +229,12 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             'F': 'drift',
             'G': 'diff',
             # 'Gsquare': 'diff',
-            'A1': 'driftX',
-            'A2': 'driftY',
-            'B11': 'diffX',
-            'B12': 'diffXY',
-            'B21': 'diffYX',
-            'B22': 'diffY'
+            'F1': 'driftX',
+            'F2': 'driftY',
+            'G11': 'diffX',
+            'G12': 'diffXY',
+            'G21': 'diffYX',
+            'G22': 'diffY'
         }
         if function_name not in fmap.keys():
             print("Invalid function name")
@@ -244,19 +244,19 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             # x = [self._Mx[:-1], self._My[:-1]]
             #x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
             x = np.stack((self._Mx, self._My), axis=1)
-            if function_name == 'A1':
+            if function_name == 'F1':
                 x = x[:-self.Dt]
                 y = self._driftX_
-            elif function_name == 'A2':
+            elif function_name == 'F2':
                 x = x[:-self.Dt]
                 y = self._driftY_
-            elif function_name == 'B11':
+            elif function_name == 'G11':
                 x = x[:-self.dt]
                 y = self._diffusionX_
-            elif function_name == 'B22':
+            elif function_name == 'G22':
                 x = x[:-self.dt]
                 y = self._diffusionY_
-            elif function_name in ['B12', 'B21']:
+            elif function_name in ['G12', 'G21']:
                 x = x[:-self.dt]
                 y = self._diffusionXY_
             else:
@@ -297,9 +297,9 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             res = fitter.fit(x, y)
 
         setattr(self, function_name, res)
-        if function_name in ['B12', 'B21']:
-            self.B12 = res
-            self.B21 = res
+        if function_name in ['G12', 'G21']:
+            self.G12 = res
+            self.G21 = res
 
         return res
 
@@ -398,7 +398,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                 self._avgdriftX_, self._avgdriftY_, \
                 self._avgdiffX_, self._avgdiffY_, self._avgdiffXY_, self._avgdiffYX_, \
                 self._op_x_, self._op_y_, \
-                self.A1, self.A2, self.B11, self.B22, self.B12, self.B21 = self._vector_drift_diff(
+                self.F1, self.F2, self.G11, self.G22, self.G12, self.G21 = self._vector_drift_diff(
                     self._Mx,
                     self._My,
                     inc_x=self.inc_x,

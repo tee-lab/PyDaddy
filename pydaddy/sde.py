@@ -115,21 +115,21 @@ class SDE:
         # return np.square(np.array([b - a for a, b in zip(X, X[dt:])])) / (t_int * dt)
         return np.square(X[dt:] - X[:-dt]) / (t_int * dt)
 
-    def _diffusion_x_from_residual(self, x, y, A1, t_int, dt):
-        drift = A1(x[:-dt], y[:-dt])
+    def _diffusion_x_from_residual(self, x, y, F1, t_int, dt):
+        drift = F1(x[:-dt], y[:-dt])
         finite_diff = x[dt:] - x[:-dt]
         residual = finite_diff - drift * t_int
         return residual ** 2 / t_int
 
-    def _diffusion_y_from_residual(self, x, y, A2, t_int, dt):
-        drift = A2(x[:-dt], y[:-dt])
+    def _diffusion_y_from_residual(self, x, y, F2, t_int, dt):
+        drift = F2(x[:-dt], y[:-dt])
         finite_diff = y[dt:] - y[:-dt]
         residual = finite_diff - drift * t_int
         return residual ** 2 / t_int
 
-    def _diffusion_xy_from_residual(self, x, y, A1, A2, t_int, dt):
-        drift_x = A1(x[:-dt], y[:-dt])
-        drift_y = A2(x[:-dt], y[:-dt])
+    def _diffusion_xy_from_residual(self, x, y, F1, F2, t_int, dt):
+        drift_x = F1(x[:-dt], y[:-dt])
+        drift_y = F2(x[:-dt], y[:-dt])
         residual_x = (x[dt:] - x[:-dt]) - drift_x
         residual_y = (y[dt:] - y[:-dt]) - drift_y
         return residual_x * residual_y / dt * t_int
@@ -359,16 +359,16 @@ class SDE:
 
             fitter = PolyFit2D(max_degree=drift_degree, threshold=drift_threshold, alpha=drift_alpha)
             if drift_threshold is None:
-                A1 = fitter.tune_and_fit(v, driftX_)
-                A2 = fitter.tune_and_fit(v, driftY_)
+                F1 = fitter.tune_and_fit(v, driftX_)
+                F2 = fitter.tune_and_fit(v, driftY_)
             else:
-                A1 = fitter.fit(v, driftX_)
-                A2 = fitter.fit(v, driftY_)
+                F1 = fitter.fit(v, driftX_)
+                F2 = fitter.fit(v, driftY_)
 
-            diffusionX = self._diffusion_x_from_residual(x, y, A1, t_int, dt)
-            diffusionY = self._diffusion_y_from_residual(x, y, A1, t_int, dt)
-            diffusionXY = self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
-            diffusionYX = diffusionXY  # self._diffusion_xy_from_residual(x, y, A1, A2, t_int, dt)
+            diffusionX = self._diffusion_x_from_residual(x, y, F1, t_int, dt)
+            diffusionY = self._diffusion_y_from_residual(x, y, F1, t_int, dt)
+            diffusionXY = self._diffusion_xy_from_residual(x, y, F1, F2, t_int, dt)
+            diffusionYX = diffusionXY  # self._diffusion_xy_from_residual(x, y, F1, F2, t_int, dt)
 
             diffusionX_ = diffusionX[~nan_idx]
             diffusionY_ = diffusionY[~nan_idx]
@@ -376,23 +376,23 @@ class SDE:
             diffusionYX_ = diffusionXY_
             fitter = PolyFit2D(max_degree=diff_degree, threshold=diff_threshold, alpha=diff_alpha)
             if diff_threshold is None:
-                B11 = fitter.tune_and_fit(v, diffusionX_)
-                B22 = fitter.tune_and_fit(v, diffusionY_)
-                B12 = fitter.tune_and_fit(v, diffusionXY_)
-                B21 = B12
+                G11 = fitter.tune_and_fit(v, diffusionX_)
+                G22 = fitter.tune_and_fit(v, diffusionY_)
+                G12 = fitter.tune_and_fit(v, diffusionXY_)
+                G21 = G12
             else:
-                B11 = fitter.fit(v, diffusionX_)
-                B22 = fitter.fit(v, diffusionY_)
-                B12 = fitter.fit(v, diffusionXY_)
-                B21 = B12
+                G11 = fitter.fit(v, diffusionX_)
+                G22 = fitter.fit(v, diffusionY_)
+                G12 = fitter.fit(v, diffusionXY_)
+                G21 = G12
         else:
             diffusionX = self._diffusion(x, t_int, dt)
             diffusionY = self._diffusion(y, t_int, dt)
             diffusionXY = self._diffusion_xy(x, y, t_int, dt)
             diffusionYX = self._diffusion_yx(x, y, t_int, dt)
 
-            A1 = A2 = None
-            B11 = B22 = B12 = B21 = None
+            F1 = F2 = None
+            G11 = G22 = G12 = G21 = None
 
         avgdriftX = np.zeros((len(op_x), len(op_y)))
         avgdriftY = np.zeros((len(op_x), len(op_y)))
@@ -423,14 +423,14 @@ class SDE:
         DD = namedtuple('DD',
                         'driftX driftY diffusionX diffusionY diffusionXY diffusionYX '
                         'avgdriftX avgdriftY avgdiffX avgdiffY avgdiffXY avgdiffYX '
-                        'op_x op_y A1 A2 B11 B22 B12 B21')
+                        'op_x op_y F1 F2 G11 G22 G12 G21')
         return DD(
             driftX=driftX, driftY=driftY, diffusionX=diffusionX, diffusionY=diffusionY,
             diffusionXY=diffusionXY, diffusionYX=diffusionYX,
             avgdriftX=avgdriftX, avgdriftY=avgdriftY,
             avgdiffX=avgdiffX, avgdiffY=avgdiffY, avgdiffXY=avgdiffXY, avgdiffYX=avgdiffYX,
             op_x=op_x, op_y=op_y,
-            A1=A1, A2=A2, B11=B11, B22=B22, B12=B12, B21=B21,
+            F1=F1, F2=F2, G11=G11, G22=G22, G12=G12, G21=G21,
         )
 
         # return [avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y]
