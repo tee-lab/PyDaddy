@@ -16,6 +16,7 @@ from scipy.signal import correlate
 from scipy.stats import skew, kurtosis
 import seaborn as sns
 import tqdm
+import sdeint
 
 from pydaddy.preprocessing import Preprocessing
 from pydaddy.visualize import Visualize
@@ -82,74 +83,92 @@ class Daddy(Preprocessing, Visualize):
 
     @property
     def _data_avgdrift(self):
+        """ :meta private """
         return self._ddsde._avgdrift_
 
     @property
     def _data_avgdiff(self):
+        """ :meta private """
         return self._ddsde._avgdiff_
 
     @property
     def _data_drift_ebar(self):
+        """ :meta private: """
         return self._ddsde._drift_ebar
 
     @property
     def _data_diff_ebar(self):
+        """ :meta private: """
         return self._ddsde._diff_ebar
 
     @property
     def _data_avgdriftX(self):
+        """ :meta private: """
         return self._ddsde._avgdriftX_
 
     @property
     def _data_avgdriftY(self):
+        """ :meta private: """
         return self._ddsde._avgdriftY_
 
     @property
     def _data_avgdiffX(self):
+        """ :meta private: """
         return self._ddsde._avgdiffX_
 
     @property
     def _data_avgdiffY(self):
+        """ :meta private: """
         return self._ddsde._avgdiffY_
 
     @property
     def _data_avgdiffXY(self):
+        """ :meta private: """
         return self._ddsde._avgdiffXY_
 
     @property
     def _data_avgdiffYX(self):
+        """ :meta private: """
         return self._ddsde._avgdiffYX_
 
     @property
     def F(self):
+        """ :meta private: """
         return self._ddsde.F
 
     @property
     def G(self):
+        """ :meta private: """
         return self._ddsde.G
 
     @property
     def F1(self):
+        """ :meta private: """
         return self._ddsde.F1
 
     @property
     def F2(self):
+        """ :meta private: """
         return self._ddsde.F2
 
     @property
     def G11(self):
+        """ :meta private: """
         return self._ddsde.G11
 
     @property
     def G22(self):
+        """ :meta private: """
         return self._ddsde.G22
 
     @property
     def G12(self):
+        """ :meta private: """
         return self._ddsde.G12
 
     @property
     def G21(self):
+        """ :meta private: """
         return self._ddsde.G21
 
     def release(self):
@@ -363,138 +382,58 @@ class Daddy(Preprocessing, Visualize):
                 params[keys] = str(self._ddsde.__dict__[keys])
         return params
 
-    def simulate(self, sigma=4, dt=None, T=None, **functions):
+    def simulate(self, t_int, timepoints, x0=None):
         """
-		Simulate SDE
+        Generate simulated time-series with the fitted SDE model.
 
-		Takes drift and diffusion functions as input and
-		simuates the SDE using the analysis parameters.
+        Generates a simulated timeseries, with specified sampling time and duration, based on the SDE model discovered
+        by PyDaddy. The drift and diffusion functions should be fit using fit() function before using simulate().
 
-		The drift and diffusion functions given must be callable type functions.
+        Args:
+        -----
+        t_int : float
+            Sampling time for the simulated time-series
+        timepoints : int
+            Number of time-points to simulate
+        x0 : float (scalar) or list of two floats (vector), (default=None)
+            Initial condition. If no value is passed, 0 ([0, 0] for vector) is taken as the initial condition.
 
-		For scalar F and G (drift and diffusion) must take one input and return a
-		number
+        Returns:
+        --------
+        x : Simulated timeseries with  `timepoints` timepoints.
 
+        """
 
-		Args
-		----
-		sigma : float
-			magnitude of the noise eta(t)
-
-		**functions:
-			drift and diffusion callable functions
-
-				For scalar analysis
-					F : drift function
-
-					G : diffusion dunction
-
-				For vector analysis
-					F1 : drift X
-
-					F2 : drift Y
-
-					G11 : diffusion X
-
-					G22 : diffusion Y
-
-					G12 : diffusion XY
-
-					G21 : diffusion YX
-
-		Returns
-		-------
-		simulated timeseries : list
-			[M] if scalar
-
-			[Mx, My] is vector
-
-		Examples
-		--------
-		# For scalar analysis
-		def drift_function(x):
-			return 0.125 * x
-
-		def diffusion_function(x):
-			return -(x**2 + 1)
-
-		simulated_data = ddsde.simulate(F=drift_function, G=diffusion_function)
-
-		# For vector analysis
-		def drift_x(x, y):
-			return x*x + y*y * x*y**2
-
-		def dirft_y(x, y):
-			return x*y
-
-		def diffusion_x(x,y):
-			return x**2 + x*y
-
-		def diffusion_y(x,y):
-			return y**2 + x*y
-
-		def diffusion_xy(x,y):
-			return 0
-
-		def diffusion_yx(x,y):
-			rerutn 0
-
-		simulated_data = ddsde.simulate(F1=drift_x,
-						F2=drift_y,
-						G11=diffusion_x,
-						G22=diffusion_y,
-						G12=diffusion_xy.
-						G21=diffusion_yx
-						)
-
-		"""
-        func = {
-            'F': None,
-            'G': None,
-            'F1': None,
-            'F2': None,
-            'G11': None,
-            'G12': None,
-            'G21': None,
-            'G22': None
-        }
-
-        func.update(functions)
-
-        if dt is None: dt = self._ddsde.t_int
+        tspan = np.arange(0, t_int * timepoints, step=t_int)
 
         if self.vector:
-            for k in ['F1', 'F2', 'G11', 'G12', 'G21', 'G22']:
-                if func[k] == None:
-                    print('Insufficient data, provide {}'.format(k))
-                    return None
-            if T is None: T = len(self._data_Mx) * dt
-            n_iter = int(T / dt)
-            mx = [self._data_Mx[0]]
-            my = [self._data_My[0]]
-            for i in tqdm.tqdm(range(n_iter)):
-                mx.append(mx[i] + func['F1'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
-                        func['G11'](mx[i], my[i]) + func['G12'](mx[i], my[i])) * np.sqrt(dt))
-                my.append(my[i] + func['F2'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
-                        func['G22'](mx[i], my[i]) + func['G21'](mx[i], my[i])) * np.sqrt(dt))
-            return np.array(mx), np.array(my)
+            assert (self.F1 and self.F2 and self.G11 and self.G22 and self.G12), \
+                """ Use fit() function to fit F1, F2, G11, G12, G21, G22 before using simulate(). """
+
+            if np.count_nonzero(self.G12) != 0:
+                raise NotImplementedError('simulate() is not implemented for systems with non-zero cross diffusion terms G12, G21.')
+
+            def F(x, t):
+                return np.array([self.F1(x[0], x[1]), self.F2(x[0], x[1])])
+
+            def G(x, t):
+                return np.diag([np.sqrt(self.G11(x[0], x[1])), np.sqrt(self.G22(x[0], x[1]))])
+
+            if x0 is None:
+                x0 = np.array([0., 0.])
+            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan)
 
         else:
-            for k in ['F', 'G']:
-                if func[k] == None:
-                    print('Insufficient data, provide {}'.format(k))
-                    return None
+            assert (self.F and self.G), \
+                """ Use fit() function to fit F, G before using simulate(). """
 
-            if T is None: T = len(self._data_X) * dt
+            if x0 is None:
+                x0 = 0.
 
-            n_iter = int(T / dt)
+            x = sdeint.itoint(f=lambda x, t: self.F(x),
+                              G=lambda x, t: self.G(x), y0=x0, tspan=tspan)
 
-            m = [self._data_X[0]]
-
-            for i in tqdm.tqdm(range(n_iter)):
-                m.append(m[i] + func['F'](m[i]) * dt + sigma * np.random.normal() * func['G'](m[i]) * np.sqrt(dt))
-
-            return np.array(m)
+        return x
 
     def summary(self, start=0, end=1000, kde=True, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
                 ret_fig=False, **plot_text):
@@ -1321,6 +1260,12 @@ class Daddy(Preprocessing, Visualize):
             if self.G:
                 y = self._ddsde._avgdiff_
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
+
+    def model_diagnostics(self):
+        if self.vector:
+            pass
+        else:
+            pass
 
     def _print_function_diagnostics(self, f, x, y, name, symbol):
         n, k = len(x), len(f)

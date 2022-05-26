@@ -83,6 +83,8 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.diff_degree = diff_degree
         self.diff_alpha = diff_alpha
 
+        self.fitter = None
+
         """
         # When t_lag is greater than timeseries length, reassign its value as length of data
         if self.t_lag > len(data[0]):
@@ -98,8 +100,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
         # if t is None and t_int is None:
         #	raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
-
-        return None
 
     def _autobins(self):
         """ Optimal number of bins using Freedman-Diaconis rule. """
@@ -271,7 +271,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             x = x[~nan_idx]
             y = y[~nan_idx]
 
-            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+            self.fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         else:
             x = self._X[:-1]
             if function_name == 'G':
@@ -289,12 +289,12 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             x = x[~nan_idx]
             y = y[~nan_idx]
 
-            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+            self.fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         #
         if tune:
-            res = fitter.tune_and_fit(x, y, thresholds, plot=plot)
+            res = self.fitter.tune_and_fit(x, y, thresholds, plot=plot)
         else:
-            res = fitter.fit(x, y)
+            res = self.fitter.fit(x, y)
 
         setattr(self, function_name, res)
         if function_name in ['G12', 'G21']:
@@ -548,9 +548,12 @@ def load_sample_data(data_path):
     """
     stream = pkg_resources.resource_stream('pydaddy', data_path)
     try:
-        return np.loadtxt(stream, delimiter=',')
+        res = np.loadtxt(stream, delimiter=',')
     except:
-        return np.loadtxt(stream)
+        res = np.loadtxt(stream)
+
+    stream.close()
+    return res
 
 
 def load_sample_dataset(name):

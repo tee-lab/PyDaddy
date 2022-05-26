@@ -1,3 +1,4 @@
+import warnings
 from collections import namedtuple
 import numpy as np
 from .fitters import PolyFit1D, PolyFit2D
@@ -298,8 +299,10 @@ class SDE:
         X = X[0 : -max(Dt, dt)]
         for b in op:
             i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
-            avgdiff.append(np.nanmean(diff[i]))
-            avgdrift.append(np.nanmean(drift[i]))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=RuntimeWarning)
+                avgdiff.append(np.nanmean(diff[i]))
+                avgdrift.append(np.nanmean(drift[i]))
             drift_ebar.append(np.nanstd(drift[i])/np.sqrt(len(drift[i])))
             diff_ebar.append(np.nanstd(diff[i])/np.sqrt(len(diff[i])))
             drift_num.append(len(drift[i]))
@@ -412,12 +415,15 @@ class SDE:
                         np.logical_and(y_ < (bin_y + inc_y), y_ >= bin_y),
                     )
                 )[0]
-                avgdriftX[n, m] = np.nanmean(driftX[i])
-                avgdriftY[n, m] = np.nanmean(driftY[i])
-                avgdiffX[n, m] = np.nanmean(diffusionX[i])
-                avgdiffY[n, m] = np.nanmean(diffusionY[i])
-                avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
-                avgdiffYX[n, m] = np.nanmean(diffusionYX[i])
+
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    avgdriftX[n, m] = np.nanmean(driftX[i])
+                    avgdriftY[n, m] = np.nanmean(driftY[i])
+                    avgdiffX[n, m] = np.nanmean(diffusionX[i])
+                    avgdiffY[n, m] = np.nanmean(diffusionY[i])
+                    avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
+                    avgdiffYX[n, m] = np.nanmean(diffusionYX[i])
                 n = n + 1
             m = m + 1
         DD = namedtuple('DD',

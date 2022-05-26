@@ -14,11 +14,11 @@ def load_sample_data(data_path):
 
 	data
 	├── fish_data
-	│   └── ectropus.csv
+│		└── ectropus.csv
 	└── model_data
 		├── scalar
-		│   ├── pairwise.csv
-		│   └── ternary.csv
+		│	├── pairwise.csv
+		│	└── ternary.csv
 		└── vector
 			├── pairwise.csv
 			└── ternary.csv
