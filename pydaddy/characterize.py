@@ -8,7 +8,7 @@ from pydaddy.analysis import GaussianTest
 from pydaddy.preprocessing import Preprocessing
 from pydaddy.preprocessing import InputError
 from pydaddy.daddy import Daddy
-from pydaddy.fitters import PolyFit1D, PolyFit2D
+
 
 warnings.filterwarnings("ignore")
 
@@ -82,8 +82,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.diff_threshold = diff_threshold
         self.diff_degree = diff_degree
         self.diff_alpha = diff_alpha
-
-        self.fitter = None
 
         """
         # When t_lag is greater than timeseries length, reassign its value as length of data
@@ -215,93 +213,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             return drift_data_dict, diff_data_dict, cross_diff_dict
         self._avaiable_timescales = time_scale_list
         return drift_data_dict, diff_data_dict, ebar_drift_dict, ebar_diff_dict, num_drift_dict, num_diff_dict
-
-    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None,
-            plot=False):
-
-        if not (order or library):
-            raise TypeError('You should either specify the order of the polynomial, or provide a library.')
-
-        if library:
-            order = 1
-
-        fmap = {
-            'F': 'drift',
-            'G': 'diff',
-            # 'Gsquare': 'diff',
-            'F1': 'driftX',
-            'F2': 'driftY',
-            'G11': 'diffX',
-            'G12': 'diffXY',
-            'G21': 'diffYX',
-            'G22': 'diffY'
-        }
-        if function_name not in fmap.keys():
-            print("Invalid function name")
-            return None
-
-        if self.vector:
-            # x = [self._Mx[:-1], self._My[:-1]]
-            #x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
-            x = np.stack((self._Mx, self._My), axis=1)
-            if function_name == 'F1':
-                x = x[:-self.Dt]
-                y = self._driftX_
-            elif function_name == 'F2':
-                x = x[:-self.Dt]
-                y = self._driftY_
-            elif function_name == 'G11':
-                x = x[:-self.dt]
-                y = self._diffusionX_
-            elif function_name == 'G22':
-                x = x[:-self.dt]
-                y = self._diffusionY_
-            elif function_name in ['G12', 'G21']:
-                x = x[:-self.dt]
-                y = self._diffusionXY_
-            else:
-                raise TypeError('Invalid function name for vector analysis')
-
-            # Handle missing values (NaNs) if present
-            # nan_idx = np.isnan(x[0]) | np.isnan(x[1]) | np.isnan(y)
-            # x[0] = np.delete(x[0], nan_idx)
-            # x[1] = np.delete(x[1], nan_idx)
-            # y = np.delete(y, nan_idx)
-            nan_idx = np.isnan(x).any(axis=1) | np.isnan(y)
-            x = x[~nan_idx]
-            y = y[~nan_idx]
-
-            self.fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
-        else:
-            x = self._X[:-1]
-            if function_name == 'G':
-                # y = self._diffusion(self._X, t_int=self.t_int, dt=1)
-                # F = self.fit('F', order=5, tune=True)
-                # y = self._diffusion_from_residual(self._X, F=F, t_int=self.t_int, dt=1)
-                y = self._diffusion_
-            elif function_name == 'F':
-                y = self._drift_
-            else:
-                raise TypeError('Invalid function name for scalar analysis')
-
-            # Handle missing values (NaNs) if present
-            nan_idx = np.isnan(x) | np.isnan(y)
-            x = x[~nan_idx]
-            y = y[~nan_idx]
-
-            self.fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
-        #
-        if tune:
-            res = self.fitter.tune_and_fit(x, y, thresholds, plot=plot)
-        else:
-            res = self.fitter.fit(x, y)
-
-        setattr(self, function_name, res)
-        if function_name in ['G12', 'G21']:
-            self.G12 = res
-            self.G21 = res
-
-        return res
 
     def __call__(self, data, t=1, Dt=None, **kwargs):
         self.__dict__.update(kwargs)

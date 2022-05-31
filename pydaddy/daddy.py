@@ -18,8 +18,10 @@ import seaborn as sns
 import tqdm
 import sdeint
 
+import pydaddy
 from pydaddy.preprocessing import Preprocessing
 from pydaddy.visualize import Visualize
+from pydaddy.fitters import PolyFit1D, PolyFit2D
 
 __all__ = ['Daddy']
 
@@ -36,9 +38,11 @@ class Daddy(Preprocessing, Visualize):
         self.op_range = ddsde.op_range
         self.op_x_range = ddsde.op_x_range
         self.op_y_range = ddsde.op_y_range
+        self.Dt = ddsde.Dt
+        self.dt = ddsde.dt
 
-        self.fit = ddsde.fit
         self.fast_mode = ddsde.fast_mode
+        self.fitters = dict()
 
         if not self.vector:
             self._data_X = ddsde._X
@@ -130,59 +134,6 @@ class Daddy(Preprocessing, Visualize):
     def _data_avgdiffYX(self):
         """ :meta private: """
         return self._ddsde._avgdiffYX_
-
-    @property
-    def F(self):
-        """ :meta private: """
-        return self._ddsde.F
-
-    @property
-    def G(self):
-        """ :meta private: """
-        return self._ddsde.G
-
-    @property
-    def F1(self):
-        """ :meta private: """
-        return self._ddsde.F1
-
-    @property
-    def F2(self):
-        """ :meta private: """
-        return self._ddsde.F2
-
-    @property
-    def G11(self):
-        """ :meta private: """
-        return self._ddsde.G11
-
-    @property
-    def G22(self):
-        """ :meta private: """
-        return self._ddsde.G22
-
-    @property
-    def G12(self):
-        """ :meta private: """
-        return self._ddsde.G12
-
-    @property
-    def G21(self):
-        """ :meta private: """
-        return self._ddsde.G21
-
-    def release(self):
-        """
-		Clears the memory, recommended to be used while analysing multiple
-		data files in loop.
-
-		Returns
-		-------
-			None
-		"""
-        plt.close('all')
-        gc.collect()
-        return None
 
     def export_data(self, filename=None, raw=False):
         """
@@ -381,6 +332,79 @@ class Daddy(Preprocessing, Visualize):
             if str(keys)[0] != '_':
                 params[keys] = str(self._ddsde.__dict__[keys])
         return params
+
+    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None,
+            plot=False):
+
+        if not (order or library):
+            raise TypeError('You should either specify the order of the polynomial, or provide a library.')
+
+        if library:
+            order = 1
+
+        if self.vector:
+            # x = [self._Mx[:-1], self._My[:-1]]
+            # x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
+            x = np.stack((self._ddsde._Mx, self._ddsde._My), axis=1)
+            if function_name == 'F1':
+                x = x[:-self.Dt]
+                y = self._ddsde._driftX_
+            elif function_name == 'F2':
+                x = x[:-self.Dt]
+                y = self._ddsde._driftY_
+            elif function_name == 'G11':
+                x = x[:-self.dt]
+                y = self._ddsde._diffusionX_
+            elif function_name == 'G22':
+                x = x[:-self.dt]
+                y = self._ddsde._diffusionY_
+            elif function_name in ['G12', 'G21']:
+                x = x[:-self.dt]
+                y = self._ddsde._diffusionXY_
+            else:
+                raise TypeError('Invalid function name for vector analysis')
+
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x).any(axis=1) | np.isnan(y)
+            x = x[~nan_idx]
+            y = y[~nan_idx]
+
+            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+        else:
+            x = self._ddsde._X[:-1]
+            if function_name == 'G':
+                # y = self._diffusion(self._X, t_int=self.t_int, dt=1)
+                # F = self.fit('F', order=5, tune=True)
+                # y = self._diffusion_from_residual(self._X, F=F, t_int=self.t_int, dt=1)
+                y = self._ddsde._diffusion_
+            elif function_name == 'F':
+                y = self._ddsde._drift_
+            else:
+                raise TypeError('Invalid function name for scalar analysis')
+
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x) | np.isnan(y)
+            x = x[~nan_idx]
+            y = y[~nan_idx]
+
+            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+        #
+        if tune:
+            res = fitter.tune_and_fit(x, y, thresholds, plot=plot)
+        else:
+            res = fitter.fit(x, y)
+
+        setattr(self, function_name, res)
+        self.fitters[function_name] = fitter
+
+        if function_name in ['G12', 'G21']:
+            self.G12 = res
+            self.G21 = res
+
+            self.fitters['G12'] = fitter
+            self.fitters['G21'] = fitter
+
+        return res
 
     def simulate(self, t_int, timepoints, x0=None):
         """
@@ -1260,12 +1284,6 @@ class Daddy(Preprocessing, Visualize):
             if self.G:
                 y = self._ddsde._avgdiff_
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
-
-    def model_diagnostics(self):
-        if self.vector:
-            pass
-        else:
-            pass
 
     def _print_function_diagnostics(self, f, x, y, name, symbol):
         n, k = len(x), len(f)
