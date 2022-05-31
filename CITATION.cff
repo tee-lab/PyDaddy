@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Nabeel"
+  given-names: "Arshed"
+  orcid: "https://orcid.org/0000-0001-9750-9070"
+  
+- family-names: "Karichannavar"
+  given-names: "Ashwin"
+
+- family-names: "Palathingal"
+  given-names: "Shuaib"
+
+- family-names: "Jhawar"
+  given-names: "Jitesh"
+  orcid: "https://orcid.org/0000-0002-8774-2351"
+ 
+- family-names: "Danny Raj"
+  given-names: "Masila"
+  orcid: "https://orcid.org/0000-0002-6983-0390"
+
+- family-names: "Guttal"
+  given-names: "Vishwesha"
+  orcid: "https://orcid.org/0000-0002-2677-857X"
+  
+title: "PyDaddy: A Python Package for Discovering SDEs from Time Series Data"
+version: 0.1.5
+
+date-released: 2022-05-05
+url: "https://github.com/tee-lab/PyDaddy"
