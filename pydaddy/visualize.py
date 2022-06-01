@@ -777,7 +777,8 @@ class Visualize(Metrics):
         plt.tight_layout()
         return fig
 
-    def _remove_nans(self, Mx, My):
+    @staticmethod
+    def _remove_nans(Mx, My):
         """
         Remove nan's from data
         """
@@ -1267,7 +1268,8 @@ class Visualize(Metrics):
             return 0, plane1
         return 1, plane2
 
-    def _set_zaxis_to_left(self, ax):
+    @staticmethod
+    def _set_zaxis_to_left(ax):
         """
         Sets the z-axis of 3d figure to left
         """
@@ -1417,8 +1419,8 @@ class Visualize(Metrics):
         plt.tight_layout()
         return fig, ax
 
-    def _histogram3d(self,
-                     x,
+    @staticmethod
+    def _histogram3d(x,
                      bins=20,
                      normed=False,
                      color='blue',
@@ -1519,7 +1521,8 @@ class Visualize(Metrics):
         # return H, edges;
         return H, edges, X, Y, Z, dx, dy, dz
 
-    def _noise_plot(self, ax, residual, title):
+    @staticmethod
+    def _noise_plot(ax, residual, title):
         sigma = np.nanstd(residual)
         x = np.linspace(-6 * sigma, 6 * sigma, 100)
         gaussian = norm.pdf(x, scale=sigma)
@@ -1530,13 +1533,27 @@ class Visualize(Metrics):
         ax.set(xlabel='Residual', ylabel='Density', title=title)
         ax.legend()
 
-    def _noise_plot_2d(self, ax, res_x, res_y, title):
-        H, edges, X, Y, Z, dx, dy, dz = self._histogram3d(self._remove_nans(res_x, res_y))
+    @classmethod
+    def _noise_plot_2d(cls, ax, res_x, res_y, title):
+        H, edges, X, Y, Z, dx, dy, dz = cls._histogram3d(cls._remove_nans(res_x, res_y))
         colors = plt.cm.YlGnBu(dz.flatten() / float(dz.max()))
         ax.bar3d(X, Y, Z, dx, dy, dz, alpha=0.6, cmap=plt.cm.YlGnBu, color=colors)
         ax.set(xlabel='$\eta_x$', ylabel='$\eta_y$', title=title)
 
-    def _matrix_plot(self, ax, mat):
+        ax = cls._set_zaxis_to_left(ax)
+
+        # make the panes transparent
+        ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+        ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+        ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+
+        # make the grid lines transparent
+        ax.xaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+        ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+        ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+
+    @staticmethod
+    def _matrix_plot(ax, mat):
         ax.imshow(mat, vmin=-1, vmax=1, cmap='RdBu')
         for i in range(mat.shape[0]):
             for j in range(mat.shape[1]):
@@ -1545,7 +1562,8 @@ class Visualize(Metrics):
 
         ax.set(xticks=[], yticks=[])
 
-    def _qq_plot(self, ax, residual, title):
+    @staticmethod
+    def _qq_plot(ax, residual, title):
         sigma = np.nanstd(residual)
         (osm, osr), _ = probplot(residual, sparams=(0, sigma))
         ax.axline(xy1=(-1, -1), xy2=(1, 1), color='k')
@@ -1557,10 +1575,11 @@ class Visualize(Metrics):
                title=title)
         ax.set_yticks(ax.get_xticks())
 
-    def _acf_plot(self, ax, acf, lags, a, b, c, act, title):
+    @staticmethod
+    def _acf_plot(ax, acf, lags, a, b, c, act, title):
         acf, lags = acf[:(10 * int(np.ceil(act)))], lags[:(10 * int(np.ceil(act)))]
 
-        expfit = a * np.exp(-lags / b) + c
+        # expfit = a * np.exp(-lags / b) + c
         ax.plot(lags, acf, label='Autocorrelation')
         # ax.plot(lags, expfit, '--', label='Exponential fit')
         ax.axvline(act, label='Autocorr. time', color='k')
@@ -1568,7 +1587,8 @@ class Visualize(Metrics):
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
         ax.legend()
 
-    def _acf_plot_multi(self, ax, acf1, acf2, lags, act1, act2, title=None):
+    @staticmethod
+    def _acf_plot_multi(ax, acf1, acf2, lags, act1, act2, title=None):
         lim = 10 * max(int(np.ceil(act1)), int(np.ceil(act2)))
         acf1, acf2, lags = acf1[:lim], acf2[:lim], lags[:lim]
         ax.plot(lags, acf1, label='Autocorr. $\\eta_x$')
@@ -1579,12 +1599,73 @@ class Visualize(Metrics):
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
         ax.legend()
 
-    def _km_plot(self, ax, km_2, km_4, title):
+    @staticmethod
+    def _km_plot(ax, km_2, km_4, title):
         ax.axline(xy1=(0, 0), slope=1, color='k')
         ax.plot(3 * (km_2 ** 2), km_4, '.')
 
         ax.axis('equal')
         ax.set(xlabel='$3 \cdot K_2^2$', ylabel='$K_4$', title=title)
         ax.set_yticks(ax.get_xticks())
+
+    @staticmethod
+    def _show_histograms_1d(ax, x1, x2, xlabel, title):
+        ax.hist(x1, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Original')
+        ax.hist(x2, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Bootstrapped')
+        ax.set(xlabel=xlabel, title=title)
+        ax.legend()
+
+    @classmethod
+    def _show_histograms_2d(cls, ax, x1, x2, title):
+        H, edges, X, Y, Z, dx, dy, dz = cls._histogram3d(cls._remove_nans(x1[0], x1[1]))
+        colors = plt.cm.YlGnBu(dz.flatten() / float(dz.max()))
+        ax.bar3d(X, Y, Z, dx, dy, dz, alpha=0.4, cmap=plt.cm.YlGnBu, color=colors)
+
+        H, edges, X, Y, Z, dx, dy, dz = cls._histogram3d(cls._remove_nans(x2[0], x2[1]))
+        colors = plt.cm.OrRd(dz.flatten() / float(dz.max()))
+        ax.bar3d(X, Y, Z, dx, dy, dz, alpha=0.4, cmap=plt.cm.OrRd, color=colors)
+
+        ax = cls._set_zaxis_to_left(ax)
+
+        # make the panes transparent
+        ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+        ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+        ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+
+        # make the grid lines transparent
+        ax.xaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+        ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+        ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+
+        ax.set(xlabel='$M_x$', ylabel='$M_y$', title=title)
+
+    @staticmethod
+    def _show_functions_1d(ax, xs, f, fhat, ylabel, title):
+        ax.plot(xs, f(xs), linewidth=3, label='Original')
+        ax.plot(xs, fhat(xs), linewidth=3, label='Bootstrapped')
+        ax.set(xlabel='$x$', ylabel=ylabel, title=title)
+        ax.legend()
+
+    @staticmethod
+    def _show_functions_2d(ax, f, fhat, title):
+        r, theta = np.meshgrid(np.linspace(0, 1, 50), np.linspace(-np.pi, np.pi, 90))
+        x, y = r * np.cos(theta), r * np.sin(theta)
+
+        ax.plot_wireframe(x, y, f(x, y), alpha=0.5, color='#1f77b4', label='Original')
+        ax.plot_wireframe(x, y, fhat(x, y), alpha=0.5, color='#ff7f0e', label='Bootstrapped')
+
+        # make the panes transparent
+        ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+        ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+        ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+
+        # make the grid lines transparent
+        ax.xaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+        ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+        ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+
+        ax.set(xlabel='$M_x$', ylabel='$M_y$', title=title)
+        ax.legend()
+
 
 

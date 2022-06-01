@@ -1,21 +1,15 @@
-import gc
-import os
+
 import sys
 import time
-import warnings
+
 from collections import OrderedDict, namedtuple
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
-import scipy.io
-import scipy.optimize
-import scipy.stats
-from scipy.signal import correlate
 from scipy.stats import skew, kurtosis
 import seaborn as sns
-import tqdm
 import sdeint
 
 import pydaddy
@@ -49,6 +43,8 @@ class Daddy(Preprocessing, Visualize):
             self._data_t = ddsde._t
             self._data_op = ddsde._op_
 
+            self.F, self.G = ddsde.F, ddsde.G
+
             # self.drift_order = ddsde.drift_order
             # self.diff_order = ddsde.diff_order
 
@@ -61,7 +57,9 @@ class Daddy(Preprocessing, Visualize):
             self._data_op_x = ddsde._op_x_
             self._data_op_y = ddsde._op_y_
 
-            # FIXME: G12 = G21, no need to keep both.
+            self.F1, self.F2 = ddsde.F1, ddsde.F2
+            self.G11, self.G22 = ddsde.G11, ddsde.G22
+            self.G12, self.G21 = ddsde.G12, ddsde.G21
 
             # self._drift_slider = ddsde._drift_slider
             # self._diff_slider = ddsde._diff_slider
@@ -441,21 +439,26 @@ class Daddy(Preprocessing, Visualize):
                 return np.array([self.F1(x[0], x[1]), self.F2(x[0], x[1])])
 
             def G(x, t):
-                return np.diag([np.sqrt(self.G11(x[0], x[1])), np.sqrt(self.G22(x[0], x[1]))])
+                return np.diag([np.sqrt(np.abs(self.G11(x[0], x[1]))), np.sqrt(np.abs(self.G22(x[0], x[1])))])
 
             if x0 is None:
                 x0 = np.array([0., 0.])
-            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan)
+            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan).T
 
         else:
             assert (self.F and self.G), \
-                """ Use fit() function to fit F, G before using simulate(). """
+                'Use fit() function to fit F, G before using simulate().'
 
             if x0 is None:
                 x0 = 0.
 
-            x = sdeint.itoint(f=lambda x, t: self.F(x),
-                              G=lambda x, t: self.G(x), y0=x0, tspan=tspan)
+            def F(x, t):
+                return self.F(x)
+
+            def G(x, t):
+                return np.sqrt(np.abs(self.G(x)))
+
+            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan)
 
         return x
 
@@ -1284,6 +1287,119 @@ class Daddy(Preprocessing, Visualize):
             if self.G:
                 y = self._ddsde._avgdiff_
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
+
+    def model_diagnostics(self):
+        if self.vector:
+            print('Generating simulated timeseries ...')
+            timepoints = self._data_Mx.shape[0]
+            x = self.simulate(t_int=self._ddsde.t_int, timepoints=timepoints)
+
+            print('Re-estimating drift and diffusion from simulated timeseries ...')
+            ddsde = pydaddy.Characterize(data=x, t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
+
+            # FIXME: Set orders, thresholds, library during fitting.
+            F1hat = ddsde.fit('F1',
+                              order=self.fitters['F1'].max_degree,
+                              threshold=self.fitters['F1'].threshold,
+                              alpha=self.fitters['F1'].alpha,
+                              library=self.fitters['F1'].library)
+
+            F2hat = ddsde.fit('F2',
+                              order=self.fitters['F2'].max_degree,
+                              threshold=self.fitters['F2'].threshold,
+                              alpha=self.fitters['F2'].alpha,
+                              library=self.fitters['F2'].library)
+
+            G11hat = ddsde.fit('G11',
+                               order=self.fitters['G11'].max_degree,
+                               threshold=self.fitters['G11'].threshold,
+                               alpha=self.fitters['G11'].alpha,
+                               library=self.fitters['G11'].library)
+
+            G22hat = ddsde.fit('G22',
+                               order=self.fitters['G22'].max_degree,
+                               threshold=self.fitters['G22'].threshold,
+                               alpha=self.fitters['G22'].alpha,
+                               library=self.fitters['G22'].library)
+
+            G12hat = ddsde.fit('G12',
+                               order=self.fitters['G12'].max_degree,
+                               threshold=self.fitters['G12'].threshold,
+                               alpha=self.fitters['G12'].alpha,
+                               library=self.fitters['G12'].library)
+
+            # fig, ax = plt.subplots(2, 3, figsize=(12, 8), dpi=100)
+
+            fig = plt.figure(figsize=(12, 8), dpi=100)
+            gs = fig.add_gridspec(2, 3)
+            ax_mxmy = fig.add_subplot(gs[0, 0], projection='3d')
+            ax_modm = fig.add_subplot(gs[1, 0])
+            ax_f1 = fig.add_subplot(gs[0, 1], projection='3d')
+            ax_f2 = fig.add_subplot(gs[1, 1], projection='3d')
+            ax_g11 = fig.add_subplot(gs[0, 2], projection='3d')
+            ax_g22 = fig.add_subplot(gs[1, 2], projection='3d')
+
+            self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$M$ histogram')
+            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|M|$',
+                                     title='$|M|$ histogram')
+            self._show_functions_2d(ax_f1, self.F1, F1hat, title='$F_{1}$')
+            self._show_functions_2d(ax_f2, self.F2, F2hat, title='$F_{2}$')
+            self._show_functions_2d(ax_g11, self.G11, G11hat, title='$F_{11}$')
+            self._show_functions_2d(ax_g22, self.G22, G22hat, title='$G_{22}$')
+
+            print(f'F1:')
+            print(f'  Original: {self.F1}')
+            print(f'  Bootstrapped: {F1hat}')
+
+            print(f'F2:')
+            print(f'  Original: {self.F2}')
+            print(f'  Bootstrapped: {F2hat}')
+
+            print(f'G11:')
+            print(f'  Original: {self.G11}')
+            print(f'  Bootstrapped: {G11hat}')
+
+            print(f'G22:')
+            print(f'  Original: {self.G22}')
+            print(f'  Bootstrapped: {G22hat}')
+
+            print(f'G12 / G21:')
+            print(f'  Original: {self.G12}')
+            print(f'  Bootstrapped: {G12hat}')
+
+        else:
+            # Generate simulated time-series
+            timepoints = self._data_X.shape[0]
+            x = self.simulate(t_int=self._ddsde.t_int, timepoints=timepoints)
+
+            ddsde = pydaddy.Characterize(data=[x], t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
+
+            Fhat = ddsde.fit('F', order=self.fitters['F'].max_degree,
+                             threshold=self.fitters['F'].threshold,
+                             alpha=self.fitters['F'].alpha,
+                             library=self.fitters['F'].library)
+
+            Ghat = ddsde.fit('G', order=self.fitters['G'].max_degree,
+                             threshold=self.fitters['G'].threshold,
+                             alpha=self.fitters['G'].alpha,
+                             library=self.fitters['G'].library)
+
+            # xs = np.linspace(np.nanmin(self._data_X), np.nanmax(self._data_X), 100)
+            fig, ax = plt.subplots(1, 3, figsize=(12, 4), dpi=100)
+            self._show_histograms_1d(ax[0], self._data_X, x, xlabel='$x$', title='Histogram'
+                                                                                 '')
+            self._show_functions_1d(ax[1], self.op, self.F, Fhat, ylabel='F', title='Drift')
+            self._show_functions_1d(ax[2], self.op, self.G, Ghat, ylabel='G', title='Diffusion')
+
+            print('Drift:')
+            print(f'    Original: {self.F}')
+            print(f'    Bootstrapped: {Fhat}')
+            print('\nDiffusion:')
+            print(f'    Original: {self.G}')
+            print(f'    Bootstrapped: {Ghat}')
+
+        plt.tight_layout()
+        plt.show()
 
     def _print_function_diagnostics(self, f, x, y, name, symbol):
         n, k = len(x), len(f)
