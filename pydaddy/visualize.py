@@ -1646,13 +1646,15 @@ class Visualize(Metrics):
         ax.set(xlabel='$x$', ylabel=ylabel, title=title)
         ax.legend()
 
-    @staticmethod
-    def _show_functions_2d(ax, f, fhat, title):
+    @classmethod
+    def _show_functions_2d(cls, ax, f, fhat, title):
         r, theta = np.meshgrid(np.linspace(0, 1, 50), np.linspace(-np.pi, np.pi, 90))
         x, y = r * np.cos(theta), r * np.sin(theta)
 
         ax.plot_wireframe(x, y, f(x, y), alpha=0.5, color='#1f77b4', label='Original')
         ax.plot_wireframe(x, y, fhat(x, y), alpha=0.5, color='#ff7f0e', label='Bootstrapped')
+
+        ax = cls._set_zaxis_to_left(ax)
 
         # make the panes transparent
         ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
