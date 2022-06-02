@@ -2,14 +2,15 @@
 ![Characterizing Noise](https://raw.githubusercontent.com/ashwinkk23/Characterizing_noise/master/.fig.jpg)
 # PyDaddy
 
-### Python Data Driven Dynamics
-A python package to discover SDE equation from time-series data.
+## Python Data Driven Dynamics
+A Python package to discover stochastic differential equations from time series data.
 
 
 
-[![Documentation Status](https://readthedocs.org/projects/pydaddy/badge/?version=latest)](https://pydaddy.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/PyDaddy) ](https://github.com/tee-lab/PyDaddy/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/PyDaddy.git/master?filepath=notebooks) [![](https://img.shields.io/badge/arXiv-PrePrint-red)](https://arxiv.org/abs/2205.02645)
+[![Documentation Status](https://readthedocs.org/projects/pydaddy/badge/?version=latest)](https://pydaddy.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/PyDaddy) ](https://github.com/tee-lab/PyDaddy/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/PyDaddy.git/master?filepath=notebooks) [![](https://img.shields.io/badge/arXiv-Preprint-red)](https://arxiv.org/abs/2205.02645)
 
-PyDaddy is a comprehensive and easy to use python package to obtain data-derived stochastic differential equations from time series data. PyDaddy provides a workflow that takes time series of state variable (x) as input and gives an SDE of the form:
+PyDaddy is a comprehensive and easy to use python package to discover data-derived stochastic differential equations from time series data. PyDaddy takes the time series of state variable $x$, scalar or 2-dimensional vector, as input and outputs an SDE of the form:
+$$ \frac{dx}{dt} = f(x) + g(x) \cdot \eta(t) $$
 > ![](https://latex.codecogs.com/svg.image?\frac{dx}{dt}&space;=&space;f(x)&space;&plus;&space;g(x)\eta(t))
 
 where &#951;(t) is uncorrelated white noise. The function f is called the _drift_, and governs the deterministic part of the dynamics. g<sup>2</sup> is called the _diffusion_ and governs the stochastic part of the dynamics.
