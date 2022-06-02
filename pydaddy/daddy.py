@@ -1,24 +1,21 @@
-import gc
-import os
+
 import sys
 import time
-import warnings
+
 from collections import OrderedDict, namedtuple
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
-import scipy.io
-import scipy.optimize
-import scipy.stats
-from scipy.signal import correlate
 from scipy.stats import skew, kurtosis
 import seaborn as sns
-import tqdm
+import sdeint
 
+import pydaddy
 from pydaddy.preprocessing import Preprocessing
 from pydaddy.visualize import Visualize
+from pydaddy.fitters import PolyFit1D, PolyFit2D
 
 __all__ = ['Daddy']
 
@@ -35,14 +32,18 @@ class Daddy(Preprocessing, Visualize):
         self.op_range = ddsde.op_range
         self.op_x_range = ddsde.op_x_range
         self.op_y_range = ddsde.op_y_range
+        self.Dt = ddsde.Dt
+        self.dt = ddsde.dt
 
-        self.fit = ddsde.fit
         self.fast_mode = ddsde.fast_mode
+        self.fitters = dict()
 
         if not self.vector:
             self._data_X = ddsde._X
             self._data_t = ddsde._t
             self._data_op = ddsde._op_
+
+            self.F, self.G = ddsde.F, ddsde.G
 
             # self.drift_order = ddsde.drift_order
             # self.diff_order = ddsde.diff_order
@@ -56,7 +57,9 @@ class Daddy(Preprocessing, Visualize):
             self._data_op_x = ddsde._op_x_
             self._data_op_y = ddsde._op_y_
 
-            # FIXME: G12 = G21, no need to keep both.
+            self.F1, self.F2 = ddsde.F1, ddsde.F2
+            self.G11, self.G22 = ddsde.G11, ddsde.G22
+            self.G12, self.G21 = ddsde.G12, ddsde.G21
 
             # self._drift_slider = ddsde._drift_slider
             # self._diff_slider = ddsde._diff_slider
@@ -82,88 +85,53 @@ class Daddy(Preprocessing, Visualize):
 
     @property
     def _data_avgdrift(self):
+        """ :meta private """
         return self._ddsde._avgdrift_
 
     @property
     def _data_avgdiff(self):
+        """ :meta private """
         return self._ddsde._avgdiff_
 
     @property
     def _data_drift_ebar(self):
+        """ :meta private: """
         return self._ddsde._drift_ebar
 
     @property
     def _data_diff_ebar(self):
+        """ :meta private: """
         return self._ddsde._diff_ebar
 
     @property
     def _data_avgdriftX(self):
+        """ :meta private: """
         return self._ddsde._avgdriftX_
 
     @property
     def _data_avgdriftY(self):
+        """ :meta private: """
         return self._ddsde._avgdriftY_
 
     @property
     def _data_avgdiffX(self):
+        """ :meta private: """
         return self._ddsde._avgdiffX_
 
     @property
     def _data_avgdiffY(self):
+        """ :meta private: """
         return self._ddsde._avgdiffY_
 
     @property
     def _data_avgdiffXY(self):
+        """ :meta private: """
         return self._ddsde._avgdiffXY_
 
     @property
     def _data_avgdiffYX(self):
+        """ :meta private: """
         return self._ddsde._avgdiffYX_
-
-    @property
-    def F(self):
-        return self._ddsde.F
-
-    @property
-    def G(self):
-        return self._ddsde.G
-
-    @property
-    def F1(self):
-        return self._ddsde.F1
-
-    @property
-    def F2(self):
-        return self._ddsde.F2
-
-    @property
-    def G11(self):
-        return self._ddsde.G11
-
-    @property
-    def G22(self):
-        return self._ddsde.G22
-
-    @property
-    def G12(self):
-        return self._ddsde.G12
-
-    @property
-    def G21(self):
-        return self._ddsde.G21
-
-    def release(self):
-        """
-		Clears the memory, recommended to be used while analysing multiple
-		data files in loop.
-
-		Returns
-		-------
-			None
-		"""
-        plt.close('all')
-        gc.collect()
-        return None
 
     def export_data(self, filename=None, raw=False):
         """
@@ -363,138 +331,136 @@ class Daddy(Preprocessing, Visualize):
                 params[keys] = str(self._ddsde.__dict__[keys])
         return params
 
-    def simulate(self, sigma=4, dt=None, T=None, **functions):
-        """
-		Simulate SDE
+    def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None,
+            plot=False):
 
-		Takes drift and diffusion functions as input and
-		simuates the SDE using the analysis parameters.
+        if not (order or library):
+            raise TypeError('You should either specify the order of the polynomial, or provide a library.')
 
-		The drift and diffusion functions given must be callable type functions.
-
-		For scalar F and G (drift and diffusion) must take one input and return a
-		number
-
-
-		Args
-		----
-		sigma : float
-			magnitude of the noise eta(t)
-
-		**functions:
-			drift and diffusion callable functions
-
-				For scalar analysis
-					F : drift function
-
-					G : diffusion dunction
-
-				For vector analysis
-					F1 : drift X
-
-					F2 : drift Y
-
-					G11 : diffusion X
-
-					G22 : diffusion Y
-
-					G12 : diffusion XY
-
-					G21 : diffusion YX
-
-		Returns
-		-------
-		simulated timeseries : list
-			[M] if scalar
-
-			[Mx, My] is vector
-
-		Examples
-		--------
-		# For scalar analysis
-		def drift_function(x):
-			return 0.125 * x
-
-		def diffusion_function(x):
-			return -(x**2 + 1)
-
-		simulated_data = ddsde.simulate(F=drift_function, G=diffusion_function)
-
-		# For vector analysis
-		def drift_x(x, y):
-			return x*x + y*y * x*y**2
-
-		def dirft_y(x, y):
-			return x*y
-
-		def diffusion_x(x,y):
-			return x**2 + x*y
-
-		def diffusion_y(x,y):
-			return y**2 + x*y
-
-		def diffusion_xy(x,y):
-			return 0
-
-		def diffusion_yx(x,y):
-			rerutn 0
-
-		simulated_data = ddsde.simulate(F1=drift_x,
-						F2=drift_y,
-						G11=diffusion_x,
-						G22=diffusion_y,
-						G12=diffusion_xy.
-						G21=diffusion_yx
-						)
-
-		"""
-        func = {
-            'F': None,
-            'G': None,
-            'F1': None,
-            'F2': None,
-            'G11': None,
-            'G12': None,
-            'G21': None,
-            'G22': None
-        }
-
-        func.update(functions)
-
-        if dt is None: dt = self._ddsde.t_int
+        if library:
+            order = 1
 
         if self.vector:
-            for k in ['F1', 'F2', 'G11', 'G12', 'G21', 'G22']:
-                if func[k] == None:
-                    print('Insufficient data, provide {}'.format(k))
-                    return None
-            if T is None: T = len(self._data_Mx) * dt
-            n_iter = int(T / dt)
-            mx = [self._data_Mx[0]]
-            my = [self._data_My[0]]
-            for i in tqdm.tqdm(range(n_iter)):
-                mx.append(mx[i] + func['F1'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
-                        func['G11'](mx[i], my[i]) + func['G12'](mx[i], my[i])) * np.sqrt(dt))
-                my.append(my[i] + func['F2'](mx[i], my[i]) * dt + sigma * np.random.normal() * (
-                        func['G22'](mx[i], my[i]) + func['G21'](mx[i], my[i])) * np.sqrt(dt))
-            return np.array(mx), np.array(my)
+            # x = [self._Mx[:-1], self._My[:-1]]
+            # x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
+            x = np.stack((self._ddsde._Mx, self._ddsde._My), axis=1)
+            if function_name == 'F1':
+                x = x[:-self.Dt]
+                y = self._ddsde._driftX_
+            elif function_name == 'F2':
+                x = x[:-self.Dt]
+                y = self._ddsde._driftY_
+            elif function_name == 'G11':
+                x = x[:-self.dt]
+                y = self._ddsde._diffusionX_
+            elif function_name == 'G22':
+                x = x[:-self.dt]
+                y = self._ddsde._diffusionY_
+            elif function_name in ['G12', 'G21']:
+                x = x[:-self.dt]
+                y = self._ddsde._diffusionXY_
+            else:
+                raise TypeError('Invalid function name for vector analysis')
+
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x).any(axis=1) | np.isnan(y)
+            x = x[~nan_idx]
+            y = y[~nan_idx]
+
+            fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+        else:
+            x = self._ddsde._X[:-1]
+            if function_name == 'G':
+                # y = self._diffusion(self._X, t_int=self.t_int, dt=1)
+                # F = self.fit('F', order=5, tune=True)
+                # y = self._diffusion_from_residual(self._X, F=F, t_int=self.t_int, dt=1)
+                y = self._ddsde._diffusion_
+            elif function_name == 'F':
+                y = self._ddsde._drift_
+            else:
+                raise TypeError('Invalid function name for scalar analysis')
+
+            # Handle missing values (NaNs) if present
+            nan_idx = np.isnan(x) | np.isnan(y)
+            x = x[~nan_idx]
+            y = y[~nan_idx]
+
+            fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
+        #
+        if tune:
+            res = fitter.tune_and_fit(x, y, thresholds, plot=plot)
+        else:
+            res = fitter.fit(x, y)
+
+        setattr(self, function_name, res)
+        self.fitters[function_name] = fitter
+
+        if function_name in ['G12', 'G21']:
+            self.G12 = res
+            self.G21 = res
+
+            self.fitters['G12'] = fitter
+            self.fitters['G21'] = fitter
+
+        return res
+
+    def simulate(self, t_int, timepoints, x0=None):
+        """
+        Generate simulated time-series with the fitted SDE model.
+
+        Generates a simulated timeseries, with specified sampling time and duration, based on the SDE model discovered
+        by PyDaddy. The drift and diffusion functions should be fit using fit() function before using simulate().
+
+        Args:
+        -----
+        t_int : float
+            Sampling time for the simulated time-series
+        timepoints : int
+            Number of time-points to simulate
+        x0 : float (scalar) or list of two floats (vector), (default=None)
+            Initial condition. If no value is passed, 0 ([0, 0] for vector) is taken as the initial condition.
+
+        Returns:
+        --------
+        x : Simulated timeseries with  `timepoints` timepoints.
+
+        """
+
+        tspan = np.arange(0, t_int * timepoints, step=t_int)
+
+        if self.vector:
+            assert (self.F1 and self.F2 and self.G11 and self.G22 and self.G12), \
+                """ Use fit() function to fit F1, F2, G11, G12, G21, G22 before using simulate(). """
+
+            if np.count_nonzero(self.G12) != 0:
+                raise NotImplementedError('simulate() is not implemented for systems with non-zero cross diffusion terms G12, G21.')
+
+            def F(x, t):
+                return np.array([self.F1(x[0], x[1]), self.F2(x[0], x[1])])
+
+            def G(x, t):
+                return np.diag([np.sqrt(np.abs(self.G11(x[0], x[1]))), np.sqrt(np.abs(self.G22(x[0], x[1])))])
+
+            if x0 is None:
+                x0 = np.array([0., 0.])
+            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan).T
 
         else:
-            for k in ['F', 'G']:
-                if func[k] == None:
-                    print('Insufficient data, provide {}'.format(k))
-                    return None
+            assert (self.F and self.G), \
+                'Use fit() function to fit F, G before using simulate().'
 
-            if T is None: T = len(self._data_X) * dt
+            if x0 is None:
+                x0 = 0.
 
-            n_iter = int(T / dt)
+            def F(x, t):
+                return self.F(x)
 
-            m = [self._data_X[0]]
+            def G(x, t):
+                return np.sqrt(np.abs(self.G(x)))
 
-            for i in tqdm.tqdm(range(n_iter)):
-                m.append(m[i] + func['F'](m[i]) * dt + sigma * np.random.normal() * func['G'](m[i]) * np.sqrt(dt))
+            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan)
 
-            return np.array(m)
+        return x
 
     def summary(self, start=0, end=1000, kde=True, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
                 ret_fig=False, **plot_text):
@@ -1321,6 +1287,119 @@ class Daddy(Preprocessing, Visualize):
             if self.G:
                 y = self._ddsde._avgdiff_
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
+
+    def model_diagnostics(self):
+        if self.vector:
+            print('Generating simulated timeseries ...')
+            timepoints = self._data_Mx.shape[0]
+            x = self.simulate(t_int=self._ddsde.t_int, timepoints=timepoints)
+
+            print('Re-estimating drift and diffusion from simulated timeseries ...')
+            ddsde = pydaddy.Characterize(data=x, t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
+
+            # FIXME: Set orders, thresholds, library during fitting.
+            F1hat = ddsde.fit('F1',
+                              order=self.fitters['F1'].max_degree,
+                              threshold=self.fitters['F1'].threshold,
+                              alpha=self.fitters['F1'].alpha,
+                              library=self.fitters['F1'].library)
+
+            F2hat = ddsde.fit('F2',
+                              order=self.fitters['F2'].max_degree,
+                              threshold=self.fitters['F2'].threshold,
+                              alpha=self.fitters['F2'].alpha,
+                              library=self.fitters['F2'].library)
+
+            G11hat = ddsde.fit('G11',
+                               order=self.fitters['G11'].max_degree,
+                               threshold=self.fitters['G11'].threshold,
+                               alpha=self.fitters['G11'].alpha,
+                               library=self.fitters['G11'].library)
+
+            G22hat = ddsde.fit('G22',
+                               order=self.fitters['G22'].max_degree,
+                               threshold=self.fitters['G22'].threshold,
+                               alpha=self.fitters['G22'].alpha,
+                               library=self.fitters['G22'].library)
+
+            G12hat = ddsde.fit('G12',
+                               order=self.fitters['G12'].max_degree,
+                               threshold=self.fitters['G12'].threshold,
+                               alpha=self.fitters['G12'].alpha,
+                               library=self.fitters['G12'].library)
+
+            # fig, ax = plt.subplots(2, 3, figsize=(12, 8), dpi=100)
+
+            fig = plt.figure(figsize=(12, 8), dpi=100)
+            gs = fig.add_gridspec(2, 3)
+            ax_mxmy = fig.add_subplot(gs[0, 0], projection='3d')
+            ax_modm = fig.add_subplot(gs[1, 0])
+            ax_f1 = fig.add_subplot(gs[0, 1], projection='3d')
+            ax_f2 = fig.add_subplot(gs[1, 1], projection='3d')
+            ax_g11 = fig.add_subplot(gs[0, 2], projection='3d')
+            ax_g22 = fig.add_subplot(gs[1, 2], projection='3d')
+
+            self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$M$ histogram')
+            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|M|$',
+                                     title='$|M|$ histogram')
+            self._show_functions_2d(ax_f1, self.F1, F1hat, title='$F_{1}$')
+            self._show_functions_2d(ax_f2, self.F2, F2hat, title='$F_{2}$')
+            self._show_functions_2d(ax_g11, self.G11, G11hat, title='$F_{11}$')
+            self._show_functions_2d(ax_g22, self.G22, G22hat, title='$G_{22}$')
+
+            print(f'F1:')
+            print(f'  Original: {self.F1}')
+            print(f'  Bootstrapped: {F1hat}')
+
+            print(f'F2:')
+            print(f'  Original: {self.F2}')
+            print(f'  Bootstrapped: {F2hat}')
+
+            print(f'G11:')
+            print(f'  Original: {self.G11}')
+            print(f'  Bootstrapped: {G11hat}')
+
+            print(f'G22:')
+            print(f'  Original: {self.G22}')
+            print(f'  Bootstrapped: {G22hat}')
+
+            print(f'G12 / G21:')
+            print(f'  Original: {self.G12}')
+            print(f'  Bootstrapped: {G12hat}')
+
+        else:
+            # Generate simulated time-series
+            timepoints = self._data_X.shape[0]
+            x = self.simulate(t_int=self._ddsde.t_int, timepoints=timepoints)
+
+            ddsde = pydaddy.Characterize(data=[x], t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
+
+            Fhat = ddsde.fit('F', order=self.fitters['F'].max_degree,
+                             threshold=self.fitters['F'].threshold,
+                             alpha=self.fitters['F'].alpha,
+                             library=self.fitters['F'].library)
+
+            Ghat = ddsde.fit('G', order=self.fitters['G'].max_degree,
+                             threshold=self.fitters['G'].threshold,
+                             alpha=self.fitters['G'].alpha,
+                             library=self.fitters['G'].library)
+
+            # xs = np.linspace(np.nanmin(self._data_X), np.nanmax(self._data_X), 100)
+            fig, ax = plt.subplots(1, 3, figsize=(12, 4), dpi=100)
+            self._show_histograms_1d(ax[0], self._data_X, x, xlabel='$x$', title='Histogram'
+                                                                                 '')
+            self._show_functions_1d(ax[1], self.op, self.F, Fhat, ylabel='F', title='Drift')
+            self._show_functions_1d(ax[2], self.op, self.G, Ghat, ylabel='G', title='Diffusion')
+
+            print('Drift:')
+            print(f'    Original: {self.F}')
+            print(f'    Bootstrapped: {Fhat}')
+            print('\nDiffusion:')
+            print(f'    Original: {self.G}')
+            print(f'    Bootstrapped: {Ghat}')
+
+        plt.tight_layout()
+        plt.show()
 
     def _print_function_diagnostics(self, f, x, y, name, symbol):
         n, k = len(x), len(f)
