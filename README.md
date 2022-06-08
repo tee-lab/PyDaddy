@@ -55,7 +55,7 @@ If you are using this package in your research, please cite the repository and t
 
 Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Danny Raj, M., & Guttal, V. (2022). PyDaddy: A Python Package for Discovering SDEs from Time Series Data (Version 0.1.5) [Computer software]. https://github.com/tee-lab/PyDaddy
 
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., & Guttal, V. (2022). PyDaddy: A Python package for discovering stochastic dynamical equations from timeseries data. arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645).
+Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Danny Raj, M., & Guttal, V. (2022). PyDaddy: A Python package for discovering stochastic dynamical equations from timeseries data. arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645).
 
 ## Licence
 PyDaddy is distributed under the [**GNU General Public License v3.0**](./LICENSE.txt).
