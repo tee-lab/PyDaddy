@@ -1593,8 +1593,8 @@ class Visualize(Metrics):
         acf1, acf2, lags = acf1[:lim], acf2[:lim], lags[:lim]
         ax.plot(lags, acf1, label='Autocorr. $\\eta_x$')
         ax.plot(lags, acf2, label='Autocorr. $\\eta_y$')
-        ax.axvline(act1,)  # label='ACT (X)')
-        ax.axvline(act2,)  # label='ACT (Y)')
+        ax.axvline(act1, color='k')  # label='ACT (X)')
+        ax.axvline(act2, color='k')  # label='ACT (Y)')
 
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
         ax.legend()
