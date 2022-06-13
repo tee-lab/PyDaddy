@@ -73,11 +73,11 @@ class Visualize(Metrics):
             'hist_xlabel': 'M',
             'hist_ylabel': 'Frequency',
             'drift_title': 'Drift',
-            'drift_xlabel': 'm',
+            'drift_xlabel': 'M',
             'drift_ylabel': 'F',
             'diffusion_title': 'Diffusion',
-            'diffusion_xlabel': 'm',
-            'diffusion_ylabel': '$G^{2}$',
+            'diffusion_xlabel': 'M',
+            'diffusion_ylabel': '$G$',
 
             'timeseries1_title': 'Time Series',
             'timeseries1_ylabel': '$M_{x}, M_{y}$',
@@ -107,7 +107,7 @@ class Visualize(Metrics):
 
             'autocorr_title': 'Autocorrelation',
             'autocorr_xlabel': '',
-            'autocorr_ylabel_1d': '$\\sigma_{x}$',
+            'autocorr_ylabel_1d': '$\\rho_{x}$',
             'autocorr_ylabel_2d': 'Autocorrelation ',
 
             'driftx_title': 'Drift X',
@@ -310,9 +310,9 @@ class Visualize(Metrics):
             _, acf_y = self._ddsde._acf(My, t_lag=min(timeseries_end, len(My)))
             _, acf_m = self._ddsde._acf((Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
 
-            ac_axis.plot(lags, acf_x, label='$\\sigma_{M_x}$')
-            ac_axis.plot(lags, acf_y, color='r', label='$\\sigma_{M_y}$')
-            ac_axis.plot(lags, acf_m, color='k', label='$\\sigma_{|M|^2}$')
+            ac_axis.plot(lags, acf_x, label='$\\rho_{M_x}$')
+            ac_axis.plot(lags, acf_y, color='r', label='$\\rho_{M_y}$')
+            ac_axis.plot(lags, acf_m, color='k', label='$\\rho_{|M|^2}$')
             ac_axis.legend()
             self._stylize_axes(ac_axis,
                                x_label=text['autocorr_xlabel'],
