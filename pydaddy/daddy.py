@@ -369,7 +369,7 @@ class Daddy(Preprocessing, Visualize):
 
             fitter = PolyFit2D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
         else:
-            x = self._ddsde._X[:-1]
+            x = self._ddsde._X[:-self.Dt]
             if function_name == 'G':
                 # y = self._diffusion(self._X, t_int=self.t_int, dt=1)
                 # F = self.fit('F', order=5, tune=True)
@@ -1386,8 +1386,7 @@ class Daddy(Preprocessing, Visualize):
 
             # xs = np.linspace(np.nanmin(self._data_X), np.nanmax(self._data_X), 100)
             fig, ax = plt.subplots(1, 3, figsize=(12, 4), dpi=100)
-            self._show_histograms_1d(ax[0], self._data_X, x, xlabel='$x$', title='Histogram'
-                                                                                 '')
+            self._show_histograms_1d(ax[0], self._data_X, x, xlabel='$x$', title='Histogram')
             self._show_functions_1d(ax[1], self.op, self.F, Fhat, ylabel='F', title='Drift')
             self._show_functions_1d(ax[2], self.op, self.G, Ghat, ylabel='G', title='Diffusion')
 
