@@ -85,52 +85,42 @@ class Daddy(Preprocessing, Visualize):
 
     @property
     def _data_avgdrift(self):
-        """ :meta private """
         return self._ddsde._avgdrift_
 
     @property
     def _data_avgdiff(self):
-        """ :meta private """
         return self._ddsde._avgdiff_
 
     @property
     def _data_drift_ebar(self):
-        """ :meta private: """
         return self._ddsde._drift_ebar
 
     @property
     def _data_diff_ebar(self):
-        """ :meta private: """
         return self._ddsde._diff_ebar
 
     @property
     def _data_avgdriftX(self):
-        """ :meta private: """
         return self._ddsde._avgdriftX_
 
     @property
     def _data_avgdriftY(self):
-        """ :meta private: """
         return self._ddsde._avgdriftY_
 
     @property
     def _data_avgdiffX(self):
-        """ :meta private: """
         return self._ddsde._avgdiffX_
 
     @property
     def _data_avgdiffY(self):
-        """ :meta private: """
         return self._ddsde._avgdiffY_
 
     @property
     def _data_avgdiffXY(self):
-        """ :meta private: """
         return self._ddsde._avgdiffXY_
 
     @property
     def _data_avgdiffYX(self):
-        """ :meta private: """
         return self._ddsde._avgdiffYX_
 
     def export_data(self, filename=None, raw=False):

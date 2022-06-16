@@ -24,7 +24,7 @@ Advanced Function Fitting
    tutorials/3/advanced_fittiing.rst
 
 
-Fitting Non Polynomila Functions
+Fitting Non Polynomial Functions
 ''''''''''''''''''''''''''''''''
 
 .. toctree::
