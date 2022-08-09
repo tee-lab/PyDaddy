@@ -1611,7 +1611,7 @@ class Visualize(Metrics):
     @staticmethod
     def _show_histograms_1d(ax, x1, x2, xlabel, title):
         ax.hist(x1, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Original')
-        ax.hist(x2, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Bootstrapped')
+        ax.hist(x2, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Reestimated')
         ax.set(xlabel=xlabel, title=title)
         ax.legend()
 
@@ -1642,7 +1642,7 @@ class Visualize(Metrics):
     @staticmethod
     def _show_functions_1d(ax, xs, f, fhat, ylabel, title):
         ax.plot(xs, f(xs), linewidth=3, label='Original')
-        ax.plot(xs, fhat(xs), linewidth=3, label='Bootstrapped')
+        ax.plot(xs, fhat(xs), linewidth=3, label='Reestimated')
         ax.set(xlabel='$x$', ylabel=ylabel, title=title)
         ax.legend()
 
@@ -1652,7 +1652,7 @@ class Visualize(Metrics):
         x, y = r * np.cos(theta), r * np.sin(theta)
 
         ax.plot_wireframe(x, y, f(x, y), alpha=0.5, color='#1f77b4', label='Original')
-        ax.plot_wireframe(x, y, fhat(x, y), alpha=0.5, color='#ff7f0e', label='Bootstrapped')
+        ax.plot_wireframe(x, y, fhat(x, y), alpha=0.5, color='#ff7f0e', label='Reestimated')
 
         ax = cls._set_zaxis_to_left(ax)
 

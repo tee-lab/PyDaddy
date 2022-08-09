@@ -404,18 +404,10 @@ class SDE:
         avgdiffXY = np.zeros((len(op_x), len(op_y)))
         avgdiffYX = np.zeros((len(op_x), len(op_y)))
 
-        m = 0
         x_, y_ = x[0 : -max(Dt, dt)], y[0 : -max(Dt, dt)]
-        for bin_x in op_y:
-            n = 0
-            for bin_y in op_x:
-                i = np.where(
-                    np.logical_and(
-                        np.logical_and(x_ < (bin_x + inc_x), x_ >= bin_x),
-                        np.logical_and(y_ < (bin_y + inc_y), y_ >= bin_y),
-                    )
-                )[0]
-
+        for m, bin_x in enumerate(op_y):
+            for n, bin_y in enumerate(op_x):
+                i = (bin_x <= x_) & (x_ <= bin_x + inc_x) & (bin_y <= y_) & (y_ <= bin_y + inc_y)
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore", category=RuntimeWarning)
                     avgdriftX[n, m] = np.nanmean(driftX[i])
@@ -424,8 +416,7 @@ class SDE:
                     avgdiffY[n, m] = np.nanmean(diffusionY[i])
                     avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
                     avgdiffYX[n, m] = np.nanmean(diffusionYX[i])
-                n = n + 1
-            m = m + 1
+
         DD = namedtuple('DD',
                         'driftX driftY diffusionX diffusionY diffusionXY diffusionYX '
                         'avgdriftX avgdriftY avgdiffX avgdiffY avgdiffXY avgdiffYX '

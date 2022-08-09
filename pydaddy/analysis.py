@@ -219,7 +219,7 @@ class UnderlyingNoise(SDE):
 
         return res / np.sqrt(t_int * Dt)
 
-    def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, avg_drift_x, avg_drift_y, t_int):
+    def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, inc_x, inc_y, avg_drift_x, avg_drift_y, t_int):
         res_x = X[Dt:] - X[:-Dt]
         res_y = Y[Dt:] - Y[:-Dt]
 
