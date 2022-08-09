@@ -282,7 +282,6 @@ class Preprocessing(GaussianTest):
 					print("Warning : given order parameter range is not in valid (typle or list of length 2) format\nUsing range of data")
 					self.op_y_range = (np.nanmin(self._My), np.nanmax(self._My))
 
-
 		if self.bins:
 			if self.vector:
 				#r_mx = (min(self._Mx), max(self._Mx))
@@ -296,12 +295,18 @@ class Preprocessing(GaussianTest):
 			r = self.op_range
 			self.inc = (r[-1] - r[0])/self.bins
 		else:
-			try:
-				assert self.inc > 0
-				assert self.inc_x > 0
-				assert self.inc_y > 0
-			except AssertionError:
-				raise InputError("inc, inc_x, inc_y must be > 0", " inc, inc_x, inc_y must be > 0")
+			if self.vector:
+				try:
+					assert self.inc > 0
+					assert self.inc_x > 0
+					assert self.inc_y > 0
+				except AssertionError:
+					raise InputError("inc, inc_x, inc_y must be > 0", " inc, inc_x, inc_y must be > 0")
+			else:
+				try:
+					assert self.inc > 0
+				except AssertionError:
+					raise InputError("inc must be > 0", " inc must be > 0")
 
 		try:
 			assert isinstance(self.dt, int)

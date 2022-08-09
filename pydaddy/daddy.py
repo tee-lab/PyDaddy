@@ -182,8 +182,8 @@ class Daddy(Preprocessing, Visualize):
                     drift_x=self._data_avgdriftX.flatten(),
                     drift_y=self._data_avgdriftY.flatten(),
                     diffusion_x=self._data_avgdiffX.flatten(),
-                    diffusion_y=self._data_avgdiffX.flatten(),
-                    diffusion_xy=self._data_avgdriftX.flatten(),
+                    diffusion_y=self._data_avgdiffY.flatten(),
+                    diffusion_xy=self._data_avgdiffXY.flatten(),
                 )
 
         df = pd.DataFrame(data=data_dict)
@@ -1133,8 +1133,6 @@ class Daddy(Preprocessing, Visualize):
 
     def noise_diagnostics(self, loc=None):
         if self.vector:
-            if loc is None:
-                loc = (0, 0)
 
             X, Y = self._ddsde._Mx, self._ddsde._My
             Dt = self._ddsde.Dt
@@ -1145,9 +1143,15 @@ class Daddy(Preprocessing, Visualize):
             res_x, res_y = self._ddsde._residual_timeseries_vector(
                 X=X, Y=Y, Dt=Dt,
                 bins_x=op_x, bins_y=op_y,
+                inc_x=inc_x, inc_y=inc_y,
                 avg_drift_x=avg_drift_x, avg_drift_y=avg_drift_y,
                 t_int=t_int
             )
+
+            if loc is None:
+                H, edges = np.histogramdd([X, Y], bins=[op_x, op_y])
+                idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
+                loc = [op_x[idx_x], op_y[idx_y]]
 
             noise_dist_x = res_x[(loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
             noise_dist_y = res_y[(loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
@@ -1195,7 +1199,7 @@ class Daddy(Preprocessing, Visualize):
             plt.show()
         else:
             if loc is None:
-                loc = 0
+                H, edges = np.histogramdd(np.array([X, Y]))
             X = self._ddsde._X
             Dt = self._ddsde.Dt
             inc = self._ddsde.inc
@@ -1344,28 +1348,28 @@ class Daddy(Preprocessing, Visualize):
                                      title='$|M|$ histogram')
             self._show_functions_2d(ax_f1, self.F1, F1hat, title='$F_{1}$')
             self._show_functions_2d(ax_f2, self.F2, F2hat, title='$F_{2}$')
-            self._show_functions_2d(ax_g11, self.G11, G11hat, title='$F_{11}$')
+            self._show_functions_2d(ax_g11, self.G11, G11hat, title='$G_{11}$')
             self._show_functions_2d(ax_g22, self.G22, G22hat, title='$G_{22}$')
 
             print(f'F1:')
             print(f'  Original: {self.F1}')
-            print(f'  Bootstrapped: {F1hat}')
+            print(f'  Reestimated: {F1hat}')
 
             print(f'F2:')
             print(f'  Original: {self.F2}')
-            print(f'  Bootstrapped: {F2hat}')
+            print(f'  Reestimated: {F2hat}')
 
             print(f'G11:')
             print(f'  Original: {self.G11}')
-            print(f'  Bootstrapped: {G11hat}')
+            print(f'  Reestimated: {G11hat}')
 
             print(f'G22:')
             print(f'  Original: {self.G22}')
-            print(f'  Bootstrapped: {G22hat}')
+            print(f'  Reestimated: {G22hat}')
 
             print(f'G12 / G21:')
             print(f'  Original: {self.G12}')
-            print(f'  Bootstrapped: {G12hat}')
+            print(f'  Reestimated: {G12hat}')
 
         else:
             # Generate simulated time-series
@@ -1392,10 +1396,10 @@ class Daddy(Preprocessing, Visualize):
 
             print('Drift:')
             print(f'    Original: {self.F}')
-            print(f'    Bootstrapped: {Fhat}')
+            print(f'    Reestimated: {Fhat}')
             print('\nDiffusion:')
             print(f'    Original: {self.G}')
-            print(f'    Bootstrapped: {Ghat}')
+            print(f'    Reestimated: {Ghat}')
 
         plt.tight_layout()
         plt.show()
