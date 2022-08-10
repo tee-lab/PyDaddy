@@ -1,4 +1,3 @@
-
 import sys
 import time
 
@@ -22,8 +21,9 @@ __all__ = ['Daddy']
 
 class Daddy(Preprocessing, Visualize):
     """
-	Class to plot and save data and parameters
-	"""
+    Main work-horse class of PyDaddy. Contains functionality to compute drift and diffusion, visualize results, and
+    perform diagnostic tests.
+    """
 
     def __init__(self, ddsde, **kwargs):
         self.vector = ddsde.vector
@@ -208,21 +208,12 @@ class Daddy(Preprocessing, Visualize):
         if not self.vector:
             Data = namedtuple('Data', ('drift', 'diff', 'drift_num', 'diff_num', 'op'))
             drift, diff = self._get_data_from_slider(drift_time_scale, diff_time_scale)
-            # _ , diff = self._get_data_from_slider(diff_time_scale)
             drift_num, diff_num = self._get_num_points(drift_time_scale, diff_time_scale)
             return Data(drift, diff, drift_num, diff_num, self._data_op)
 
         Data = namedtuple('Data', ('driftX', 'driftY', 'diffX', 'diffY', 'diffXY', 'diffYX', 'op_x', 'op_y'))
         driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
-        # _, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
         return Data(driftX, driftY, diffX, diffY, diffXY, diffYX, self._data_op_x, self._data_op_y)
-
-    # def kl_div(self, a,b):
-    #	a, bins_a = np.histogram(a, bins=100, density=True)
-    #	b, bins_b = np.histogram(b, bins=bins_a, density=True)
-    #	a_b = np.sum(np.where((a != 0)&(b != 0), a * np.log(a / b), 0))
-    #	b_a = np.sum(np.where((a != 0)&(b != 0), b * np.log(b / a), 0))
-    #	return (a_b + b_a)/2
 
     def plot_data(self,
                   data_in,
@@ -299,22 +290,19 @@ class Daddy(Preprocessing, Visualize):
                                   label=legend_label,
                                   dpi=dpi)
         return DataPlot(ax.figure, ax)
-        if fig is None:
-            return ax
-        return ax, fig
 
     def parameters(self):
         """
-		Get all given and assumed parameters used for the analysis
+        Get all given and assumed parameters used for the analysis
 
-		Args
-		----
+        Args
+        ----
 
-		Returns
-		-------
-		params : dict, json
-			all parameters given and assumed used for analysis
-		"""
+        Returns
+        -------
+        params : dict, json
+            all parameters given and assumed used for analysis
+        """
         params = dict()
         for keys in self._ddsde.__dict__.keys():
             if str(keys)[0] != '_':
@@ -331,8 +319,6 @@ class Daddy(Preprocessing, Visualize):
             order = 1
 
         if self.vector:
-            # x = [self._Mx[:-1], self._My[:-1]]
-            # x = np.stack((self._Mx[:-1], self._My[:-1]), axis=1)
             x = np.stack((self._ddsde._Mx, self._ddsde._My), axis=1)
             if function_name == 'F1':
                 x = x[:-self.Dt]
@@ -361,9 +347,6 @@ class Daddy(Preprocessing, Visualize):
         else:
             x = self._ddsde._X[:-self.Dt]
             if function_name == 'G':
-                # y = self._diffusion(self._X, t_int=self.t_int, dt=1)
-                # F = self.fit('F', order=5, tune=True)
-                # y = self._diffusion_from_residual(self._X, F=F, t_int=self.t_int, dt=1)
                 y = self._ddsde._diffusion_
             elif function_name == 'F':
                 y = self._ddsde._drift_
@@ -376,7 +359,7 @@ class Daddy(Preprocessing, Visualize):
             y = y[~nan_idx]
 
             fitter = PolyFit1D(max_degree=order, threshold=threshold, alpha=alpha, library=library)
-        #
+
         if tune:
             res = fitter.tune_and_fit(x, y, thresholds, plot=plot)
         else:
@@ -423,7 +406,8 @@ class Daddy(Preprocessing, Visualize):
                 """ Use fit() function to fit F1, F2, G11, G12, G21, G22 before using simulate(). """
 
             if np.count_nonzero(self.G12) != 0:
-                raise NotImplementedError('simulate() is not implemented for systems with non-zero cross diffusion terms G12, G21.')
+                raise NotImplementedError(
+                    'simulate() is not implemented for systems with non-zero cross diffusion terms G12, G21.')
 
             def F(x, t):
                 return np.array([self.F1(x[0], x[1]), self.F2(x[0], x[1])])
@@ -454,137 +438,91 @@ class Daddy(Preprocessing, Visualize):
 
     def summary(self, start=0, end=1000, kde=True, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
                 ret_fig=False, **plot_text):
-
         """
-        		Print summary of data and show summary plots chart
+        Print summary of data and show summary plots chart
 
-        		Args
-        		----
-        			start : int, (default=0)
-        				starting index, begin plotting timeseries from this point
-        			end : int, default=1000
-        				end point, plots timeseries till this index
-        			kde : bool, (default=False)
-        				if True, plot kde for histograms
-        			title_size : int, (default=15)
-        				title font size
-        			tick_size : int, (default=12)
-        				axis tick size
-        			label_size : int, (default=15)
-        				label font size
-        			label_pad : int, (default=8)
-        				axis label padding
-        			n_ticks : int, (default=3)
-        				number of axis ticks
-        			ret_fig : bool, (default=True)
-        				if True return figure object
+        Args
+        ----
+            start : int, (default=0)
+                starting index, begin plotting timeseries from this point
+            end : int, default=1000
+                end point, plots timeseries till this index
+            kde : bool, (default=False)
+                if True, plot kde for histograms
+            title_size : int, (default=15)
+                title font size
+            tick_size : int, (default=12)
+                axis tick size
+            label_size : int, (default=15)
+                label font size
+            label_pad : int, (default=8)
+                axis label padding
+            n_ticks : int, (default=3)
+                number of axis ticks
+            ret_fig : bool, (default=True)
+                if True return figure object
 
-        			**plot_text:
-        				plots' title and axis texts
+            **plot_text:
+                plots' title and axis texts
 
-        				For scalar analysis summary plot:
-        					timeseries_title : title of timeseries plot
+                For scalar analysis summary plot:
+                    timeseries_title : title of timeseries plot
+                    timeseries_xlabel : x label of timeseries
+                    timeseries_ylabel : y label of timeseries
+                    drift_title : drift plot title
+                    drift_xlabel : drift plot x label
+                    drift_ylabel : drift plot ylabel
+                    diffusion_title : diffusion plot title
+                    diffusion_xlabel : diffusion plot x label
+                    diffusion_ylabel : diffusion plot y label
+                For vector analysis summary plot:
+                    timeseries1_title : first timeseries plot title
+                    timeseries1_ylabel : first timeseries plot ylabel
+                    timeseries1_xlabel : first timeseries plot xlabel
+                    timeseries1_legend1 : first timeseries (Mx) legend label
+                    timeseries1_legend2 : first timeseries (My) legend label
+                    timeseries2_title : second timeseries plot title
+                    timeseries2_xlabel : second timeseries plot x label
+                    timeseries2_ylabel : second timeseries plot y label
+                    2dhist1_title : Mx 2d histogram title
+                    2dhist1_xlabel : Mx 2d histogram x label
+                    2dhist1_ylabel : Mx 2d histogram y label
+                    2dhist2_title : My 2d histogram title
+                    2dhist2_xlabel : My 2d histogram x label
+                    2dhist2_ylabel : My 2d histogram y label
+                    2dhist3_title :  M 3d histogram title
+                    2dhist3_xlabel : M 2d histogram x label
+                    2dhist3_ylabel : M 2d histogram y label
+                    3dhist_title :  3d histogram title
+                    3dhist_xlabel : 3d histogram x label
+                    3dhist_ylabel : 3d histogram y label
+                    3dhist_zlabel : 3d histogram z label
+                    driftx_title : drift x plot title
+                    driftx_xlabel : drift x plot x label
+                    driftx_ylabel : drift x plot y label
+                    driftx_zlabel : drift x plot z label
+                    drifty_title : drift y plot title
+                    drifty_xlabel : drift y plot x label
+                    drifty_ylabel : drift y plot y label
+                    drifty_zlabel : drift y plot z label
+                    diffusionx_title : diffusion x plot title
+                    diffusionx_xlabel : diffusion x plot x label
+                    diffusionx_ylabel : diffusion x plot y label
+                    diffusionx_zlabel : diffusion x plot z label
+                    diffusiony_title : diffusion y plot title
+                    diffusiony_xlabel : diffusion y plot x label
+                    diffusiony_ylabel : diffusion y plot y label
+                    diffusiony_zlabel : diffusion y plot z label
 
-        					timeseries_xlabel : x label of timeseries
+        Returns
+        -------
+            None, or figure
 
-        					timeseries_ylabel : y label of timeseries
-
-        					drift_title : drift plot title
-
-        					drift_xlabel : drift plot x label
-
-        					drift_ylabel : drift plot ylabel
-
-        					diffusion_title : diffusion plot title
-
-        					diffusion_xlabel : diffusion plot x label
-
-        					diffusion_ylabel : diffusion plot y label
-
-        				For vector analysis summary plot:
-        					timeseries1_title : first timeseries plot title
-
-        					timeseries1_ylabel : first timeseries plot ylabel
-
-        					timeseries1_xlabel : first timeseries plot xlabel
-
-        					timeseries1_legend1 : first timeseries (Mx) legend label
-
-        					timeseries1_legend2 : first timeseries (My) legend label
-
-        					timeseries2_title : second timeseries plot title
-
-        					timeseries2_xlabel : second timeseries plot x label
-
-        					timeseries2_ylabel : second timeseries plot y label
-
-        					2dhist1_title : Mx 2d histogram title
-
-        					2dhist1_xlabel : Mx 2d histogram x label
-
-        					2dhist1_ylabel : Mx 2d histogram y label
-
-        					2dhist2_title : My 2d histogram title
-
-        					2dhist2_xlabel : My 2d histogram x label
-
-        					2dhist2_ylabel : My 2d histogram y label
-
-        					2dhist3_title :  M 3d histogram title
-
-        					2dhist3_xlabel : M 2d histogram x label
-
-        					2dhist3_ylabel : M 2d histogram y label
-
-        					3dhist_title :  3d histogram title
-
-        					3dhist_xlabel : 3d histogram x label
-
-        					3dhist_ylabel : 3d histogram y label
-
-        					3dhist_zlabel : 3d histogram z label
-
-        					driftx_title : drift x plot title
-
-        					driftx_xlabel : drift x plot x label
-
-        					driftx_ylabel : drift x plot y label
-
-        					driftx_zlabel : drift x plot z label
-
-        					drifty_title : drift y plot title
-
-        					drifty_xlabel : drift y plot x label
-
-        					drifty_ylabel : drift y plot y label
-
-        					drifty_zlabel : drift y plot z label
-
-        					diffusionx_title : diffusion x plot title
-
-        					diffusionx_xlabel : diffusion x plot x label
-
-        					diffusionx_ylabel : diffusion x plot y label
-
-        					diffusionx_zlabel : diffusion x plot z label
-
-        					diffusiony_title : diffusion y plot title
-
-        					diffusiony_xlabel : diffusion y plot x label
-
-        					diffusiony_ylabel : diffusion y plot y label
-
-        					diffusiony_zlabel : diffusion y plot z label
-
-        		Returns
-        		-------
-        			None, or figure
-
-        		Raises
-        		------
-        		ValueError
-        			If start is greater than end
-        		"""
+        Raises
+        ------
+        ValueError
+            If start is greater than end
+        """
 
         if start > end:
             raise ValueError("'start' sould not be greater than 'end'")
@@ -633,8 +571,6 @@ class Daddy(Preprocessing, Visualize):
                 summary.append(fields[i])
                 summary.append(values[i])
             summary_format = ("| {:<30} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
-            # print(
-            #     "Note: All summary and plots are rounded to third decimal place.\nCalculations, however, are accurate and account for missing values too.\n\n")
             print(summary_format.format(*summary))
             if self._ddsde.F1:
                 print(f'Drift (F1): {self._ddsde.F1}')
@@ -669,64 +605,56 @@ class Daddy(Preprocessing, Visualize):
                    label_pad=0,
                    **plot_text):
         """
-		Show plot of input data
+            Show plot of input data
 
-		Args
-		----
-		start : int, (default=0)
-			starting index, begin plotting timeseries from this point
-		end : int, default=1000
-			end point, plots timeseries till this index
-		n_ticks : int, (default=3)
-			number of axis ticks
-		dpi : int, (default=150)
-			dpi of the figure
-		title_size : int, (default=15)
-			title font size
-		tick_size : int, (default=12)
-			axis tick size
-		label_size : int, (default=15)
-			label font size
-		label_pad : int, (default=8)
-			axis label padding
-		**plot_text:
-			plots' title and axis texts
+            Args
+            ----
+            start : int, (default=0)
+                starting index, begin plotting timeseries from this point
+            end : int, default=1000
+                end point, plots timeseries till this index
+            n_ticks : int, (default=3)
+                number of axis ticks
+            dpi : int, (default=150)
+                dpi of the figure
+            title_size : int, (default=15)
+                title font size
+            tick_size : int, (default=12)
+                axis tick size
+            label_size : int, (default=15)
+                label font size
+            label_pad : int, (default=8)
+                axis label padding
+            **plot_text:
+                plots' title and axis texts
 
-			For scalar analysis plot:
-				timeseries_title : title
+                For scalar analysis plot:
+                    timeseries_title : title
+                    timeseries_xlabel : x label
+                    timeseries_ylabel : y label
 
-				timeseries_xlabel : x label
+                For vector analysis plot:
+                    timeseries1_title : first timeseries plot title
+                    timeseries1_xlabel : first timeseries plot x label
+                    timeseries1_ylabel : first timeseries plot y lable
+                    timeseries2_title : second timeseries plot title
+                    timeseries2_xlabel : second timeseries plot x label
+                    timeseries2_ylabel : second timeseries plot y label
+                    timeseries3_title : third timeseries plot title
+                    timeseries3_xlabel : third timeseries plot x label
+                    timeseries3_ylabel : third timeseries plot y label
 
-				timeseries_ylabel : y label
+            Returns
+            -------
+            time series plot : matplotlib.pyplot.figure
 
-			For vector analysis plot:
-				timeseries1_title : first timeseries plot title
+            Raises
+            ------
+            ValueError
+                If start is greater than end
+            """
 
-				timeseries1_xlabel : first timeseries plot x label
 
-				timeseries1_ylabel : first timeseries plot y lable
-
-				timeseries2_title : second timeseries plot title
-
-				timeseries2_xlabel : second timeseries plot x label
-
-				timeseries2_ylabel : second timeseries plot y label
-
-				timeseries3_title : third timeseries plot title
-
-				timeseries3_xlabel : third timeseries plot x label
-
-				timeseries3_ylabel : third timeseries plot y label
-
-		Returns
-		-------
-		time series plot : matplotlib.pyplot.figure
-
-		Raises
-		------
-		ValueError
-			If start is greater than end
-		"""
         if start > end:
             raise ValueError("'start' sould not be greater than 'end'")
         if self.vector:
@@ -749,60 +677,50 @@ class Daddy(Preprocessing, Visualize):
                   label_pad=8,
                   **plot_text):
         """
-		Show histogram polt chart
+        Show histogram polt chart
 
-		Args
-		----
-		kde : bool, (default=False)
-			If True, plots kde for histograms
-		dpi : int, (defautl=150)
-			figure resolution
-		title_size : int, (default=14)
-			title font size
-		label_size : int, (default=15)
-			axis label font size
-		tick_size : int, (default=12)
-			axis ticks font size
-		label_pad : int, (default=8)
-			axis label padding
-		**plot_text:
-			plots' axis and title text
+        Args
+        ----
+        kde : bool, (default=False)
+            If True, plots kde for histograms
+        dpi : int, (defautl=150)
+            figure resolution
+        title_size : int, (default=14)
+            title font size
+        label_size : int, (default=15)
+            axis label font size
+        tick_size : int, (default=12)
+            axis ticks font size
+        label_pad : int, (default=8)
+            axis label padding
+        **plot_text:
+            plots' axis and title text
 
-			For scalar analysis histograms:
-				hist_title : title
+            For scalar analysis histograms:
+                hist_title : title
+                hist_xlabel : x label
+                hist_ylabel : y label
 
-				hist_xlabel : x label
+            For vector analysis histograms:
+                hist1_title : first histogram title
+                hist1_xlabel : first histogram x label
+                hist1_ylabel : first histogram y label
+                hist2_title : second histogram title
+                hist2_xlabel : second histogram x label
+                hist2_ylabel : second histogram y label
+                hist3_title : third histogram title
+                hist3_xlabel : third histogram x label
+                hist3_ylabel : third histogram y label
+                hist4_title : fourth (3d) histogram title
+                hist4_xlabel : fourth (3d) histogram x label
+                hist4_ylabel : fourth (3d) histogram y label
+                hist4_zlabel : fourth (3d) histogram z label
 
-				hist_ylabel : y label
+        Returns
+        -------
+        histogram chart : matplotlib.pyplot.figure
+        """
 
-			For vector analysis histograms:
-				hist1_title : first histogram title
-
-				hist1_xlabel : first histogram x label
-
-				hist1_ylabel : first histogram y label
-
-				hist2_title : second histogram title
-
-				hist2_xlabel : second histogram x label
-
-				hist2_ylabel : second histogram y label
-
-				hist3_title : third histogram title
-
-				hist3_xlabel : third histogram x label
-
-				hist3_ylabel : third histogram y label
-
-				hist4_title : fourth (3d) histogram title
-				hist4_xlabel : fourth (3d) histogram x label
-				hist4_ylabel : fourth (3d) histogram y label
-				hist4_zlabel : fourth (3d) histogram z label
-
-		Returns
-		-------
-		histogam chart : matplotlib.pyplot.figure
-		"""
         if self.vector:
             data = [self._data_Mx, self._data_My]
         else:
@@ -818,9 +736,9 @@ class Daddy(Preprocessing, Visualize):
                                     label_pad=label_pad,
                                     **plot_text)
         plt.show()
-        # return fig
 
     def autocorrelation(self):
+        """ Show the autocorrelation plot of the data. """
         if not self.vector:
             lags, acf = self._ddsde._acf(self._data_X, min(1000, len(self._data_X)))
             self._plot_autocorrelation_1d(lags, acf)
@@ -830,7 +748,6 @@ class Daddy(Preprocessing, Visualize):
             _, acfy = self._ddsde._acf(self._data_My, min(1000, len(self._data_My)))
             _, ccf = self._ddsde._ccf(self._data_Mx, self._data_My, min(1000, len(self._data_Mx)))
             self._plot_autocorrelation_2d(lags, acfx, acfy, acfm, ccf)
-
 
     def _update_slider_data(self, slider_timescales):
         if self._is_valid_slider_timescale_list(slider_timescales):
@@ -858,41 +775,48 @@ class Daddy(Preprocessing, Visualize):
 
     def drift(self, limits=None, polar=False, slider_timescales=None, **plot_text):
         """
-		Display drift slider figure
+        Show an interactive figure of the drift function
 
-		Args
-		----
-		polynomial_order : None or int, default=None
-			order of polynomial to fit, if None, no fitting is done.
-		**plot_text:
-			plots' axis and text label
+        Args
+        ----
+        limits: tuple, (default=None)
+            If specified, sets the y-axis limits for the drift function. Useful to get a clearer view when there are
+            outliers.
 
-			For scalar analysis
-				x_lable : x axis label
+        polar: bool, (default=False):
+            If True, plot the drift function only within a unit circle. Useful to get a better visualization in
+            situations where |M| has an upper bound. (Used only in vector case).
 
-				y_label : y axis label
+        **plot_text:
+            plots' axis and text label
 
-			For vector analysis
-				title1 : first plot title
+            For scalar analysis
+                x_lable : x axis label
 
-				x_label1 : first plot x label
+                y_label : y axis label
 
-				y_label1 : first plot y label
+            For vector analysis
+                title1 : first plot title
 
-				z_label1 : first plot z label
+                x_label1 : first plot x label
 
-				title2 : second plot title
+                y_label1 : first plot y label
 
-				x_label2 : second plot x label
+                z_label1 : first plot z label
 
-				y_label2 : seocnd plot y label
+                title2 : second plot title
 
-				z_label2 : second plot z label
+                x_label2 : second plot x label
 
-		Returns
-		-------
-		opens drift slider : None
-		"""
+                y_label2 : seocnd plot y label
+
+                z_label2 : second plot z label
+
+        Returns
+        -------
+        opens drift slider : None
+        """
+
         self._update_slider_data(slider_timescales)
         dt_s = list(self._drift_slider.keys())
         if not len(dt_s):  # empty slider
@@ -905,20 +829,26 @@ class Daddy(Preprocessing, Visualize):
             fig = self._slider_2d(self._drift_slider, prefix='Dt', init_pos=init_pos, limits=limits,
                                   **plot_text)
         fig.show()
-        return None
 
     def diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
-		Display diffusion slider figure
+        Show an interactive figure of the diffusion function.
 
-		Args
-		----
-		polynomial_order : None or int, default=None
-			order of polynomial to fit, if None, no fitting is done.
-		Returns
-		-------
-		opens diffusion slider : None
-		"""
+        Args
+        ----
+        limits: tuple, (default=None)
+            If specified, sets the y-axis limits for the diffusion function. Useful to get a clearer view when there are
+            outliers.
+
+        polar: bool, (default=False):
+            If True, plot the diffusion function only within a unit circle. Useful to get a better visualization in
+            situations where |M| has an upper bound. (Used only in vector case).
+
+        Returns
+        -------
+        opens diffusion slider : None
+        """
+
         self._update_slider_data(slider_timescales)
         dt_s = list(self._diff_slider.keys())
         if not len(dt_s):  # empty slider
@@ -934,16 +864,23 @@ class Daddy(Preprocessing, Visualize):
 
     def cross_diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
-		Display diffusion cross correlation slider figure
+        Display diffusion cross correlation slider figure (only for vector data)
 
-		Args
-		----
-		polynomial_order : None or int, default=None
-			order of polynomial to fit, if None, no fitting is done.
-		Returns
-		-------
-		opens diffusion slider : None
-		"""
+        Args
+        ----
+        limits: tuple, (default=None)
+            If specified, sets the y-axis limits for the cross diffusion function. Useful to get a clearer view
+            when there are outliers.
+
+        polar: bool, (default=False):
+            If True, plot the cross diffusion function only within a unit circle. Useful to get a better visualization in
+            situations where |M| has an upper bound. (Used only in vector case).
+
+        Returns
+        -------
+        opens diffusion slider : None
+        """
+
         if not self.vector:
             print("N/A")
             return None
@@ -965,18 +902,15 @@ class Daddy(Preprocessing, Visualize):
 
     def visualize(self, drift_time_scale=None, diff_time_scale=None):
         """
-		Display drift and diffusion plots for a time scale.
+        Display drift and diffusion plots for a time scale.
 
-		Args
-		----
-		time_scale : int, optional(default=None)
-			timescale for which drift and diffusion plots need to be shown.
-			If None, displays the plots for inputed timescale.
+        Args
+        ----
 
-		Returns
-		-------
-			displays plots : None
-		"""
+        Returns
+        -------
+            displays plots : None
+        """
         if not self.vector:
             drift, diff = self._get_data_from_slider(drift_time_scale, diff_time_scale)
             # _, diff = self._get_data_from_slider(diff_time_scale)
@@ -994,7 +928,6 @@ class Daddy(Preprocessing, Visualize):
             # Time series
             fig1 = plt.figure(dpi=150)
             plt.suptitle("Time Series")
-            # l = int(len(self._data_X) / 4)
             l = 1000
             try:
                 plt.plot(self._data_t[0:l], self._data_X[0:l])
@@ -1013,16 +946,7 @@ class Daddy(Preprocessing, Visualize):
             # Drift
             fig3 = plt.figure(dpi=150, figsize=(5, 5))
             plt.suptitle("Drift")
-            # p_drift, _ = self._fit_poly(self._data_op, drift,
-            #							self.drift_order)
-            # plt.scatter(self._data_op, drift, marker='.')
             plt.errorbar(self._data_op, drift, yerr=drift_ebar, fmt='o')
-            """
-			plt.scatter(self._data_op,
-						p_drift(self._data_op),
-						marker='.',
-						alpha=0.4)
-			"""
             plt.xlabel('M')
             plt.ylabel("F")
             plt.xlim([min(self._data_op), max(self._data_op)])
@@ -1031,16 +955,8 @@ class Daddy(Preprocessing, Visualize):
             # Diffusion
             fig4 = plt.figure(dpi=150, figsize=(5, 5))
             plt.suptitle("Diffusion")
-            # p_diff, _ = self._fit_poly(self._data_op, diff,
-            #						   self.diff_order)
-            # plt.scatter(self._data_op, diff, marker='.')
+
             plt.errorbar(self._data_op, diff, yerr=diff_ebar, fmt='o')
-            """
-			plt.scatter(self._data_op,
-						p_diff(self._data_op),
-						marker='.',
-						alpha=0.4)
-			"""
             plt.xlim([min(self._data_op), max(self._data_op)])
             plt.xticks(np.linspace(min(self._data_op), max(self._data_op), 5))
             plt.xlabel("M")
@@ -1048,7 +964,6 @@ class Daddy(Preprocessing, Visualize):
 
         else:
             driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
-            # _, _, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(diff_time_scale)
             fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF', xlabel="$M_{x}$", tick_size=12,
                                              label_size=12, title_size=12, r_fig=True)
 
@@ -1059,11 +974,6 @@ class Daddy(Preprocessing, Visualize):
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
-            """
-            fig5_1, _ = self._plot_data(self._data_avgdriftX,
-                                        title='DriftX_heatmap',
-                                        heatmap=True)
-            """
 
             fig4, _ = self._plot_data(driftY,
                                       plot_plane=False,
@@ -1072,11 +982,6 @@ class Daddy(Preprocessing, Visualize):
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
-            """
-            fig4_1, _ = self._plot_data(self._data_avgdriftY,
-                                        title='DriftY_heatmap',
-                                        heatmap=True)
-            """
 
             fig3, _ = self._plot_data(diffX,
                                       plot_plane=False,
@@ -1085,11 +990,6 @@ class Daddy(Preprocessing, Visualize):
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
-            """
-            fig3_1, _ = self._plot_data(self._data_avgdiffX,
-                                        title='DiffX_heatmap',
-                                        heatmap=True)
-            """
 
             fig2, _ = self._plot_data(diffY,
                                       plot_plane=False,
@@ -1098,11 +998,6 @@ class Daddy(Preprocessing, Visualize):
                                       tick_size=12,
                                       label_size=14,
                                       title_size=16)
-            """
-            fig2_1, _ = self._plot_data(self._data_avgdiffY,
-                                        title='DiffY_heatmap',
-                                        heatmap=True)
-            """
 
             fig6, _ = self._plot_data(diffXY,
                                       plot_plane=False,
@@ -1122,8 +1017,22 @@ class Daddy(Preprocessing, Visualize):
         return None
 
     def noise_diagnostics(self, loc=None):
-        if self.vector:
+        """
+        Perform diagostics on the noise-residual, to ensure that all assumptions for SDE estimation are met.
+        Generates a plot with:
+          - Distribution (1D or 2D histogram) of the residuals, and their QQ-plots against a theoretically expected
+            Gaussian. The residual distribution is expected to be a Gaussian.
+          - Autocorrelation of the residuals. The autocorrelation time should be close to 0.
+          - Plot of the 2nd versus 4th jump moments. This plot should be a straight line.
 
+        Args
+        ----
+        loc: tuple, (default=None)
+            The residual distribution is computed within a bin; (0, 0) by default. To compute the residual distribution
+            in a different bin, specify the location of the bin as a tuple of floats.
+        """
+
+        if self.vector:
             X, Y = self._ddsde._Mx, self._ddsde._My
             Dt = self._ddsde.Dt
             inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y
@@ -1143,8 +1052,10 @@ class Daddy(Preprocessing, Visualize):
                 idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
                 loc = [op_x[idx_x], op_y[idx_y]]
 
-            noise_dist_x = res_x[(loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
-            noise_dist_y = res_y[(loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
+            noise_dist_x = res_x[
+                (loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
+            noise_dist_y = res_y[
+                (loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
             noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
@@ -1173,14 +1084,12 @@ class Daddy(Preprocessing, Visualize):
             gs = fig.add_gridspec(4, 2)
             ax_2d = fig.add_subplot(gs[:2, 0], projection='3d')
             ax_acf = fig.add_subplot(gs[:2, 1])
-            # ax_acf2 = fig.add_subplot(gs[1, 1])
             ax_qqx = fig.add_subplot(gs[2:, 0])
             ax_qqy = fig.add_subplot(gs[2:, 1])
             ax_corr = inset_axes(ax_2d, width='30%', height='39%', loc='upper left')
 
             self._noise_plot_2d(ax_2d, noise_dist_x, noise_dist_y, title='Residual Distribution')
             self._matrix_plot(ax_corr, noise_corr)
-            # self._acf_plot(ax_acf1, acf, lags, a, b, c, act, title='Autocorrelation: $|\\eta|$')
             self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, act_x, act_y, title='Autocorrelation: $\\eta_x, \\eta_y$')
             self._qq_plot(ax_qqx, noise_dist_x, title='QQ Plot: $\\eta_x$')
             self._qq_plot(ax_qqy, noise_dist_y, title='QQ Plot: $\\eta_y$')
@@ -1240,6 +1149,14 @@ class Daddy(Preprocessing, Visualize):
             plt.show()
 
     def fit_diagnostics(self):
+        """
+        Show diagnostics about the quality of the fit.
+        Shows the fitted functions (along with confidence intervals for each coefficient), and the adjusted R-squared
+        errors (computed against the bin-wise averages).
+
+        Note: Since the R2 values are computed against the binwise averages, R2 can be low even when the fits are
+        accurate but the bin-wise estimates are off.
+        """
         if self.vector:
             if not (self.F1 or self.F2 or self.G11 or self.G12 or self.G21):
                 print('Use fit() to fit functions before calling fit_diagnostics().')
@@ -1283,6 +1200,16 @@ class Daddy(Preprocessing, Visualize):
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
 
     def model_diagnostics(self):
+        """
+        Perform model self-consistency diagnostics.
+        Generates a simulated time series with the same length and sampling interval as the original time series,
+        and re-estimates the drift and diffusion from the simulated time series. The re-estimated drift and diffusion
+        should match the original estimates.
+
+        The following are plotted:
+          - Histogram of the original time series overlaid with that of the simulated time series.
+          - Drift and diffusion of the original time series overlaid with that of the simulated time series.
+        """
         if self.vector:
             print('Generating simulated timeseries ...')
             timepoints = self._data_Mx.shape[0]
