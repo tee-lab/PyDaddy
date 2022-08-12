@@ -59,16 +59,13 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.n_trials = n_trials
         self._show_summary = show_summary
 
-        # self.drift_order = None
-        # self.diff_order = None
-
         self.op_range = None
         self.op_x_range = None
         self.op_y_range = None
         if bins:
             self.bins = bins
         elif not (self.inc or (self.inc_x and self.inc_y)):
-            self.bins = self._autobins()
+            self.bins = 20  # self._autobins()
         else:
             self.bins = None
         self.slider_timescales = slider_timescales
@@ -83,21 +80,10 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
         self.diff_degree = diff_degree
         self.diff_alpha = diff_alpha
 
-        """
-        # When t_lag is greater than timeseries length, reassign its value as length of data
-        if self.t_lag > len(data[0]):
-            print('Warning : t_lag is greater that the length of data; setting t_lag as {}\n'.format(len(data[0]) - 1))
-            self.t_lag = len(data[0]) - 1
-        """
-
         self.__dict__.update(kwargs)
         Preprocessing.__init__(self)
         GaussianTest.__init__(self)
         AutoCorrelation.__init__(self)
-        # SDE.__init__(self)
-
-        # if t is None and t_int is None:
-        #	raise InputError("Characterize(data, t, t_int)","Missing data. Either 't' ot 't_int' must be given, both cannot be None")
 
     def _autobins(self):
         """ Optimal number of bins using Freedman-Diaconis rule. """
@@ -151,31 +137,9 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                         diff_degree=None,
                         diff_alpha=None
                     )
-                #avgdriftX = dd.avgdriftX
-                #avgdriftY = dd.avgdriftY
-                #avgdiffX = dd.avgdiffX
-                #avgdiffY = dd.avgdiffY
-                #avgdiffXY = dd.avgdiffXY
-                #avgdiffYX = dd.avgdiffYX
-                #op_x = dd.op_x
-                #op_y = dd.op_y
+
                 self.F1, self.F2, self.G11, self.G22, self.G12, self.G21 = [None]*6
-                #if time_scale == 1:
-                #    self._driftX_ = dd.driftX
-                #    self._driftY_ = dd.driftY
-                #    self._diffusionX_ = dd.diffusionX
-                #    self._diffusionY_ = dd.diffusionY
-                #    self._diffusionXY_ = dd.diffusionXY
-                #    self._diffusionYX_ = dd.diffusionYX
-                #_, _, _, _, _, _, \
-                #avgdriftX, avgdriftY, avgdiffX, avgdiffY, avgdiffXY, avgdiffYX, op_x, op_y = \
-                #    self._vector_drift_diff(Mx,
-                #                            My,
-                #                            inc_x=self.inc_x,
-                #                            inc_y=self.inc_y,
-                #                            t_int=self.t_int,
-                #                            Dt=time_scale,
-                #                            dt=time_scale)
+
                 drift_data = [dd.avgdriftX / self.n_trials, dd.avgdriftY / self.n_trials, dd.op_x, dd.op_y]
                 diff_data = [dd.avgdiffX / self.n_trials, dd.avgdiffY / self.n_trials, dd.op_x, dd.op_y]
                 cross_diff_data = [dd.avgdiffXY / self.n_trials, dd.avgdiffYX / self.n_trials, dd.op_x, dd.op_y]
@@ -193,8 +157,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
                                           diff_degree=None,
                                           diff_alpha=None)
 
-                #_, _, avgdiff, avgdrift, op, drift_ebar, diff_ebar, drift_num, diff_num, _, _ \
-                #    = self._drift_and_diffusion(Mx, t_int=self.t_int, Dt=time_scale, dt=time_scale, inc=self.inc)
                 self.F, self.G = None, None
                 drift_data = [dd.avgdrift / self.n_trials, dd.op]
                 diff_data = [dd.avgdiff / self.n_trials, dd.op]
@@ -216,45 +178,9 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
     def __call__(self, data, t=1, Dt=None, **kwargs):
         self.__dict__.update(kwargs)
-        # if t is None and t_int is None:
-        #	raise InputError("Either 't' or 't_int' must be given, both cannot be None")
+
         self._t = t
-        """
-        if len(data) == 1:
-            self._X = np.array(data[0])
-            self._M_square = np.array(data[0])
-            self.vector = False
-        elif len(data) == 2:
-            self._Mx, self._My = np.array(data[0]), np.array(data[1])
-            self._M_square = self._Mx**2 + self._My**2
-            self._X = self._Mx.copy()
-            self.vector = True
-        else:
-            raise InputError('Characterize(data=[Mx,My],...)',
-                             'data input must be a list of length 1 or 2!')
-
-        #if t_int is None: self.t_int = self._timestep(t)
-        if not hasattr(t, "__len__"):
-            self.t_int = t
-        else:
-            if len(t) != len(self._M_square):
-                raise InputError(
-                    "len(Mx^2 + My^2) == len(t)",
-                    "TimeSeries and time-stamps must be of same length")
-            self.t_int = self._timestep(t)
-
-        #print('opt_dt')
-        """
         self._preprocess()
-        """
-        self.dt_ = self._optimium_timescale(self._X,
-                                           self._M_square,
-                                           t_int=self.t_int,
-                                           Dt=Dt,
-                                           max_order=self.max_order,
-                                           t_lag=self.t_lag,
-                                           inc=self.inc_x)
-        """
         if not self.vector:
             #if not self._is_valid_slider_timescale_list(self.slider_timescales):
             self._drift_slider = dict()
@@ -287,16 +213,6 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             self._scalar_diff_nums[self.dt] = self._diff_num
             self.F = F
             self.G = G
-            #else:
-            #    # FIXME self._drift_ and self._diffusion_ variable need to be set here.
-            #    self._drift_slider, self._diff_slider, self._scalar_drift_ebars, self._scalar_diff_ebars, \
-            #    self._scalar_drift_nums, self._scalar_diff_nums = self._slider_data(self._X, None)
-            #    self._avgdrift_, self._op_ = self._drift_slider[self.Dt]
-            #    self._avgdiff_ = self._diff_slider[self.dt][0]
-            #    self._drift_ebar = self._scalar_drift_ebars[self.Dt]
-            #    self._diff_ebar = self._scalar_diff_ebars[self.dt]
-            #    self._drift_num = self._scalar_drift_nums[self.Dt]
-            #    self._diff_num = self._scalar_diff_nums[self.Dt]
             self._cross_diff_slider = None
 
         else:
@@ -333,17 +249,7 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
             self._drift_slider[self.Dt] = [self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_]
             self._diff_slider[self.dt] = [self._avgdiffX_, self._avgdiffY_, self._op_x_, self._op_y_]
             self._cross_diff_slider[self.dt] = [self._avgdiffXY_, self._avgdiffYX_, self._op_x_, self._op_y_]
-            #else:
-            #    # FIXME self._driftX_, etc. need to be set here.
-            #    self._drift_slider, self._diff_slider, self._cross_diff_slider = self._slider_data(self._Mx, self._My)
-            #    self._avgdriftX_, self._avgdriftY_, self._op_x_, self._op_y_ = self._drift_slider[self.Dt]
-            #    self._avgdiffX_, self._avgdiffY_ = self._diff_slider[self.dt][:2]
-            #    self._avgdiffXY_, self._avgdiffYX_ = self._cross_diff_slider[self.dt][:2]
 
-        # inc = self.inc_x if self.vector else self.inc
-        # self.gaussian_noise, self._noise, self._kl_dist, self.k, self.l_lim, self.h_lim, self._noise_correlation = self._noise_analysis(
-        #	self._X, self.Dt, self.dt, self.t_int, inc=inc, point=0)
-        # X, Dt, dt, t_int, inc=0.01, point=0,
         return Daddy(self)
 
 
@@ -400,16 +306,8 @@ class Characterize(object):
             inc=None,
             inc_x=None,
             inc_y=None,
-            #slider_timescales=None,
             n_trials=1,
             show_summary=True,
-            #drift_threshold=None,
-            #diff_threshold=None,
-            #drift_degree=5,
-            #diff_degree=5,
-            #drift_alpha=0,
-            #diff_alpha=0,
-            #fit_functions=False,
             **kwargs):
         ddsde = Main(
             data=data,
@@ -429,7 +327,6 @@ class Characterize(object):
             diff_degree=None,
             drift_alpha=None,
             diff_alpha=None,
-            #fast_mode=not fit_functions,
             fast_mode=True,
             **kwargs)
 

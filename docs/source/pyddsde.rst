@@ -1,14 +1,6 @@
 pydaddy package
 ===============
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   pydaddy.tests
-
 Submodules
 ----------
 
@@ -36,13 +28,13 @@ pydaddy.metrics module
    :undoc-members:
    :show-inheritance:
 
-pydaddy.output module
+pydaddy.Daddy module
 ---------------------
 
-.. automodule:: pydaddy.output
+.. automodule:: pydaddy.Daddy
    :members:
-   :undoc-members:
    :show-inheritance:
+   :exclude-members: _data_avgdiff, _data_avgdiffX, data_avgdiffXY, _data_avgdiffY, data_avgdiffYX, _data_avgdrift, _data_avgdriftX, _data_avgdriftY, _data_diff_ebar, _data_drift_ebar
 
 pydaddy.preprocessing module
 ----------------------------
