@@ -1,7 +1,7 @@
-pyddsde
+pydaddy
 =======
 
 .. toctree::
    :maxdepth: 4
 
-   pyddsde
+   pydaddy
