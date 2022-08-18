@@ -1059,6 +1059,12 @@ class Daddy(Preprocessing, Visualize):
             noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
+            if noise_dist_x.size <= 1 or noise_dist_y.size <= 1:
+                print(f'There are no data points near the specified location ({loc[0]}, {loc[1]}).\n'
+                      f'Specify a different location using the loc argument, or use loc=None to use '
+                      f'the mode of the data distribution.')
+                return
+
             lags, acf_x = self._ddsde._acf(res_x, t_lag=min(100, len(res_x)))
             _, acf_y = self._ddsde._acf(res_y, t_lag=min(100, len(res_y)))
 
@@ -1097,8 +1103,6 @@ class Daddy(Preprocessing, Visualize):
             plt.tight_layout()
             plt.show()
         else:
-            if loc is None:
-                H, edges = np.histogramdd(np.array([X, Y]))
             X = self._ddsde._X
             Dt = self._ddsde.Dt
             inc = self._ddsde.inc
@@ -1112,7 +1116,17 @@ class Daddy(Preprocessing, Visualize):
                                                         t_int=t_int,
                                                         )
 
+            if loc is None:
+                H, edges = np.histogram(X, bins=op)
+                loc = op[H.argmax()]
+
             noise_distribution = residual[(loc <= X[:-Dt]) & (X[:-Dt] < loc + inc)]
+
+            if noise_distribution.size <= 1:
+                print(f'There are no data points near the specified location ({loc}).\n'
+                      f'Specify a different location using the loc argument, or use loc=None to use '
+                      f'the mode of the data distribution.')
+                return
 
             # Compute residual autocorrelation
             lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))

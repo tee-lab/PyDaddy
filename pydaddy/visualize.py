@@ -1606,6 +1606,7 @@ class Visualize(Metrics):
 
         ax.axis('equal')
         ax.set(xlabel='$3 \cdot K_2^2$', ylabel='$K_4$', title=title)
+        ax.set(xlim=[km_4.min(), km_4.max()], ylim=[km_4.min(), km_4.max()])
         ax.set_yticks(ax.get_xticks())
 
     @staticmethod
