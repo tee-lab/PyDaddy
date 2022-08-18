@@ -8,6 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
 from scipy.stats import skew, kurtosis
+from scipy.linalg import cholesky, LinAlgError
 import seaborn as sns
 import sdeint
 
@@ -405,15 +406,27 @@ class Daddy(Preprocessing, Visualize):
             assert (self.F1 and self.F2 and self.G11 and self.G22 and self.G12), \
                 """ Use fit() function to fit F1, F2, G11, G12, G21, G22 before using simulate(). """
 
-            if np.count_nonzero(self.G12) != 0:
-                raise NotImplementedError(
-                    'simulate() is not implemented for systems with non-zero cross diffusion terms G12, G21.')
-
             def F(x, t):
-                return np.array([self.F1(x[0], x[1]), self.F2(x[0], x[1])])
+                return np.array([self.F1(*x), self.F2(*x)])
 
-            def G(x, t):
-                return np.diag([np.sqrt(np.abs(self.G11(x[0], x[1]))), np.sqrt(np.abs(self.G22(x[0], x[1])))])
+            if np.count_nonzero(self.G12) != 0:
+                print('Warning: Cross-diffusion terms are present. Simulation results may not be accurate.')
+
+                def G(x, t):
+                    # print(x)
+                    G_ = np.array([[self.G11(*x), self.G12(*x)],
+                                   [self.G21(*x), self.G22(*x)]])
+                    try:
+                        return cholesky(G_)
+                    except LinAlgError:
+                        # print(x)
+                        # print(G_)
+                        raise LinAlgError('Simulation failed. Matrix G is not positive-definite.')
+                    except ValueError:
+                        raise ValueError('Simulation failed. System may be unstable.')
+            else:
+                def G(x, t):
+                    return np.diag([np.sqrt(np.abs(self.G11(*x))), np.sqrt(np.abs(self.G22(*x)))])
 
             if x0 is None:
                 x0 = np.array([0., 0.])
