@@ -8,6 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
 from scipy.stats import skew, kurtosis
+from scipy.linalg import cholesky, sqrtm, LinAlgError
 import seaborn as sns
 import sdeint
 
@@ -405,19 +406,34 @@ class Daddy(Preprocessing, Visualize):
             assert (self.F1 and self.F2 and self.G11 and self.G22 and self.G12), \
                 """ Use fit() function to fit F1, F2, G11, G12, G21, G22 before using simulate(). """
 
-            if np.count_nonzero(self.G12) != 0:
-                raise NotImplementedError(
-                    'simulate() is not implemented for systems with non-zero cross diffusion terms G12, G21.')
-
             def F(x, t):
-                return np.array([self.F1(x[0], x[1]), self.F2(x[0], x[1])])
+                return np.array([self.F1(*x), self.F2(*x)])
 
-            def G(x, t):
-                return np.diag([np.sqrt(np.abs(self.G11(x[0], x[1]))), np.sqrt(np.abs(self.G22(x[0], x[1])))])
+            if np.count_nonzero(self.G12) != 0:
+                print('Warning: Cross-diffusion terms are present. Simulation results may be inaccurate.')
+
+                def G(x, t):
+                    # print(x)
+                    G_ = np.array([[self.G11(*x), self.G12(*x)],
+                                   [self.G21(*x), self.G22(*x)]])
+                    try:
+                        return sqrtm(G_)
+                    except LinAlgError:
+                        print(x)
+                        print(G_)
+                        raise LinAlgError('Simulation failed. Matrix G is not positive-definite.')
+                    except ValueError:
+                        # return np.array([[np.nan, np.nan], [np.nan, np.nan]])
+                        raise ValueError('Simulation failed. System may be unstable.')
+            else:
+                def G(x, t):
+                    return np.diag([np.sqrt(np.abs(self.G11(*x))), np.sqrt(np.abs(self.G22(*x)))])
 
             if x0 is None:
                 x0 = np.array([0., 0.])
-            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan).T
+
+            # x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan).T
+            x = sdeint.itoEuler(f=F, G=G, y0=x0, tspan=tspan).T
 
         else:
             assert (self.F and self.G), \
@@ -432,7 +448,7 @@ class Daddy(Preprocessing, Visualize):
             def G(x, t):
                 return np.sqrt(np.abs(self.G(x)))
 
-            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan)
+            x = sdeint.itoEuler(f=F, G=G, y0=x0, tspan=tspan)
 
         return x
 
@@ -1224,6 +1240,7 @@ class Daddy(Preprocessing, Visualize):
           - Histogram of the original time series overlaid with that of the simulated time series.
           - Drift and diffusion of the original time series overlaid with that of the simulated time series.
         """
+
         if self.vector:
             print('Generating simulated timeseries ...')
             timepoints = self._data_Mx.shape[0]
@@ -1232,7 +1249,6 @@ class Daddy(Preprocessing, Visualize):
             print('Re-estimating drift and diffusion from simulated timeseries ...')
             ddsde = pydaddy.Characterize(data=x, t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
 
-            # FIXME: Set orders, thresholds, library during fitting.
             F1hat = ddsde.fit('F1',
                               order=self.fitters['F1'].max_degree,
                               threshold=self.fitters['F1'].threshold,
@@ -1263,24 +1279,36 @@ class Daddy(Preprocessing, Visualize):
                                alpha=self.fitters['G12'].alpha,
                                library=self.fitters['G12'].library)
 
-            # fig, ax = plt.subplots(2, 3, figsize=(12, 8), dpi=100)
+            lags, acf_x = self._ddsde._acf(x[0], t_lag=min(len(x[0]), 1000))
+            _, acf_y = self._ddsde._acf(x[1], t_lag=min(len(x[1]), 1000))
 
-            fig = plt.figure(figsize=(12, 8), dpi=100)
-            gs = fig.add_gridspec(2, 3)
+            fig = plt.figure(figsize=(12, 12), dpi=100)
+            gs = fig.add_gridspec(3, 3)
             ax_mxmy = fig.add_subplot(gs[0, 0], projection='3d')
             ax_modm = fig.add_subplot(gs[1, 0])
+            ax_acf = fig.add_subplot(gs[2, 0])
             ax_f1 = fig.add_subplot(gs[0, 1], projection='3d')
-            ax_f2 = fig.add_subplot(gs[1, 1], projection='3d')
-            ax_g11 = fig.add_subplot(gs[0, 2], projection='3d')
-            ax_g22 = fig.add_subplot(gs[1, 2], projection='3d')
+            ax_f2 = fig.add_subplot(gs[0, 2], projection='3d')
+            ax_g11 = fig.add_subplot(gs[1, 1], projection='3d')
+            ax_g22 = fig.add_subplot(gs[2, 2], projection='3d')
+            ax_g12 = fig.add_subplot(gs[1, 2], projection='3d')
+            ax_g21 = fig.add_subplot(gs[2, 1], projection='3d')
 
             self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$M$ histogram')
             self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|M|$',
                                      title='$|M|$ histogram')
+
+            self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, None, None,
+                                 label1='$\\rho_x$', label2='$\\rho_y$',
+                                 title='Autocorrelation')
+
             self._show_functions_2d(ax_f1, self.F1, F1hat, title='$F_{1}$')
             self._show_functions_2d(ax_f2, self.F2, F2hat, title='$F_{2}$')
+
             self._show_functions_2d(ax_g11, self.G11, G11hat, title='$G_{11}$')
             self._show_functions_2d(ax_g22, self.G22, G22hat, title='$G_{22}$')
+            self._show_functions_2d(ax_g12, self.G12, G12hat, title='$G_{12}$')
+            self._show_functions_2d(ax_g21, self.G21, G12hat, title='$G_{21}$')
 
             print(f'F1:')
             print(f'  Original: {self.F1}')

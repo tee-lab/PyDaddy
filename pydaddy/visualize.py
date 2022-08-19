@@ -1588,13 +1588,21 @@ class Visualize(Metrics):
         ax.legend()
 
     @staticmethod
-    def _acf_plot_multi(ax, acf1, acf2, lags, act1, act2, title=None):
-        lim = 10 * max(int(np.ceil(act1)), int(np.ceil(act2)))
+    def _acf_plot_multi(ax, acf1, acf2, lags, act1, act2,
+                        label1='Autocorr. $\\eta_x$',
+                        label2='Autocorr. $\\eta_y$', title=None):
+        if act1 is not None and act2 is not None:
+            lim = 10 * max(int(np.ceil(act1)), int(np.ceil(act2)))
+        else:
+            lim = len(lags)
+
         acf1, acf2, lags = acf1[:lim], acf2[:lim], lags[:lim]
-        ax.plot(lags, acf1, label='Autocorr. $\\eta_x$')
-        ax.plot(lags, acf2, label='Autocorr. $\\eta_y$')
-        ax.axvline(act1, color='k')  # label='ACT (X)')
-        ax.axvline(act2, color='k')  # label='ACT (Y)')
+        ax.plot(lags, acf1, label=label1)
+        ax.plot(lags, acf2, label=label2)
+        if act1 is not None:
+            ax.axvline(act1, color='k')  # label='ACT (X)')
+        if act2 is not None:
+            ax.axvline(act2, color='k')  # label='ACT (Y)')
 
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
         ax.legend()
