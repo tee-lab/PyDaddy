@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
 from scipy.stats import skew, kurtosis
-from scipy.linalg import cholesky, LinAlgError
+from scipy.linalg import cholesky, sqrtm, LinAlgError
 import seaborn as sns
 import sdeint
 
@@ -410,19 +410,20 @@ class Daddy(Preprocessing, Visualize):
                 return np.array([self.F1(*x), self.F2(*x)])
 
             if np.count_nonzero(self.G12) != 0:
-                print('Warning: Cross-diffusion terms are present. Simulation results may not be accurate.')
+                print('Warning: Cross-diffusion terms are present. Simulation results may be inaccurate.')
 
                 def G(x, t):
                     # print(x)
                     G_ = np.array([[self.G11(*x), self.G12(*x)],
                                    [self.G21(*x), self.G22(*x)]])
                     try:
-                        return cholesky(G_)
+                        return sqrtm(G_)
                     except LinAlgError:
-                        # print(x)
-                        # print(G_)
+                        print(x)
+                        print(G_)
                         raise LinAlgError('Simulation failed. Matrix G is not positive-definite.')
                     except ValueError:
+                        # return np.array([[np.nan, np.nan], [np.nan, np.nan]])
                         raise ValueError('Simulation failed. System may be unstable.')
             else:
                 def G(x, t):
@@ -430,7 +431,9 @@ class Daddy(Preprocessing, Visualize):
 
             if x0 is None:
                 x0 = np.array([0., 0.])
-            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan).T
+
+            # x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan).T
+            x = sdeint.itoEuler(f=F, G=G, y0=x0, tspan=tspan).T
 
         else:
             assert (self.F and self.G), \
@@ -445,7 +448,7 @@ class Daddy(Preprocessing, Visualize):
             def G(x, t):
                 return np.sqrt(np.abs(self.G(x)))
 
-            x = sdeint.itoint(f=F, G=G, y0=x0, tspan=tspan)
+            x = sdeint.itoEuler(f=F, G=G, y0=x0, tspan=tspan)
 
         return x
 
