@@ -12,7 +12,7 @@ from pydaddy.daddy import Daddy
 
 warnings.filterwarnings("ignore")
 
-__all__ = ['Characterize', 'load_sample_data', 'load_sample_dataset']
+__all__ = ['Characterize', 'load_sample_dataset']
 
 
 class Main(Preprocessing, GaussianTest, AutoCorrelation):
@@ -333,20 +333,22 @@ class Characterize(object):
         return ddsde(data=data, t=t, Dt=Dt)
 
 
-def load_sample_data(data_path):
+def _load_sample_data(data_path):
     r"""
     Load the sample distrubuted data
 
-    data
-    ├── fish_data
-    │   └── ectropus.csv
-    └── model_data
-        ├── scalar
-        │   ├── pairwise.csv
-        │   └── ternary.csv
-        └── vector
-            ├── pairwise.csv
-            └── ternary.csv
+    ::
+
+        data
+        ├── fish_data
+        │   └── ectropus.csv
+        └── model_data
+            ├── scalar
+            │   ├── pairwise.csv
+            │   └── ternary.csv
+            └── vector
+                ├── pairwise.csv
+                └── ternary.csv
 
 
     Each data file in pairwise, ternary and extras have two columns;
@@ -370,15 +372,13 @@ def load_sample_dataset(name):
 
     Available data sets:
 
-    'fish-data-etroplus'
+    ::
 
-    'model-data-scalar-pairwise'
-
-    'model-data-scalar-ternary'
-
-    'model-data-vector-pairwise'
-
-    'model-data-vector-ternary'
+        'fish-data-etroplus'
+        'model-data-scalar-pairwise'
+        'model-data-scalar-ternary'
+        'model-data-vector-pairwise'
+        'model-data-vector-ternary'
 
     Parameters
     ----------
@@ -405,7 +405,7 @@ def load_sample_dataset(name):
         raise InputError('', 'Invalid data set name')
 
     if 'scalar' in name:
-        M, t = load_sample_data(data_dict[name]).T
+        M, t = _load_sample_data(data_dict[name]).T
         return [M], t
-    Mx, My = load_sample_data(data_dict[name]).T
+    Mx, My = _load_sample_data(data_dict[name]).T
     return [Mx, My], 0.12

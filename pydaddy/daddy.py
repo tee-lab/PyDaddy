@@ -127,11 +127,12 @@ class Daddy(Preprocessing, Visualize):
     def export_data(self, filename=None, raw=False):
         """
         Returns a pandas dataframe containing the drift and diffusion values.
+
         Args
         ----
-        filename : str, optional (default=None).
+        filename : str, optional(default=None)
             If provided, the data will be saved as a CSV at the given path. Else, a dataframe will be returned.
-        raw : bool, optional (default=False)
+        raw : bool, optional(default=False)
             If True, the raw, the drift and diffusion will be returned as raw unbinned data. Otherwise (default),
             drift and diffusion as binwise-average Kramers-Moyal coefficients are returned.
 
@@ -312,6 +313,40 @@ class Daddy(Preprocessing, Visualize):
 
     def fit(self, function_name, order=None, threshold=0.05, alpha=0, tune=False, thresholds=None, library=None,
             plot=False):
+        """
+
+        Fit analytical expressions to drift/diffusion functions using sparse regression. By default, a polynomial with
+        a specified maximum degree will be fitted. Alternatively, you can also provide a library of custom functions
+        for fitting.
+
+        Args
+        ----
+
+        function_name: str,
+            Name of the function to fit. Can be 'F' or 'G' for scalar; 'F1', 'F2', 'G11', 'G22', 'G12', 'G21' for vector
+        order: int,
+            Order (maximum degree) of the polynomial to fit.
+        threshold: float, (default=0.05)
+            Sparsification threshold
+        tune: bool, (default=False)
+            If True, the sparsification threshold will be automatically set using cross-validation.
+        alpha: float, (default=0.0)
+            Optional regularization term for ridge regression. Useful when data is too noisy, but has a side effect of
+            shrinking the estimated coefficients when set to high values.
+        thresholds: list, (default=None)
+            With :code:`tune=True`, a list of thresholds over which to search for can optionally be provided. If not
+            present, this will be chosen automatically as the range between the minimum and maximum coefficients in
+            the initial fit.
+        library: list, (default=None)
+            A custom library of non-polynomial functions can optionally be provided. If provided, the functions will be
+            fitted as a sparse linear combination of the terms in the library.
+
+        Returns
+        -------
+
+        res : fitters.Poly1D or fitters.Poly2D object, representing the fitted polynomial.
+
+        """
 
         if not (order or library):
             raise TypeError('You should either specify the order of the polynomial, or provide a library.')
@@ -385,8 +420,8 @@ class Daddy(Preprocessing, Visualize):
         Generates a simulated timeseries, with specified sampling time and duration, based on the SDE model discovered
         by PyDaddy. The drift and diffusion functions should be fit using fit() function before using simulate().
 
-        Args:
-        -----
+        Args
+        ----
         t_int : float
             Sampling time for the simulated time-series
         timepoints : int
@@ -394,8 +429,8 @@ class Daddy(Preprocessing, Visualize):
         x0 : float (scalar) or list of two floats (vector), (default=None)
             Initial condition. If no value is passed, 0 ([0, 0] for vector) is taken as the initial condition.
 
-        Returns:
-        --------
+        Returns
+        -------
         x : Simulated timeseries with  `timepoints` timepoints.
 
         """
@@ -801,7 +836,7 @@ class Daddy(Preprocessing, Visualize):
 
         polar: bool, (default=False):
             If True, plot the drift function only within a unit circle. Useful to get a better visualization in
-            situations where |M| has an upper bound. (Used only in vector case).
+            situations where \|M\| has an upper bound. (Used only in vector case).
 
         **plot_text:
             plots' axis and text label
@@ -858,7 +893,7 @@ class Daddy(Preprocessing, Visualize):
 
         polar: bool, (default=False):
             If True, plot the diffusion function only within a unit circle. Useful to get a better visualization in
-            situations where |M| has an upper bound. (Used only in vector case).
+            situations where \|M\| has an upper bound. (Used only in vector case).
 
         Returns
         -------
@@ -890,7 +925,7 @@ class Daddy(Preprocessing, Visualize):
 
         polar: bool, (default=False):
             If True, plot the cross diffusion function only within a unit circle. Useful to get a better visualization in
-            situations where |M| has an upper bound. (Used only in vector case).
+            situations where \|M\| has an upper bound. (Used only in vector case).
 
         Returns
         -------
@@ -1036,6 +1071,7 @@ class Daddy(Preprocessing, Visualize):
         """
         Perform diagostics on the noise-residual, to ensure that all assumptions for SDE estimation are met.
         Generates a plot with:
+
           - Distribution (1D or 2D histogram) of the residuals, and their QQ-plots against a theoretically expected
             Gaussian. The residual distribution is expected to be a Gaussian.
           - Autocorrelation of the residuals. The autocorrelation time should be close to 0.
@@ -1184,7 +1220,7 @@ class Daddy(Preprocessing, Visualize):
         Shows the fitted functions (along with confidence intervals for each coefficient), and the adjusted R-squared
         errors (computed against the bin-wise averages).
 
-        Note: Since the R2 values are computed against the binwise averages, R2 can be low even when the fits are
+        WARNING: Since the R2 values are computed against the binwise averages, R2 can be low even when the fits are
         accurate but the bin-wise estimates are off.
         """
         if self.vector:
