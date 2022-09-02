@@ -22,8 +22,9 @@ __all__ = ['Daddy']
 
 class Daddy(Preprocessing, Visualize):
     """
-    Main work-horse class of PyDaddy. Contains functionality to compute drift and diffusion, visualize results, and
-    perform diagnostic tests.
+    An object of this type is returned by :class:`pydaddy.daddy.Characterize`.
+    This is the main workhorse class of PyDaddy, and contains functionality to compute drift and diffusion,
+    visualize results, and perform diagnostic tests. See the individual method documentation for more details.
     """
 
     def __init__(self, ddsde, **kwargs):

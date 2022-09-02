@@ -7,7 +7,7 @@ PyDaddy is a comprehensive and easy to use python package to discover data-deriv
 
     \frac{dx}{dt} = f(x) + g(x) \cdot \eta(t)
 
-where $\eta(t)$ is uncorrelated white noise. The function :math:`f` is called the *drift*, and governs the deterministic part of the dynamics. :math:`g^2` is called the *diffusion* and governs the stochastic part of the dynamics.
+where :math:`\eta(t)` is uncorrelated white noise. The function :math:`f` is called the *drift*, and governs the deterministic part of the dynamics. :math:`g^2` is called the *diffusion* and governs the stochastic part of the dynamics.
 
 .. figure:: resources/PyDaddyExample.jpg
     :width: 70%
@@ -25,8 +25,8 @@ Get Started
 -----------
 
 * To take PyDaddy for a walk, see the :ref:`tutorial notebooks <tutorials>`. The notebooks can be executed online on Google Colab; no installation is necessary!
-* To install PyDaddy on your system, see installation instructions.
-* See the usage guide and advanced usage tips pages for detailed usage instructions.
+* To install PyDaddy on your system, see :ref:`installation instructions <installation>`.
+* See the :ref:`usage guide <usage>` and :ref:`advanced usage tips` for detailed instructions and tips on how to use PyDaddy.
 
 Citation
 --------
