@@ -1566,7 +1566,8 @@ class Visualize(Metrics):
     def _qq_plot(ax, residual, title):
         sigma = np.nanstd(residual)
         (osm, osr), _ = probplot(residual, sparams=(0, sigma))
-        ax.axline(xy1=(-1, -1), xy2=(1, 1), color='k')
+        ax.plot([-1, 1], [-1, 1], color='k')
+        # ax.axline(xy1=(-1, -1), xy2=(1, 1), color='k')
         ax.plot(osm, osr, '.')
 
         ax.axis('equal')
@@ -1609,7 +1610,8 @@ class Visualize(Metrics):
 
     @staticmethod
     def _km_plot(ax, km_2, km_4, title):
-        ax.axline(xy1=(0, 0), slope=1, color='k')
+        ax.plot([-1, 1], [-1, 1], color='k')
+        # ax.axline(xy1=(0, 0), slope=1, color='k')
         ax.plot(3 * (km_2 ** 2), km_4, '.')
 
         ax.axis('equal')
