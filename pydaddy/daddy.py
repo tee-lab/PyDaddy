@@ -492,7 +492,7 @@ class Daddy(Preprocessing, Visualize):
     def summary(self, start=0, end=1000, kde=True, tick_size=12, title_size=15, label_size=15, label_pad=8, n_ticks=3,
                 ret_fig=False, **plot_text):
         """
-        Print summary of data and show summary plots chart
+        Print summary of data and show summary plots chart. (This is the same summary plot produced by Characterize().)
 
         Args
         ----
@@ -519,52 +519,99 @@ class Daddy(Preprocessing, Visualize):
                 plots' title and axis texts
 
                 For scalar analysis summary plot:
+
                     timeseries_title : title of timeseries plot
+
                     timeseries_xlabel : x label of timeseries
+
                     timeseries_ylabel : y label of timeseries
+
                     drift_title : drift plot title
+
                     drift_xlabel : drift plot x label
+
                     drift_ylabel : drift plot ylabel
+
                     diffusion_title : diffusion plot title
+
                     diffusion_xlabel : diffusion plot x label
+
                     diffusion_ylabel : diffusion plot y label
+
                 For vector analysis summary plot:
+
                     timeseries1_title : first timeseries plot title
+
                     timeseries1_ylabel : first timeseries plot ylabel
+
                     timeseries1_xlabel : first timeseries plot xlabel
+
                     timeseries1_legend1 : first timeseries (Mx) legend label
+
                     timeseries1_legend2 : first timeseries (My) legend label
+
                     timeseries2_title : second timeseries plot title
+
                     timeseries2_xlabel : second timeseries plot x label
+
                     timeseries2_ylabel : second timeseries plot y label
+
                     2dhist1_title : Mx 2d histogram title
+
                     2dhist1_xlabel : Mx 2d histogram x label
+
                     2dhist1_ylabel : Mx 2d histogram y label
+
                     2dhist2_title : My 2d histogram title
+
                     2dhist2_xlabel : My 2d histogram x label
+
                     2dhist2_ylabel : My 2d histogram y label
+
                     2dhist3_title :  M 3d histogram title
+
                     2dhist3_xlabel : M 2d histogram x label
+
                     2dhist3_ylabel : M 2d histogram y label
+
                     3dhist_title :  3d histogram title
+
                     3dhist_xlabel : 3d histogram x label
+
                     3dhist_ylabel : 3d histogram y label
+
                     3dhist_zlabel : 3d histogram z label
+
                     driftx_title : drift x plot title
+
                     driftx_xlabel : drift x plot x label
+
                     driftx_ylabel : drift x plot y label
+
                     driftx_zlabel : drift x plot z label
+
                     drifty_title : drift y plot title
+
                     drifty_xlabel : drift y plot x label
+
                     drifty_ylabel : drift y plot y label
+
                     drifty_zlabel : drift y plot z label
+
                     diffusionx_title : diffusion x plot title
+
                     diffusionx_xlabel : diffusion x plot x label
+
                     diffusionx_ylabel : diffusion x plot y label
+
                     diffusionx_zlabel : diffusion x plot z label
+
                     diffusiony_title : diffusion y plot title
+
                     diffusiony_xlabel : diffusion y plot x label
+
                     diffusiony_ylabel : diffusion y plot y label
+
                     diffusiony_zlabel : diffusion y plot z label
 
         Returns
@@ -861,7 +908,7 @@ class Daddy(Preprocessing, Visualize):
 
         **plot_text: dict:
             To customize the captions, labels and layout of the plot, plot parameters can be passed as a dict. Available
-            options are diven below:
+            options are given below:
 
             For scalar analysis
                 x_lable : x axis label
@@ -918,7 +965,7 @@ class Daddy(Preprocessing, Visualize):
 
         **plot_text: dict:
             To customize the captions, labels and layout of the plot, plot parameters can be passed as a dict. Available
-            options are diven below:
+            options are given below:
 
             For scalar analysis
                 x_lable : x axis label
@@ -976,7 +1023,7 @@ class Daddy(Preprocessing, Visualize):
 
         **plot_text: dict:
             To customize the captions, labels and layout of the plot, plot parameters can be passed as a dict. Available
-            options are diven below:
+            options are given below:
 
             For scalar analysis
                 x_lable : x axis label

@@ -43,6 +43,17 @@ Tutorials
 
 The following tutorial notebooks will familiarize you with the various functionalities of PyDaddy. These notebooks can be executed on Google Colab by clicking the |colab| buttons (no installation required).
 
+.. note::
+
+    While executing notebooks on Colab, uncomment the cell saying:
+
+    ::
+
+        !pip install git+https://github.com/tee-lab/PyDaddy.git
+
+    and execute it. This sets up PyDaddy on your Colab environment.
+
+
 You can also download these notebooks from the `GitHub repo. <https://github.com/tee-lab/PyDaddy/tree/master/notebooks>`_. To download the notebooks, click on the |github| buttons to open the notebook. Right-click on the 'Raw' button to and click 'Save Linked File...' to save the file to your computer.
 
 Getting started with PyDaddy

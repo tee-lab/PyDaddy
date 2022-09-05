@@ -255,45 +255,47 @@ class Main(Preprocessing, GaussianTest, AutoCorrelation):
 
 class Characterize(object):
     """
-    Analyse a time series data and get drift and diffusion plots.
+    Intialize a PyDaddy object for further analysis.
 
     Args
     ----
     data : list
-        time series data to be analysed, data = [x] for scalar data and data = [x1, x2] for vector
+        Time series data to be analysed. data = [x] for scalar data and data = [x1, x2] for vector
         where x, x1 and x2 are of numpy.array object type
+
     t : float, array, optional(default=1.0)
-        float if its time increment between observation
+        t can be either a float representing the time-interval between observations, or a numpy array containing the
+        time-stamps of the individual observations (Note: PyDaddy only supports uniformly spaced time-series, even when
+        time-stamps are provided).
 
-        numpy.array if time stamp of time series
-    Dt : int,'auto', optional(default='auto')
-        time scale for drift
+    bins : int, optional(default=20)
+        Number of bins for computing bin-wise averages of drift and diffusion (Binwise averages are used
+        only for visualization.)
+    show_summary : bool, optional(default=True)
+        If true, a summary text and summary figure will be shown.
 
-        if 'auto' time scale is decided based of drift order.
+    Dt : int, optional(default=1)
+        Subsampling factor for drift computation. When provided, the time-series will be sub-sampled by this factor
+        while computing drift.
     dt : int, optional(default=1)
-        time scale for difusion
+        Subsampling factor for diffusion computation. When provided, the time-series will be sub-sampled by this factor
+        while computing diffusion.
     inc : float, optional(default=0.01)
-        increment in order parameter for scalar data
+        For scalar data, instead of specifying `bins`, the widths (increments) of the bins can also be provided.
     inc_x : float, optional(default=0.1)
-        increment in order parameter for vector data x1
+        For vector data, instead of specifying `bins`, the widths (increments) of the bins can also be provided.
+        inc_x is the increment in the x-dimension.
     inc_y : float, optional(default=0.1)
-        increment in order parameter for vector data x2
-    fft : bool, optional(default=True)
-        if true use fft method to calculate autocorrelation else, use standard method
-    slider_timescales : list, optional(default=None)
-        List of timescale values to include in slider.
+        For vector data, instead of specifying `bins`, the widths (increments) of the bins can also be provided.
+        inc_y is the increment in the y-dimension.
     n_trials : int, optional(default=1)
         Number of trials, concatenated timeseries of multiple trials is used.
-    show_summary : bool, optional(default=True)
-        print data summary and show summary chart.
 
-    **kwargs
-        all the parameters for inherited methods.
-
-    returns
+    Returns
     -------
     output : pydaddy.daddy.Daddy
-        object to access the analysed data, parameters, plots and save them.
+        Daddy object which can be used for further analysis and visualization. See :class:`pyaddy.daddy.Daddy` for
+        details.
     """
 
     def __new__(
