@@ -368,7 +368,7 @@ def _load_sample_data(data_path):
 
 def load_sample_dataset(name):
     r"""
-    Load sample data set provided.
+    Load one of the sample datasets. For more details on the datasets, see :ref:`sample datasets`.
 
     Available data sets:
 

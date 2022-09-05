@@ -1,5 +1,5 @@
-API Documentation
-=================
+Package Documentation
+=====================
 
 pydaddy.Characterize
 --------------------

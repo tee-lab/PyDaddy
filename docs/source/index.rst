@@ -25,8 +25,8 @@ Get Started
 -----------
 
 * To take PyDaddy for a walk, see the :ref:`tutorial notebooks <tutorials>`. The notebooks can be executed online on Google Colab; no installation is necessary!
-* To install PyDaddy on your system, see :ref:`installation instructions <installation>`.
-* See the :ref:`usage guide <usage>` and :ref:`advanced usage tips` for detailed instructions and tips on how to use PyDaddy.
+* To install PyDaddy on your system, see :ref:`installation instructions <installation guide>`.
+* See the :ref:`usage guide <usage guide>` and :ref:`advanced usage tips <usage tips>` for detailed instructions and tips on how to use PyDaddy.
 
 Citation
 --------

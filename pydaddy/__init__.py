@@ -19,9 +19,9 @@ If not, see <https://www.gnu.org/licenses/>.
 
 __title__ = "pydaddy"
 __name__ = "pydaddy"
-__author__ = "Ashwin Karichannavar, (e-mail: ashwinkk.23@gmail.com)"
+__author__ = "Ashwin Karichannavar, Arshed Nabeel"
 __license__ = "GNU General Public License v3.0"
-__copyright__ = "Copyright (C) 2020 Theoritical Evolution and Ecology Lab (TEE Lab), IISc, Bengaluru"
+__copyright__ = "Copyright (C) 2022 Theoritical Evolution and Ecology Lab (TEE Lab), IISc, Bengaluru"
 __version__ = '0.1.5'
 
 from pydaddy.sde import SDE

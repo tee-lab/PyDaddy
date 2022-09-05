@@ -127,7 +127,8 @@ class Daddy(Preprocessing, Visualize):
 
     def export_data(self, filename=None, raw=False):
         """
-        Returns a pandas dataframe containing the drift and diffusion values.
+        Returns a pandas dataframe containing the drift and diffusion values. Optionally, the data is also saved
+        as a CSV file.
 
         Args
         ----
@@ -139,7 +140,7 @@ class Daddy(Preprocessing, Visualize):
 
         Returns
         -------
-        df : Pandas dataframe containing the estimated drift and diffusion coefficients.
+        DataFrame: Pandas dataframe containing the estimated drift and diffusion coefficients.
 
         """
 
@@ -190,7 +191,7 @@ class Daddy(Preprocessing, Visualize):
         else:
             return df
 
-    def data(self, drift_time_scale=None, diff_time_scale=None):
+    def _data(self, drift_time_scale=None, diff_time_scale=None):
         """
         Get the drift, diffusion and order parameter data for any timescale the analysis is done.
 
@@ -218,7 +219,7 @@ class Daddy(Preprocessing, Visualize):
         driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
         return Data(driftX, driftY, diffX, diffY, diffXY, diffYX, self._data_op_x, self._data_op_y)
 
-    def plot_data(self,
+    def _plot_data(self,
                   data_in,
                   ax=None,
                   clear=False,
@@ -646,7 +647,7 @@ class Daddy(Preprocessing, Visualize):
             return fig
         return None
 
-    def timeseries(self,
+    def _timeseries(self,
                    start=0,
                    end=1000,
                    n_ticks=3,
@@ -719,7 +720,7 @@ class Daddy(Preprocessing, Visualize):
         plt.show()
         return fig
 
-    def histogram(self,
+    def _histogram(self,
                   kde=False,
                   heatmap=False,
                   dpi=150,
@@ -749,23 +750,40 @@ class Daddy(Preprocessing, Visualize):
             plots' axis and title text
 
             For scalar analysis histograms:
+
                 hist_title : title
+
                 hist_xlabel : x label
+
                 hist_ylabel : y label
 
+
             For vector analysis histograms:
+
                 hist1_title : first histogram title
+
                 hist1_xlabel : first histogram x label
+
                 hist1_ylabel : first histogram y label
+
                 hist2_title : second histogram title
+
                 hist2_xlabel : second histogram x label
+
                 hist2_ylabel : second histogram y label
+
                 hist3_title : third histogram title
+
                 hist3_xlabel : third histogram x label
+
                 hist3_ylabel : third histogram y label
+
                 hist4_title : fourth (3d) histogram title
+
                 hist4_xlabel : fourth (3d) histogram x label
+
                 hist4_ylabel : fourth (3d) histogram y label
+
                 hist4_zlabel : fourth (3d) histogram z label
 
         Returns
@@ -827,7 +845,9 @@ class Daddy(Preprocessing, Visualize):
 
     def drift(self, limits=None, polar=False, slider_timescales=None, **plot_text):
         """
-        Show an interactive figure of the drift function
+        Show an interactive figure of the drift function. The bin-wise averaged estimates of the drift will be shown.
+        If a polynomial has already been fitted with fit() function, a line (scalar)/surface (vector) plot of the
+        fitted function will also be shown.
 
         Args
         ----
@@ -839,8 +859,9 @@ class Daddy(Preprocessing, Visualize):
             If True, plot the drift function only within a unit circle. Useful to get a better visualization in
             situations where \|M\| has an upper bound. (Used only in vector case).
 
-        **plot_text:
-            plots' axis and text label
+        **plot_text: dict:
+            To customize the captions, labels and layout of the plot, plot parameters can be passed as a dict. Available
+            options are diven below:
 
             For scalar analysis
                 x_lable : x axis label
@@ -864,9 +885,6 @@ class Daddy(Preprocessing, Visualize):
 
                 z_label2 : second plot z label
 
-        Returns
-        -------
-        opens drift slider : None
         """
 
         self._update_slider_data(slider_timescales)
@@ -884,7 +902,9 @@ class Daddy(Preprocessing, Visualize):
 
     def diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
-        Show an interactive figure of the diffusion function.
+        Show an interactive figure of the diffusion function. The bin-wise averaged estimates of the drift will be shown.
+        If a polynomial has already been fitted with fit() function, a line (scalar)/surface (vector) plot of the
+        fitted function will also be shown.
 
         Args
         ----
@@ -896,9 +916,32 @@ class Daddy(Preprocessing, Visualize):
             If True, plot the diffusion function only within a unit circle. Useful to get a better visualization in
             situations where \|M\| has an upper bound. (Used only in vector case).
 
-        Returns
-        -------
-        opens diffusion slider : None
+        **plot_text: dict:
+            To customize the captions, labels and layout of the plot, plot parameters can be passed as a dict. Available
+            options are diven below:
+
+            For scalar analysis
+                x_lable : x axis label
+
+                y_label : y axis label
+
+            For vector analysis
+                title1 : first plot title
+
+                x_label1 : first plot x label
+
+                y_label1 : first plot y label
+
+                z_label1 : first plot z label
+
+                title2 : second plot title
+
+                x_label2 : second plot x label
+
+                y_label2 : seocnd plot y label
+
+                z_label2 : second plot z label
+
         """
 
         self._update_slider_data(slider_timescales)
@@ -916,7 +959,10 @@ class Daddy(Preprocessing, Visualize):
 
     def cross_diffusion(self, slider_timescales=None, limits=None, polar=False, **plot_text):
         """
-        Display diffusion cross correlation slider figure (only for vector data)
+        Show an interactive figure of the cross-diffusion function (only for vector data).
+        The bin-wise averaged estimates of the drift will be shown.
+        If a polynomial has already been fitted with fit() function, a line (scalar)/surface (vector) plot of the
+        fitted function will also be shown.
 
         Args
         ----
@@ -925,12 +971,35 @@ class Daddy(Preprocessing, Visualize):
             when there are outliers.
 
         polar: bool, (default=False):
-            If True, plot the cross diffusion function only within a unit circle. Useful to get a better visualization in
-            situations where \|M\| has an upper bound. (Used only in vector case).
+            If True, plot the cross diffusion function only within a unit circle. Useful to get a better visualization
+            in situations where \|M\| has an upper bound. (Used only in vector case).
 
-        Returns
-        -------
-        opens diffusion slider : None
+        **plot_text: dict:
+            To customize the captions, labels and layout of the plot, plot parameters can be passed as a dict. Available
+            options are diven below:
+
+            For scalar analysis
+                x_lable : x axis label
+
+                y_label : y axis label
+
+            For vector analysis
+                title1 : first plot title
+
+                x_label1 : first plot x label
+
+                y_label1 : first plot y label
+
+                z_label1 : first plot z label
+
+                title2 : second plot title
+
+                x_label2 : second plot x label
+
+                y_label2 : seocnd plot y label
+
+                z_label2 : second plot z label
+
         """
 
         if not self.vector:
@@ -952,7 +1021,7 @@ class Daddy(Preprocessing, Visualize):
         fig.show()
         return None
 
-    def visualize(self, drift_time_scale=None, diff_time_scale=None):
+    def _visualize(self, drift_time_scale=None, diff_time_scale=None):
         """
         Display drift and diffusion plots for a time scale.
 
@@ -1076,7 +1145,7 @@ class Daddy(Preprocessing, Visualize):
           - Distribution (1D or 2D histogram) of the residuals, and their QQ-plots against a theoretically expected
             Gaussian. The residual distribution is expected to be a Gaussian.
           - Autocorrelation of the residuals. The autocorrelation time should be close to 0.
-          - Plot of the 2nd versus 4th jump moments. This plot should be a straight line.
+          - Plot of the 2nd versus 4th jump moments. This plot should be a straight line. (Only for scalar data.)
 
         Args
         ----
@@ -1215,7 +1284,7 @@ class Daddy(Preprocessing, Visualize):
             plt.tight_layout()
             plt.show()
 
-    def fit_diagnostics(self):
+    def _fit_diagnostics(self):
         """
         Show diagnostics about the quality of the fit.
         Shows the fitted functions (along with confidence intervals for each coefficient), and the adjusted R-squared

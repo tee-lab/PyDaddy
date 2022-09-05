@@ -69,4 +69,4 @@ Create a new notebook and import PyDaddy as follows.
 
     import pydaddy
 
-You should be able to use all features of PyDaddy in the notebook. See the :ref:`tutorials <tutorials>` or :ref:`API documentation <api>` for more details on available functionality.
+You should be able to use all features of PyDaddy in the notebook. See the :ref:`tutorials <tutorials>` or :ref:`package documentation <package documentation>` for more details on available functionality.
