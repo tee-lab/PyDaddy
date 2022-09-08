@@ -219,7 +219,7 @@ class Daddy(Preprocessing, Visualize):
         driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
         return Data(driftX, driftY, diffX, diffY, diffXY, diffYX, self._data_op_x, self._data_op_y)
 
-    def _plot_data(self,
+    def _plot_data_(self,
                   data_in,
                   ax=None,
                   clear=False,
@@ -485,7 +485,7 @@ class Daddy(Preprocessing, Visualize):
             def G(x, t):
                 return np.sqrt(np.abs(self.G(x)))
 
-            x = sdeint.itoEuler(f=F, G=G, y0=x0, tspan=tspan)
+            x = sdeint.itoSRI2(f=F, G=G, y0=x0, tspan=tspan)
 
         return x
 
@@ -1198,7 +1198,8 @@ class Daddy(Preprocessing, Visualize):
         ----
         loc: tuple, (default=None)
             The residual distribution is computed within a bin; (0, 0) by default. To compute the residual distribution
-            in a different bin, specify the location of the bin as a tuple of floats.
+            in a different bin, specify the location of the bin as a tuple of floats. If loc='mode' is passed, the mode
+            of the data distribution is used.
         """
 
         if self.vector:
@@ -1217,14 +1218,16 @@ class Daddy(Preprocessing, Visualize):
             )
 
             if loc is None:
+                loc = (0, 0)
+            elif loc == 'mode':
                 H, edges = np.histogramdd([X, Y], bins=[op_x, op_y])
                 idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
                 loc = [op_x[idx_x], op_y[idx_y]]
 
             noise_dist_x = res_x[
-                (loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
+                (loc[0] - inc_x <= X[:-Dt]) & (X[:-Dt] < loc[0]) & (loc[1] - inc_y <= Y[:-Dt]) & (Y[:-Dt] < loc[1])]
             noise_dist_y = res_y[
-                (loc[0] <= X[:-Dt]) & (X[:-Dt] < loc[0] + inc_x) & (loc[1] <= Y[:-Dt]) & (Y[:-Dt] < loc[1] + inc_y)]
+                (loc[0] - inc_x <= X[:-Dt]) & (X[:-Dt] < loc[0]) & (loc[1] - inc_y <= Y[:-Dt]) & (Y[:-Dt] < loc[1])]
             noise_corr = np.ma.corrcoef([np.ma.masked_invalid(noise_dist_x),
                                          np.ma.masked_invalid(noise_dist_y)])
 
@@ -1286,6 +1289,8 @@ class Daddy(Preprocessing, Visualize):
                                                         )
 
             if loc is None:
+                loc = 0
+            elif loc == 'mode':
                 H, edges = np.histogram(X, bins=op)
                 loc = op[H.argmax()]
 

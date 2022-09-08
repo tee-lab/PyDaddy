@@ -2,40 +2,40 @@ Tutorials
 =========
 
 .. |colab-getting-started| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/master/notebooks/1%20-%20Getting%20Started.ipynb
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/1_getting_started.ipynb
 
 .. |github-getting-started| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
-    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/1%20-%20Getting%20Started.ipynb
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/1_getting_started.ipynb
 
 .. |colab-vector| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/master/notebooks/2%20-%20Getting%20Started%20with%20Vector%20Data.ipynb
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/2_getting_started_vector.ipynb
 
 .. |github-vector| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
-    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/2%20-%20Getting%20Started%20with%20Vector%20Data.ipynb
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/2_getting_started_vector.ipynb
 
 .. |colab-advanced-fitting| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/master/notebooks/3%20-%20Advanced%20Function%20Fitting.ipynb
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/3_advanced_function_fitting.ipynb
 
 .. |github-advanced-fitting| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
-    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/3%20-%20Advanced%20Function%20Fitting.ipynb
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/3_advanced_function_fitting.ipynb
 
 .. |colab-nonpoly-fitting| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/master/notebooks/4%20-%20Fitting%20non-polynomial%20functions.ipynb
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/6_non_poly_function_fitting.ipynb
 
 .. |github-nonpoly-fitting| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
-    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/4%20-%20Fitting%20non-polynomial%20functions.ipynb
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/6_non_poly_function_fitting.ipynb
 
 .. |colab-exporting| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/master/notebooks/5%20-%20Exporting%20Data.ipynb
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/5_exporting_data.ipynb
 
 .. |github-exporting| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
-    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/5%20-%20Exporting%20Data.ipynb
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/5_exporting_data.ipynb
 
 .. |colab-synthetic| image:: https://colab.research.google.com/assets/colab-badge.svg
-    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/master/notebooks/6%20-%20Recovering%20SDEs%20from%20simulated%20time%20series.ipynb
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/4_sdes_from_simulated_timeseries.ipynb
 
 .. |github-synthetic| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
-    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/6%20-%20Recovering%20SDEs%20from%20simulated%20time%20series.ipynb
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/4_sdes_from_simulated_timeseries.ipynb
 
 .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
 
