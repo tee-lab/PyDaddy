@@ -1,14 +1,16 @@
 
 # PyDaddy
-## Python Data Driven Dynamics
+
 A Python package to discover stochastic differential equations from time series data.
 
 [![Documentation Status](https://readthedocs.org/projects/pydaddy/badge/?version=latest)](https://pydaddy.readthedocs.io/en/latest/?badge=latest) [![](https://img.shields.io/github/license/tee-lab/PyDaddy) ](https://github.com/tee-lab/PyDaddy/blob/master/LICENSE.txt)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/tee-lab/PyDaddy.git/master?filepath=notebooks) [![](https://img.shields.io/badge/arXiv-preprint-red)](https://arxiv.org/abs/2205.02645)
 
-PyDaddy is a comprehensive and easy to use python package to discover data-derived stochastic differential equations from time series data. PyDaddy takes the time series of state variable $x$, scalar or 2-dimensional vector, as input and discovers an SDE of the form:
-$ \frac{dx}{dt} = f(x) + g(x) \cdot \eta(t) $
 
-where $\eta(t)$ is uncorrelated white noise. The function $f$ is called the _drift_, and governs the deterministic part of the dynamics. $g^2$ is called the _diffusion_ and governs the stochastic part of the dynamics.
+PyDaddy is a comprehensive and easy to use python package to discover data-derived stochastic differential equations from time series data. PyDaddy takes the time series of state variable $x$, scalar or 2-dimensional vector, as input and discovers an SDE of the form:
+
+$$ \frac{dx}{dt} = f(x) + g(x) \cdot \eta(t) $$
+
+where $\eta(t)$ is Gaussian white noise. The function $f$ is called the _drift_, and governs the deterministic part of the dynamics. $g^2$ is called the _diffusion_ and governs the stochastic part of the dynamics.
 
 | ![](./resources/PyDaddyExample.jpg?raw=True) |
 | :---: |
