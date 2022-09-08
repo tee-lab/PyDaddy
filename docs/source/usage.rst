@@ -6,7 +6,7 @@ There are multiple ways to use PyDaddy, and this page gives an overview of all o
 PyDaddy on Google Colab
 -----------------------
 
-You can run PyDaddy on `Google Colab <https://colab.research.google.com>`_ notebooks, without having to install anything on your system. The :ref:`tutorial notebooks <tutorials>` have links to open them directly on Colab.
+Colab is a free Jupyter notebook environment, by Google, hosted entirely in the cloud. You can run PyDaddy on `Google Colab <https://colab.research.google.com>`_ notebooks, without having to install anything on your system. The :ref:`tutorial notebooks <tutorials>` have links to open them directly on Colab. (You will need a Google login)
 
 To use PyDaddy from *any* Colab notebook, enter the following line to a cell and run it. This command sets up PyDaddy on the notebook's environment.
 
