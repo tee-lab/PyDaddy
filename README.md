@@ -8,7 +8,7 @@ A Python package to discover stochastic differential equations from time series 
 
 PyDaddy is a comprehensive and easy to use python package to discover data-derived stochastic differential equations from time series data. PyDaddy takes the time series of state variable $x$, scalar or 2-dimensional vector, as input and discovers an SDE of the form:
 
-$ \frac{dx}{dt} = f(x) + g(x) \cdot \eta(t) $
+$$ \frac{dx}{dt} = f(x) + g(x) \cdot \eta(t) $$
 
 where $\eta(t)$ is Gaussian white noise. The function $f$ is called the _drift_, and governs the deterministic part of the dynamics. $g^2$ is called the _diffusion_ and governs the stochastic part of the dynamics.
 
