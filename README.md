@@ -28,8 +28,11 @@ PyDaddy is available both on PyPI and Anaconda Cloud, and can be installed on an
 ### Using pip
 ![PyPI](https://img.shields.io/pypi/v/pydaddy?color=blue) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/pydaddy) ![PyPI - Status](https://img.shields.io/pypi/status/pydaddy)
 
+To install the latest stable release version of PyDaddy, use:
+
 	pip install pydaddy
-or
+
+To install the latest development version of PyDaddy, use:
 
     pip install git+https://github.com/tee-lab/PyDaddy.git
 
@@ -39,13 +42,6 @@ or
 To install using `conda`, [Anaconda](https://www.anaconda.com) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) need to be installed first. Once this is done, use the following command.
 
     conda install -c tee-lab pydaddy
-
-### Manual installation
-Alternatively, the package can also be installed by cloning/downloading the git repository and running setup.py file.
-
-    git clone https://github.com/tee-lab/PyDaddy.git
-    cd PyDaddy
-    python setup.py install
     
 <!---
    *Click [here](https://github.com/tee-lab/PyDaddy/archive/master.zip) to download source repository zip file.*

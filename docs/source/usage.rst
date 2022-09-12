@@ -37,11 +37,12 @@ To use PyDaddy in this mode, use the following command:
 
 ::
 
-    pydaddy <file-name> --column_format 'x y t'
+    pydaddy <file-name> --column_format xyt
 
-Replace :code:`<file-name>` with the name of the CSV file containing the data to be analyzed. The CSV file should contain the one or two data columns and one optional time-stamp column. The columns could be in any order; and the column order can be speficied using the --column_format option. If time-stamp column is not present, the sampling interval can be provided using the '-t' option.
+Replace :code:`<file-name>` with the name of the CSV file containing the data to be analyzed. The CSV file should contain the one or two data columns and one optional time-stamp column. The columns could be in any order; and the column order can be speficied using the :code:`--column_format` option as shown above. (For example, if the time-stamp column comes first followed by the x and y columns, the column format should be :code:`txy`.)
+If time-stamp column is not present, the sampling interval can be provided using the :code:`-t` option.
 
-For more details about other options and flag, use
+For more details about other options and flags, use
 
 ::
 
