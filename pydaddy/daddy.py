@@ -1407,9 +1407,9 @@ class Daddy(Preprocessing, Visualize):
         ----
 
         oversample: int, (default=1)
-            Factor by which to oversample while simulating the SDE. The SDE will be simulated at `t_int / oversample`
-            and then sampled to `t_int`. This is useful when `t_int` is large enough to cause large errors in the SDE
-            simulation.
+            Factor by which to oversample while simulating the SDE. If provided, the SDE will be simulated at
+            `t_int / oversample` and then subsampled to `t_int`. This is useful when `t_int` is large enough to cause
+            large errors in the SDE simulation.
 
         The following are plotted:
           - Histogram of the original time series overlaid with that of the simulated time series.
