@@ -10,7 +10,7 @@ import pandas as pd
 from scipy.stats import skew, kurtosis
 from scipy.linalg import cholesky, sqrtm, LinAlgError
 import seaborn as sns
-import sdeint
+#import sdeint
 
 import pydaddy
 from pydaddy.preprocessing import Preprocessing
@@ -436,6 +436,15 @@ class Daddy(Preprocessing, Visualize):
         x : Simulated timeseries with  `timepoints` timepoints.
 
         """
+
+        try:
+            sdeint = __import__('sdeint')
+        except ModuleNotFoundError:
+            print("Package sdeint not found")
+            print("Please install sdeint using using:")
+            print("python -m pip install sdeint")
+            return None
+
 
         tspan = np.arange(0, t_int * timepoints, step=t_int)
 
@@ -1398,6 +1407,14 @@ class Daddy(Preprocessing, Visualize):
           - Histogram of the original time series overlaid with that of the simulated time series.
           - Drift and diffusion of the original time series overlaid with that of the simulated time series.
         """
+
+        try:
+            sdeint = __import__('sdeint')
+        except ModuleNotFoundError:
+            print("Package sdeint not found")
+            print("Please install sdeint using using:")
+            print("python -m pip install sdeint")
+            return None
 
         if self.vector:
             print('Generating simulated timeseries ...')

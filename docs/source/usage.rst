@@ -6,13 +6,14 @@ There are multiple ways to use PyDaddy, and this page gives an overview of all o
 PyDaddy on Google Colab
 -----------------------
 
-Colab is a free Jupyter notebook environment, by Google, hosted entirely in the cloud. You can run PyDaddy on `Google Colab <https://colab.research.google.com>`_ notebooks, without having to install anything on your system. The :ref:`tutorial notebooks <tutorials>` have links to open them directly on Colab. (You will need a Google login)
+The easiest way to get started with PyDaddy is using Google Colaboratory (also called Colab).
+Colab is a free Jupyter notebook environment, by Google, hosted entirely in the cloud. You can run PyDaddy on `Google Colab <https://colab.research.google.com>`_ notebooks, without having to install anything on your system. The :ref:`tutorial notebooks <tutorials>` have links to open them directly on Colab. (Note that you will need a Google login.)
 
 To use PyDaddy from *any* Colab notebook, enter the following line to a cell and run it. This command sets up PyDaddy on the notebook's environment.
 
 ::
 
-    !pip install git+https://github.com/tee-lab/PyDaddy.git
+    %pip install git+https://github.com/tee-lab/PyDaddy.git
 
 .. note::
 
@@ -36,11 +37,12 @@ To use PyDaddy in this mode, use the following command:
 
 ::
 
-    pydaddy <file-name> --column_format 'x y t'
+    pydaddy <file-name> --column_format xyt
 
-Replace :code:`<file-name>` with the name of the CSV file containing the data to be analyzed. The CSV file should contain the one or two data columns and one optional time-stamp column. The columns could be in any order; and the column order can be speficied using the --column_format option. If time-stamp column is not present, the sampling interval can be provided using the '-t' option.
+Replace :code:`<file-name>` with the name of the CSV file containing the data to be analyzed. The CSV file should contain the one or two data columns and one optional time-stamp column. The columns could be in any order; and the column order can be speficied using the :code:`--column_format` option as shown above. (For example, if the time-stamp column comes first followed by the x and y columns, the column format should be :code:`txy`.)
+If time-stamp column is not present, the sampling interval can be provided using the :code:`-t` option.
 
-For more details about other options and flag, use
+For more details about other options and flags, use
 
 ::
 
@@ -48,7 +50,7 @@ For more details about other options and flag, use
 
 .. note::
 
-    Ideally, the one-line functionality should be used only for a quick preliminary analysis. In particular, the results of the function fitting may not be optimal and may contain spurious terms. For best results, use PyDaddy within a notebook or script to fine-tune the estimation procedure (see the `advanced function fitting tutorial <tutorials>`).
+    Ideally, the one-line functionality should be used only for a quick preliminary analysis. In particular, the results of the function fitting may not be optimal and may contain spurious terms. For best results, use PyDaddy within a notebook or script to fine-tune the estimation procedure (see the :ref:`advanced function fitting tutorial <tutorials>`).
 
 Python Interface
 ----------------
