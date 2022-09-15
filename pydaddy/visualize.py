@@ -830,35 +830,35 @@ class Visualize(Metrics):
         slider_texts = {
             'dt': {
                 'title1': 'Diffusion X',
-                'x_label1': 'x1',
-                'y_label1': 'x2',
+                'x_label1': 'x',
+                'y_label1': 'y',
                 'z_label1': 'G11',
 
                 'title2': 'Diffusion Y',
-                'x_label2': 'x1',
-                'y_label2': 'x2',
+                'x_label2': 'x',
+                'y_label2': 'y',
                 'z_label2': 'G22'},
 
             'Dt': {
                 'title1': 'Drift X',
-                'x_label1': 'x1',
-                'y_label1': 'x2',
+                'x_label1': 'x',
+                'y_label1': 'y',
                 'z_label1': 'F1',
 
                 'title2': 'Drift Y',
-                'x_label2': 'x1',
-                'y_label2': 'x2',
+                'x_label2': 'x',
+                'y_label2': 'y',
                 'z_label2': 'F2'},
 
             'c_dt': {
                 'title1': 'Diffusion XY',
-                'x_label1': 'x1',
-                'y_label1': 'x2',
+                'x_label1': 'x',
+                'y_label1': 'y',
                 'z_label1': 'G12',
 
                 'title2': 'Diffusion YX',
-                'x_label2': 'x1',
-                'y_label2': 'x2',
+                'x_label2': 'x',
+                'y_label2': 'y',
                 'z_label2': 'G21' }
         }
 
