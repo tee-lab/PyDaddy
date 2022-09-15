@@ -1396,12 +1396,20 @@ class Daddy(Preprocessing, Visualize):
                 y = self._ddsde._avgdiff_
                 self._print_function_diagnostics(self.G, x, y, name='Diffusion', symbol='G')
 
-    def model_diagnostics(self):
+    def model_diagnostics(self, oversample=1):
         """
         Perform model self-consistency diagnostics.
         Generates a simulated time series with the same length and sampling interval as the original time series,
         and re-estimates the drift and diffusion from the simulated time series. The re-estimated drift and diffusion
         should match the original estimates.
+
+        Args
+        ----
+
+        oversample: int, (default=1)
+            Factor by which to oversample while simulating the SDE. If provided, the SDE will be simulated at
+            `t_int / oversample` and then subsampled to `t_int`. This is useful when `t_int` is large enough to cause
+            large errors in the SDE simulation.
 
         The following are plotted:
           - Histogram of the original time series overlaid with that of the simulated time series.
@@ -1419,7 +1427,8 @@ class Daddy(Preprocessing, Visualize):
         if self.vector:
             print('Generating simulated timeseries ...')
             timepoints = self._data_Mx.shape[0]
-            x = self.simulate(t_int=self._ddsde.t_int, timepoints=timepoints)
+            x = self.simulate(t_int=self._ddsde.t_int / oversample, timepoints=timepoints * oversample)
+            x = x[:, ::oversample]
 
             print('Re-estimating drift and diffusion from simulated timeseries ...')
             ddsde = pydaddy.Characterize(data=x, t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
@@ -1508,7 +1517,9 @@ class Daddy(Preprocessing, Visualize):
         else:
             # Generate simulated time-series
             timepoints = self._data_X.shape[0]
-            x = self.simulate(t_int=self._ddsde.t_int, timepoints=timepoints)
+            x = self.simulate(t_int=self._ddsde.t_int / oversample, timepoints=timepoints * oversample)
+            x = x[::oversample]
+
 
             ddsde = pydaddy.Characterize(data=[x], t=self._ddsde.t_int, Dt=self.Dt, dt=self.dt, show_summary=False)
 
