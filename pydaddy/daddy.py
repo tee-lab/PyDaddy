@@ -661,10 +661,10 @@ class Daddy(Preprocessing, Visualize):
             data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self._data_drift_ebar, self._data_diff_ebar]
 
         else:
-            fields = ['x1 range', 'x1 mean',
-                      'x2 range', 'x2 mean',
-                      '|x| range', '|x| mean',
-                      'Autocorr time (x1, x2, |x^2|)',
+            fields = ['x range', 'x mean',
+                      'x range', 'x mean',
+                      '|m| range', '|m| mean',
+                      'Autocorr time (x, y, |m|^2)',
                       ]
 
             values = [self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
@@ -1478,8 +1478,8 @@ class Daddy(Preprocessing, Visualize):
             ax_g21 = fig.add_subplot(gs[2, 1], projection='3d')
 
             self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$x$ histogram')
-            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|x|$',
-                                     title='$|x|$ histogram')
+            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|\mathbf{m}|$',
+                                     title='$|\mathbf{m}|$ histogram')
 
             self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, None, None,
                                  label1='$\\rho_{x}$', label2='$\\rho_{y}$',
