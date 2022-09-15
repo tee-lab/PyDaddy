@@ -637,15 +637,15 @@ class Daddy(Preprocessing, Visualize):
             raise ValueError("'start' sould not be greater than 'end'")
 
         if not self.vector:
-            fields = ['M range', 'M mean',
-                      '|M| range', '|M| mean',
-                      'Autocorr time (M)', '(Dt, dt)',
+            fields = ['x range', 'x mean',
+                      '|x| range', '|x| mean',
+                      'Autocorr time (x)',
                       ]
 
             values = [self._get_data_range(self._data_X), round(np.nanmean(self._data_X), 3),
                       self._get_data_range(np.sqrt(self._data_X ** 2)),
                       round(np.nanmean(np.sqrt(self._data_X ** 2)), 3),
-                      self.autocorrelation_time, (self._ddsde.Dt, self._ddsde.dt),
+                      self.autocorrelation_time,
                       ]
             values = list(map(str, values))
             summary = []
@@ -661,10 +661,10 @@ class Daddy(Preprocessing, Visualize):
             data = [self._data_X, self._data_avgdrift, self._data_avgdiff, self._data_drift_ebar, self._data_diff_ebar]
 
         else:
-            fields = ['Mx range', 'Mx mean',
-                      'My range', 'My mean',
-                      '|M| range', '|M| mean',
-                      'Autocorr time (Mx, My, |M^2|)', '(Dt, dt)',
+            fields = ['x range', 'x mean',
+                      'x range', 'x mean',
+                      '|m| range', '|m| mean',
+                      'Autocorr time (x, y, |m|^2)',
                       ]
 
             values = [self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
@@ -672,7 +672,6 @@ class Daddy(Preprocessing, Visualize):
                       self._get_data_range(self._data_M),
                       round(np.nanmean(np.sqrt(self._data_Mx ** 2 + self._data_My ** 2)), 3),
                       (self._ddsde._act_mx, self._ddsde._act_my, self.autocorrelation_time),
-                      (self._ddsde.Dt, self._ddsde.dt)
                       ]
             values = list(map(str, values))
             summary = []
@@ -1118,13 +1117,13 @@ class Daddy(Preprocessing, Visualize):
             plt.xlim([min(self._data_X), max(self._data_X)])
             plt.xticks(np.linspace(min(self._data_X), max(self._data_X), 5))
             plt.ylabel('PDF')
-            plt.xlabel('M')
+            plt.xlabel('x')
 
             # Drift
             fig3 = plt.figure(dpi=150, figsize=(5, 5))
             plt.suptitle("Drift")
             plt.errorbar(self._data_op, drift, yerr=drift_ebar, fmt='o')
-            plt.xlabel('M')
+            plt.xlabel('x')
             plt.ylabel("F")
             plt.xlim([min(self._data_op), max(self._data_op)])
             plt.xticks(np.linspace(min(self._data_op), max(self._data_op), 5))
@@ -1136,17 +1135,17 @@ class Daddy(Preprocessing, Visualize):
             plt.errorbar(self._data_op, diff, yerr=diff_ebar, fmt='o')
             plt.xlim([min(self._data_op), max(self._data_op)])
             plt.xticks(np.linspace(min(self._data_op), max(self._data_op), 5))
-            plt.xlabel("M")
+            plt.xlabel("x")
             plt.ylabel('$G^{2}$')
 
         else:
             driftX, driftY, diffX, diffY, diffXY, diffYX = self._get_data_from_slider(drift_time_scale, diff_time_scale)
-            fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF', xlabel="$M_{x}$", tick_size=12,
+            fig1, _ = self._plot_3d_hisogram(self._data_Mx, self._data_My, title='PDF', xlabel="$x$", tick_size=12,
                                              label_size=12, title_size=12, r_fig=True)
 
             fig5, _ = self._plot_data(driftX,
                                       plot_plane=False,
-                                      title='Drift X',
+                                      title='Drift',
                                       z_label='$F_{1}(m)$',
                                       tick_size=12,
                                       label_size=14,
@@ -1154,7 +1153,7 @@ class Daddy(Preprocessing, Visualize):
 
             fig4, _ = self._plot_data(driftY,
                                       plot_plane=False,
-                                      title='Drift Y',
+                                      title='Drift',
                                       z_label='$F_{2}(m)$',
                                       tick_size=12,
                                       label_size=14,
@@ -1162,7 +1161,7 @@ class Daddy(Preprocessing, Visualize):
 
             fig3, _ = self._plot_data(diffX,
                                       plot_plane=False,
-                                      title='Diffusion X',
+                                      title='Diffusion',
                                       z_label='$G_{11}(m)$',
                                       tick_size=12,
                                       label_size=14,
@@ -1170,7 +1169,7 @@ class Daddy(Preprocessing, Visualize):
 
             fig2, _ = self._plot_data(diffY,
                                       plot_plane=False,
-                                      title='Diffusion Y',
+                                      title='Diffusion',
                                       z_label='$G_{22}(m)$',
                                       tick_size=12,
                                       label_size=14,
@@ -1178,7 +1177,7 @@ class Daddy(Preprocessing, Visualize):
 
             fig6, _ = self._plot_data(diffXY,
                                       plot_plane=False,
-                                      title='Diffusion XY',
+                                      title='Cross-Diffusion',
                                       z_label='$G_{12}(m)$',
                                       tick_size=12,
                                       label_size=14,
@@ -1186,7 +1185,7 @@ class Daddy(Preprocessing, Visualize):
 
             fig7, _ = self._plot_data(diffYX,
                                       plot_plane=False,
-                                      title='Diffusion YX',
+                                      title='Cross-Diffusion',
                                       z_label='$G_{21}(m)$',
                                       tick_size=12,
                                       label_size=14,
@@ -1269,13 +1268,13 @@ class Daddy(Preprocessing, Visualize):
             # Summary figures
             fig = plt.figure(figsize=(7, 7))
             gs = fig.add_gridspec(4, 2)
-            ax_2d = fig.add_subplot(gs[:2, 0], projection='3d')
+            ayd = fig.add_subplot(gs[:2, 0], projection='3d')
             ax_acf = fig.add_subplot(gs[:2, 1])
             ax_qqx = fig.add_subplot(gs[2:, 0])
             ax_qqy = fig.add_subplot(gs[2:, 1])
-            ax_corr = inset_axes(ax_2d, width='30%', height='39%', loc='upper left')
+            ax_corr = inset_axes(ayd, width='30%', height='39%', loc='upper left')
 
-            self._noise_plot_2d(ax_2d, noise_dist_x, noise_dist_y, title='Residual Distribution')
+            self._noise_plot_2d(ayd, noise_dist_x, noise_dist_y, title='Residual Distribution')
             self._matrix_plot(ax_corr, noise_corr)
             self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, act_x, act_y, title='Autocorrelation: $\\eta_x, \\eta_y$')
             self._qq_plot(ax_qqx, noise_dist_x, title='QQ Plot: $\\eta_x$')
@@ -1478,12 +1477,12 @@ class Daddy(Preprocessing, Visualize):
             ax_g12 = fig.add_subplot(gs[1, 2], projection='3d')
             ax_g21 = fig.add_subplot(gs[2, 1], projection='3d')
 
-            self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$M$ histogram')
-            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|M|$',
-                                     title='$|M|$ histogram')
+            self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$x$ histogram')
+            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|\mathbf{m}|$',
+                                     title='$|\mathbf{m}|$ histogram')
 
             self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, None, None,
-                                 label1='$\\rho_x$', label2='$\\rho_y$',
+                                 label1='$\\rho_{x}$', label2='$\\rho_{y}$',
                                  title='Autocorrelation')
 
             self._show_functions_2d(ax_f1, self.F1, F1hat, title='$F_{1}$')
