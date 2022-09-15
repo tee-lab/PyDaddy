@@ -68,7 +68,13 @@ Within IPython, type the following:
 
     import pydaddy
 
-If the installation was sucessful, the import command should work and throw no errors.
+If the installation was sucessful, the import command should work and throw no errors. Now type
+
+::
+
+    pydaddy.__version__
+
+This should print the current version number of PyDaddy.
 
 Congratulations, you have now successfully installed PyDaddy!
 
