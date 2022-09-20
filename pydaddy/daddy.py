@@ -662,9 +662,15 @@ class Daddy(Preprocessing, Visualize):
 
         else:
             fields = ['x range', 'x mean',
+<<<<<<< Updated upstream
                       'x range', 'x mean',
                       '|m| range', '|m| mean',
                       'Autocorr time (x, y, |m|^2)',
+=======
+                      'y range', 'y mean',
+                      '|(x, y)| range', '|(x, y)| mean',
+                      'Autocorr time (x, y, |(x, y)|^2)',
+>>>>>>> Stashed changes
                       ]
 
             values = [self._get_data_range(self._data_Mx), round(np.nanmean(self._data_Mx), 3),
@@ -1478,8 +1484,13 @@ class Daddy(Preprocessing, Visualize):
             ax_g21 = fig.add_subplot(gs[2, 1], projection='3d')
 
             self._show_histograms_2d(ax_mxmy, [self._data_Mx, self._data_My], x, title='$x$ histogram')
+<<<<<<< Updated upstream
             self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|\mathbf{m}|$',
                                      title='$|\mathbf{m}|$ histogram')
+=======
+            self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|\mathbf{x}|$',
+                                     title='$|\mathbf{x}|$ histogram')
+>>>>>>> Stashed changes
 
             self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, None, None,
                                  label1='$\\rho_{x}$', label2='$\\rho_{y}$',

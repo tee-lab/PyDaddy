@@ -86,7 +86,11 @@ class Visualize(Metrics):
             'timeseries1_legend2': '$y$',
             'timeseries2_title': '',
             'timeseries2_xlabel': 'Time index',
+<<<<<<< Updated upstream
             'timeseries2_ylabel': '$|\mathbf{m}|$',
+=======
+            'timeseries2_ylabel': '$|\mathbf{x}|$',
+>>>>>>> Stashed changes
 
             '2dhist1_title': '',
             '2dhist1_xlabel': '$x$',
@@ -97,7 +101,11 @@ class Visualize(Metrics):
             '2dhist2_ylabel': 'Frequency',
 
             '2dhist3_title': '',
+<<<<<<< Updated upstream
             '2dhist3_xlabel': '$|\mathbf{m}|$',
+=======
+            '2dhist3_xlabel': '$|\mathbf{x}|$',
+>>>>>>> Stashed changes
             '2dhist3_ylabel': 'Frequency',
 
             '3dhist_title': '',
@@ -312,7 +320,11 @@ class Visualize(Metrics):
 
             ac_axis.plot(lags, acf_x, label='$\\rho_{x}$')
             ac_axis.plot(lags, acf_y, color='r', label='$\\rho_{y}$')
+<<<<<<< Updated upstream
             ac_axis.plot(lags, acf_m, color='k', label='$\\rho_{|\mathbf{m}|^2}$')
+=======
+            ac_axis.plot(lags, acf_m, color='k', label='$\\rho_{|\mathbf{x}|^2}$')
+>>>>>>> Stashed changes
             ac_axis.legend()
             self._stylize_axes(ac_axis,
                                x_label=text['autocorr_xlabel'],
@@ -474,7 +486,11 @@ class Visualize(Metrics):
 
             'timeseries3_title': '',
             'timeseries3_xlabel': '',
+<<<<<<< Updated upstream
             'timeseries3_ylabel': '$|\mathbf{m}|$'
+=======
+            'timeseries3_ylabel': '$|\mathbf{x}|$'
+>>>>>>> Stashed changes
         }
         for k in plot_text.keys():
             if k not in text.keys():
@@ -548,7 +564,11 @@ class Visualize(Metrics):
             'hist2_ylabel': 'Frequency',
 
             'hist3_title': '',
+<<<<<<< Updated upstream
             'hist3_xlabel': '$|\mathbf{m}|$',
+=======
+            'hist3_xlabel': '$|\mathbf{x}|$',
+>>>>>>> Stashed changes
             'hist3_ylabel': 'Frequency',
 
             'hist4_title': '',
@@ -636,7 +656,11 @@ class Visualize(Metrics):
 
         ax[0].plot(lags, acfx, label='$\\sigma_{x}$')
         ax[0].plot(lags, acfy, label='$\\sigma_{y}$')
+<<<<<<< Updated upstream
         ax[0].plot(lags, acfm, label='$\\sigma_{|\mathbf{m}|^2}$')
+=======
+        ax[0].plot(lags, acfm, label='$\\sigma_{|\mathbf{x}|^2}$')
+>>>>>>> Stashed changes
 
         ax[1].plot(lags, ccf, label='$\\sigma_{x y}$')
         ax[1].set_ylim(ax[0].get_ylim())
