@@ -68,41 +68,49 @@ class Visualize(Metrics):
         text = {
             'timeseries_title': 'Time Series',
             'timeseries_xlabel': 'Time index',
-            'timeseries_ylabel': 'M',
+            'timeseries_ylabel': 'x',
             'hist_title': '',
-            'hist_xlabel': 'M',
+            'hist_xlabel': 'x',
             'hist_ylabel': 'Frequency',
             'drift_title': 'Drift',
-            'drift_xlabel': 'M',
+            'drift_xlabel': 'x',
             'drift_ylabel': 'F',
             'diffusion_title': 'Diffusion',
-            'diffusion_xlabel': 'M',
+            'diffusion_xlabel': 'x',
             'diffusion_ylabel': '$G$',
 
             'timeseries1_title': 'Time Series',
-            'timeseries1_ylabel': '$M_{x}, M_{y}$',
+            'timeseries1_ylabel': '$x, y$',
             'timeseries1_xlabel': '',
-            'timeseries1_legend1': '$M_{x}$',
-            'timeseries1_legend2': '$M_{y}$',
+            'timeseries1_legend1': '$x$',
+            'timeseries1_legend2': '$y$',
             'timeseries2_title': '',
             'timeseries2_xlabel': 'Time index',
-            'timeseries2_ylabel': '$|M|$',
+<<<<<<< Updated upstream
+            'timeseries2_ylabel': '$|\mathbf{m}|$',
+=======
+            'timeseries2_ylabel': '$|\mathbf{x}|$',
+>>>>>>> Stashed changes
 
             '2dhist1_title': '',
-            '2dhist1_xlabel': '$M_{x}$',
+            '2dhist1_xlabel': '$x$',
             '2dhist1_ylabel': 'Frequency',
 
             '2dhist2_title': '',
-            '2dhist2_xlabel': '$M_{y}$',
+            '2dhist2_xlabel': '$y$',
             '2dhist2_ylabel': 'Frequency',
 
             '2dhist3_title': '',
-            '2dhist3_xlabel': '$|M|$',
+<<<<<<< Updated upstream
+            '2dhist3_xlabel': '$|\mathbf{m}|$',
+=======
+            '2dhist3_xlabel': '$|\mathbf{x}|$',
+>>>>>>> Stashed changes
             '2dhist3_ylabel': 'Frequency',
 
             '3dhist_title': '',
-            '3dhist_xlabel': '$M_{x}$',
-            '3dhist_ylabel': '$M_{y}$',
+            '3dhist_xlabel': '$x$',
+            '3dhist_ylabel': '$y$',
             '3dhist_zlabel': 'Frequency',
 
             'autocorr_title': 'Autocorrelation',
@@ -111,33 +119,33 @@ class Visualize(Metrics):
             'autocorr_ylabel_2d': 'Autocorrelation ',
 
             'driftx_title': 'Drift X',
-            'driftx_xlabel': '$M_{x}$',
-            'driftx_ylabel': '$M_{y}$',
+            'driftx_xlabel': '$x$',
+            'driftx_ylabel': '$y$',
             'driftx_zlabel': '$F_{1}$',
 
             'drifty_title': 'Drift Y',
-            'drifty_xlabel': '$M_{x}$',
-            'drifty_ylabel': '$M_{y}$',
+            'drifty_xlabel': '$x$',
+            'drifty_ylabel': '$y$',
             'drifty_zlabel': '$F_{2}$',
 
             'diffusionx_title': 'Diffusion X',
-            'diffusionx_xlabel': '$M_{x}$',
-            'diffusionx_ylabel': '$M_{y}$',
+            'diffusionx_xlabel': '$x$',
+            'diffusionx_ylabel': '$y$',
             'diffusionx_zlabel': '$G_{11}$',
 
             'diffusiony_title': 'Diffusion Y',
-            'diffusiony_xlabel': '$M_{x}$',
-            'diffusiony_ylabel': '$M_{y}$',
+            'diffusiony_xlabel': '$x$',
+            'diffusiony_ylabel': '$y$',
             'diffusiony_zlabel': '$G_{22}$',
 
             'diffusionxy_title': 'Diffusion XY',
-            'diffusionxy_xlabel': '$M_{x}$',
-            'diffusionxy_ylabel': '$M_{y}$',
+            'diffusionxy_xlabel': '$x$',
+            'diffusionxy_ylabel': '$y$',
             'diffusionxy_zlabel': '$G_{12}$',
 
             'diffusionyx_title': 'Diffusion YX',
-            'diffusionyx_xlabel': '$M_{x}$',
-            'diffusionyx_ylabel': '$M_{y}$',
+            'diffusionyx_xlabel': '$x$',
+            'diffusionyx_ylabel': '$y$',
             'diffusionyx_zlabel': '$G_{21}$',
 
         }
@@ -163,7 +171,7 @@ class Visualize(Metrics):
                 np.linspace(min(np.nanmin(Mx), np.nanmin(My)), max(np.nanmax(Mx), np.nanmax(My)), n_ticks).round(2))
             self._stylize_axes(Mx_axis,
                                x_label=text['timeseries1_xlabel'],  # '',
-                               y_label=text['timeseries1_ylabel'],  # '$M_{x}, M_{y}$',
+                               y_label=text['timeseries1_ylabel'],  # '$x, y$',
                                title=text['timeseries1_title'],  # 'Time Series',
                                tick_size=tick_size,
                                title_size=title_size,
@@ -290,7 +298,7 @@ class Visualize(Metrics):
             # ticks = [str(i) + "K" for i in (np.array(distM_axis.get_yticks()) / 1000).round(1)]
             # distM_axis.set_yticklabels(ticks)
             self._stylize_axes(distM_axis,
-                               x_label=text['2dhist3_xlabel'],  # '|M|',
+                               x_label=text['2dhist3_xlabel'],  # '|x|',
                                y_label=text['2dhist3_ylabel'],  # 'Frequency',
                                title=text['2dhist3_title'],  # '',
                                tick_size=tick_size,
@@ -303,16 +311,20 @@ class Visualize(Metrics):
             pdf_axis = self._plot_3d_hisogram(Mx, My, ax=pdf_axis, title='', title_size=title_size, tick_size=tick_size,
                                               label_size=label_size, label_pad=label_pad)
 
-            # Autocorrelation of Mx, My and |M|
+            # Autocorrelation of Mx, My and |x|
             ac_axis = fig.add_subplot(gs[1, 0:2])
 
             lags, acf_x = self._ddsde._acf(Mx, t_lag=min(timeseries_end, len(Mx)))
             _, acf_y = self._ddsde._acf(My, t_lag=min(timeseries_end, len(My)))
             _, acf_m = self._ddsde._acf((Mx ** 2 + My ** 2), t_lag=min(timeseries_end, len(Mx)))
 
-            ac_axis.plot(lags, acf_x, label='$\\rho_{M_x}$')
-            ac_axis.plot(lags, acf_y, color='r', label='$\\rho_{M_y}$')
-            ac_axis.plot(lags, acf_m, color='k', label='$\\rho_{|M|^2}$')
+            ac_axis.plot(lags, acf_x, label='$\\rho_{x}$')
+            ac_axis.plot(lags, acf_y, color='r', label='$\\rho_{y}$')
+<<<<<<< Updated upstream
+            ac_axis.plot(lags, acf_m, color='k', label='$\\rho_{|\mathbf{m}|^2}$')
+=======
+            ac_axis.plot(lags, acf_m, color='k', label='$\\rho_{|\mathbf{x}|^2}$')
+>>>>>>> Stashed changes
             ac_axis.legend()
             self._stylize_axes(ac_axis,
                                x_label=text['autocorr_xlabel'],
@@ -344,7 +356,7 @@ class Visualize(Metrics):
             ax_ts.set_ylim(min(M_), max(M_))
             self._stylize_axes(ax_ts,
                                x_label=text['timeseries_xlabel'],  # 'Time Index',
-                               y_label=text['timeseries_ylabel'],  # '|M|',
+                               y_label=text['timeseries_ylabel'],  # '|x|',
                                title=text['timeseries_title'],  # 'Time Series',
                                tick_size=tick_size,
                                title_size=title_size,
@@ -364,11 +376,11 @@ class Visualize(Metrics):
 
             # TODO Autocorr
 
-            # Dist |M|
+            # Dist |x|
             sns.distplot(M, kde=kde, ax=ax_dist)
             # ax[1][0].set_xticks(np.linspace(min(M), max(M), 5))
             self._stylize_axes(ax_dist,
-                               x_label=text['hist_xlabel'],  # 'M',
+                               x_label=text['hist_xlabel'],  # 'x',
                                y_label=text['hist_ylabel'],  # 'Frequency',
                                title=text['hist_title'],  # '',
                                tick_size=tick_size,
@@ -462,19 +474,23 @@ class Visualize(Metrics):
         text = {
             'timeseries_title': 'Time Series',
             'timeseries_xlabel': 'Time Index',
-            'timeseries_ylabel': 'M',
+            'timeseries_ylabel': 'x',
 
             'timeseries1_title': 'Time Series',
             'timeseries1_xlabel': '',
-            'timeseries1_ylabel': '$M_{x}$',
+            'timeseries1_ylabel': '$x$',
 
             'timeseries2_title': '',
             'timeseries2_xlabel': '',
-            'timeseries2_ylabel': '$M_{y}$',
+            'timeseries2_ylabel': '$y$',
 
             'timeseries3_title': '',
             'timeseries3_xlabel': '',
-            'timeseries3_ylabel': '$|M|$'
+<<<<<<< Updated upstream
+            'timeseries3_ylabel': '$|\mathbf{m}|$'
+=======
+            'timeseries3_ylabel': '$|\mathbf{x}|$'
+>>>>>>> Stashed changes
         }
         for k in plot_text.keys():
             if k not in text.keys():
@@ -536,24 +552,28 @@ class Visualize(Metrics):
 
         text = {
             'hist_title': '',
-            'hist_xlabel': 'M',
+            'hist_xlabel': 'x',
             'hist_ylabel': 'Frequency',
 
             'hist1_title': '',
-            'hist1_xlabel': '$M_{x}$',
+            'hist1_xlabel': '$x$',
             'hist1_ylabel': 'Frequency',
 
             'hist2_title': '',
-            'hist2_xlabel': '$M_{y}$',
+            'hist2_xlabel': '$y$',
             'hist2_ylabel': 'Frequency',
 
             'hist3_title': '',
-            'hist3_xlabel': '$|M|$',
+<<<<<<< Updated upstream
+            'hist3_xlabel': '$|\mathbf{m}|$',
+=======
+            'hist3_xlabel': '$|\mathbf{x}|$',
+>>>>>>> Stashed changes
             'hist3_ylabel': 'Frequency',
 
             'hist4_title': '',
-            'hist4_xlabel': '$M_{x}$',
-            'hist4_ylabel': '$M_{y}$',
+            'hist4_xlabel': '$x$',
+            'hist4_ylabel': '$y$',
             'hist4_zlabel': 'Frequency'
         }
         for k in plot_text.keys():
@@ -634,11 +654,15 @@ class Visualize(Metrics):
     def _plot_autocorrelation_2d(self, lags, acfx, acfy, acfm, ccf):
         fig, ax = plt.subplots(2, 1, figsize=(8, 8))
 
-        ax[0].plot(lags, acfx, label='$\\sigma_{M_x}$')
-        ax[0].plot(lags, acfy, label='$\\sigma_{M_y}$')
-        ax[0].plot(lags, acfm, label='$\\sigma_{|M|^2}$')
+        ax[0].plot(lags, acfx, label='$\\sigma_{x}$')
+        ax[0].plot(lags, acfy, label='$\\sigma_{y}$')
+<<<<<<< Updated upstream
+        ax[0].plot(lags, acfm, label='$\\sigma_{|\mathbf{m}|^2}$')
+=======
+        ax[0].plot(lags, acfm, label='$\\sigma_{|\mathbf{x}|^2}$')
+>>>>>>> Stashed changes
 
-        ax[1].plot(lags, ccf, label='$\\sigma_{M_x M_y}$')
+        ax[1].plot(lags, ccf, label='$\\sigma_{x y}$')
         ax[1].set_ylim(ax[0].get_ylim())
 
         ax[0].legend()
@@ -785,7 +809,7 @@ class Visualize(Metrics):
         nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
         return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
 
-    def _plot_3d_hisogram(self, Mx, My, ax=None, title="PDF", xlabel="$M_{x}$", ylabel="$M_{y}$", zlabel="Frequency",
+    def _plot_3d_hisogram(self, Mx, My, ax=None, title="PDF", xlabel="$x$", ylabel="$y$", zlabel="Frequency",
                           tick_size=12, title_size=14, label_size=10, label_pad=12, r_fig=False, dpi=150):
         """
         Plot 3d bar plot
@@ -830,35 +854,35 @@ class Visualize(Metrics):
         slider_texts = {
             'dt': {
                 'title1': 'Diffusion X',
-                'x_label1': 'mx',
-                'y_label1': 'my',
+                'x_label1': 'x',
+                'y_label1': 'y',
                 'z_label1': 'G11',
 
                 'title2': 'Diffusion Y',
-                'x_label2': 'mx',
-                'y_label2': 'my',
+                'x_label2': 'x',
+                'y_label2': 'y',
                 'z_label2': 'G22'},
 
             'Dt': {
                 'title1': 'Drift X',
-                'x_label1': 'mx',
-                'y_label1': 'my',
+                'x_label1': 'x',
+                'y_label1': 'y',
                 'z_label1': 'F1',
 
                 'title2': 'Drift Y',
-                'x_label2': 'mx',
-                'y_label2': 'my',
+                'x_label2': 'x',
+                'y_label2': 'y',
                 'z_label2': 'F2'},
 
             'c_dt': {
                 'title1': 'Diffusion XY',
-                'x_label1': 'mx',
-                'y_label1': 'my',
+                'x_label1': 'x',
+                'y_label1': 'y',
                 'z_label1': 'G12',
 
                 'title2': 'Diffusion YX',
-                'x_label2': 'mx',
-                'y_label2': 'my',
+                'x_label2': 'x',
+                'y_label2': 'y',
                 'z_label2': 'G21' }
         }
 
@@ -1117,12 +1141,12 @@ class Visualize(Metrics):
         """
         slider_texts = {
             'Dt': {
-                'x_label': 'm',
-                'y_label': 'F1'
+                'x_label': 'x',
+                'y_label': 'F'
             },
             'dt': {
-                'x_label': 'm',
-                'y_label': 'F2'
+                'x_label': 'x',
+                'y_label': 'G'
             }
         }
         text = slider_texts[prefix]
@@ -1288,8 +1312,8 @@ class Visualize(Metrics):
     def _plot_data(self,
                    data_in,
                    title='title',
-                   x_label='$m_x$',
-                   y_label='$m_y$',
+                   x_label='$x$',
+                   y_label='$y$',
                    z_label='z',
                    zlim=None,
                    ax=None,
@@ -1590,8 +1614,8 @@ class Visualize(Metrics):
 
     @staticmethod
     def _acf_plot_multi(ax, acf1, acf2, lags, act1, act2,
-                        label1='Autocorr. $\\eta_x$',
-                        label2='Autocorr. $\\eta_y$', title=None):
+                        label1='Autocorr. $\\eta_{x}$',
+                        label2='Autocorr. $\\eta_{y}$', title=None):
         if act1 is not None and act2 is not None:
             lim = 10 * max(int(np.ceil(act1)), int(np.ceil(act2)))
         else:
@@ -1648,7 +1672,7 @@ class Visualize(Metrics):
         ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
         ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 
-        ax.set(xlabel='$M_x$', ylabel='$M_y$', title=title)
+        ax.set(xlabel='$x$', ylabel='$y$', title=title)
 
     @staticmethod
     def _show_functions_1d(ax, xs, f, fhat, ylabel, title):
@@ -1677,7 +1701,7 @@ class Visualize(Metrics):
         ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
         ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
 
-        ax.set(xlabel='$M_x$', ylabel='$M_y$', title=title)
+        ax.set(xlabel='$x$', ylabel='$y$', title=title)
         ax.legend()
 
 
