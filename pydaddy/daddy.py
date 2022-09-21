@@ -1462,8 +1462,11 @@ class Daddy(Preprocessing, Visualize):
                                alpha=self.fitters['G12'].alpha,
                                library=self.fitters['G12'].library)
 
-            lags, acf_x = self._ddsde._acf(x[0], t_lag=min(len(x[0]), 1000))
-            _, acf_y = self._ddsde._acf(x[1], t_lag=min(len(x[1]), 1000))
+            lags, acf_actual = self._ddsde._acf(self._data_M,
+                                                t_lag=min(len(x[0]), 1000))
+
+            lags, acf_est = self._ddsde._acf(np.sqrt(x[0] ** 2 + x[1] ** 2),
+                                             t_lag=min(len(x[0]), 1000))
 
             fig = plt.figure(figsize=(12, 12), dpi=100)
             gs = fig.add_gridspec(3, 3)
@@ -1481,9 +1484,9 @@ class Daddy(Preprocessing, Visualize):
             self._show_histograms_1d(ax_modm, self._data_M, np.sqrt(x[0] ** 2 + x[1] ** 2), xlabel='$|\mathbf{x}|$',
                                      title='$|\mathbf{x}|$ histogram')
 
-            self._acf_plot_multi(ax_acf, acf_x, acf_y, lags, None, None,
-                                 label1='$\\rho_{x}$', label2='$\\rho_{y}$',
-                                 title='Autocorrelation')
+            self._acf_plot_multi(ax_acf, acf_actual, acf_est, lags, None, None,
+                                 label1='Original', label2='Reestimated',
+                                 title='$|\mathbf{x}|$ autocorrelation')
 
             self._show_functions_2d(ax_f1, self.F1, F1hat, title='$F_{1}$')
             self._show_functions_2d(ax_f2, self.F2, F2hat, title='$F_{2}$')
