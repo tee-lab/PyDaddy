@@ -41,7 +41,7 @@ Tutorials
 
 .. |github| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
 
-The following tutorial notebooks will familiarize you with the various functionalities of PyDaddy. These notebooks can be executed on Google Colab by clicking the |colab| buttons (no installation required).
+The following tutorial notebooks will familiarize you with the various functionalities of PyDaddy. These notebooks can be executed on Google Colab by clicking the |colab| buttons (**no installation required**).
 
 .. note::
 
