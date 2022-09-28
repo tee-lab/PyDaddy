@@ -9,7 +9,7 @@ Anaconda: https://www.anaconda.com
 
 Minoconda: https://docs.conda.io/en/latest/miniconda.html
 
-https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html#anaconda-or-miniconda
+Some documentation on Anaconda vs Minoconda: https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html#anaconda-or-miniconda
 
 .. note::
     If you are comfortable working with Conda environments, we recommend creating a new environment for PyDaddy, but this is not strictly necessary. For more information about environments, see: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
