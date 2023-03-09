@@ -146,7 +146,7 @@ class Metrics:
 			dictionary[:, d] = x_ ** d
 
 		coeffs = np.zeros(deg + 1)
-		keep = np.ones_like(coeffs, dtype=np.bool)
+		keep = np.ones_like(coeffs, dtype=bool)
 		for it in range(maxiter):
 			if np.sum(keep) == 0:
 				warnings.warn('Sparsity threshold is too big, eliminated all parameters.')
