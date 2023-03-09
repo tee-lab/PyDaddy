@@ -149,12 +149,12 @@ class PolyFitBase:
         if self.library:
             dictionary = np.vstack([f(x) for f in self.library]).T
             coeffs = np.zeros(len(self.library))
-            keep = np.ones_like(coeffs, dtype=np.bool)
+            keep = np.ones_like(coeffs, dtype=bool)
             ispoly = False
         else:  # Default polynomial dictionary
             dictionary = self._get_poly_dictionary(x)
             coeffs = self._get_coeffs()
-            keep = np.ones_like(coeffs, dtype=np.bool)
+            keep = np.ones_like(coeffs, dtype=bool)
             ispoly = True
 
         maxiter = dictionary.shape[1]
