@@ -405,8 +405,8 @@ class SDE:
         avgdiffYX = np.zeros((len(op_x), len(op_y)))
 
         x_, y_ = x[0 : -max(Dt, dt)], y[0 : -max(Dt, dt)]
-        for m, bin_x in enumerate(op_y):
-            for n, bin_y in enumerate(op_x):
+        for m, bin_x in enumerate(op_x):
+            for n, bin_y in enumerate(op_y):
                 i = (bin_x <= x_) & (x_ <= bin_x + inc_x) & (bin_y <= y_) & (y_ <= bin_y + inc_y)
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore", category=RuntimeWarning)

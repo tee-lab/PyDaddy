@@ -200,6 +200,7 @@ class Visualize(Metrics):
                                              label_size=label_size,
                                              label_pad=label_pad)
 
+            # print(driftX)
             self._update_axis_range(driftX_axis, driftX, both=True)
             driftX_axis.set_title(text['driftx_title'], size=title_size, y=1.0)
 
@@ -782,7 +783,7 @@ class Visualize(Metrics):
         """
         Remove nan's from data
         """
-        nan_idx = (np.where(np.isnan(Mx)) and np.where(np.isnan(My)))
+        nan_idx = (np.isnan(Mx) | np.isnan(My))
         return np.array([np.delete(Mx, nan_idx), np.delete(My, nan_idx)])
 
     def _plot_3d_hisogram(self, Mx, My, ax=None, title="PDF", xlabel="$x$", ylabel="$y$", zlabel="Frequency",
