@@ -1611,13 +1611,15 @@ class Visualize(Metrics):
 
     @staticmethod
     def _km_plot(ax, km_2, km_4, title):
-        ax.plot([-1, 1], [-1, 1], color='k')
+        lb = np.nanmin([3 * (km_2 ** 2), km_4])
+        ub = np.nanmax([3 * (km_2 ** 2), km_4])
+        ax.plot([-lb, ub], [-lb, ub], color='k')
         # ax.axline(xy1=(0, 0), slope=1, color='k')
         ax.plot(3 * (km_2 ** 2), km_4, '.')
 
         ax.axis('equal')
         ax.set(xlabel='$3 \cdot K_2^2$', ylabel='$K_4$', title=title)
-        ax.set(xlim=[km_4.min(), km_4.max()], ylim=[km_4.min(), km_4.max()])
+        # ax.set(xlim=[lb, ub], ylim=[lb, ub])
         ax.set_yticks(ax.get_xticks())
 
     @staticmethod
