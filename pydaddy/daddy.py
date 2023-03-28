@@ -862,10 +862,10 @@ class Daddy(Preprocessing, Visualize):
                                     **plot_text)
         plt.show()
 
-    def autocorrelation(self):
+    def autocorrelation(self, lags=1000):
         """ Show the autocorrelation plot of the data. """
         if not self.vector:
-            lags, acf = self._ddsde._acf(self._data_X, min(1000, len(self._data_X)))
+            lags, acf = self._ddsde._acf(self._data_X, min(lags, len(self._data_X)))
             self._plot_autocorrelation_1d(lags, acf)
         else:
             lags, acfm = self._ddsde._acf(self._data_M ** 2, min(1000, len(self._data_M)))
@@ -1202,12 +1202,6 @@ class Daddy(Preprocessing, Visualize):
           - Autocorrelation of the residuals. The autocorrelation time should be close to 0.
           - Plot of the 2nd versus 4th jump moments. This plot should be a straight line. (Only for scalar data.)
 
-        Args
-        ----
-        loc: tuple, (default=None)
-            The residual distribution is computed within a bin; (0, 0) by default. To compute the residual distribution
-            in a different bin, specify the location of the bin as a tuple of floats. If loc='mode' is passed, the mode
-            of the data distribution is used.
         """
 
         if self.vector:
@@ -1289,26 +1283,24 @@ class Daddy(Preprocessing, Visualize):
             t_int = self._ddsde.t_int
             op = self._ddsde._op_
             avg_drift = self._ddsde._avgdrift_
-            residual = self._ddsde._residual_timeseries(X=X,
+            avg_diff = self._ddsde._avgdiff_
+            residual, diff_strength = self._ddsde._residual_timeseries(X=X,
                                                         Dt=Dt,
                                                         bins=op,
                                                         avg_drift=avg_drift,
+                                                        avg_diff=avg_diff,
                                                         t_int=t_int,
                                                         )
 
-            if loc is None:
-                loc = 0
-            elif loc == 'mode':
-                H, edges = np.histogram(X, bins=op)
-                loc = op[H.argmax()]
 
-            noise_distribution = residual[(loc <= X[:-Dt]) & (X[:-Dt] < loc + inc)]
+            noise_distribution = residual / np.sqrt(diff_strength)
+            # noise_distribution = residual[(loc <= X[:-Dt]) & (X[:-Dt] < loc + inc)]
 
-            if noise_distribution.size <= 1:
-                print(f'There are no data points near the specified location ({loc}).\n'
-                      f'Specify a different location using the loc argument, or use loc=None to use '
-                      f'the mode of the data distribution.')
-                return
+            # if noise_distribution.size <= 1:
+            #     print(f'There are no data points near the specified location ({loc}).\n'
+            #           f'Specify a different location using the loc argument, or use loc=None to use '
+            #           f'the mode of the data distribution.')
+            #     return
 
             # Compute residual autocorrelation
             lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))

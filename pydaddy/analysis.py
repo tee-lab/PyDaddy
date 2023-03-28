@@ -207,8 +207,9 @@ class UnderlyingNoise(SDE):
     # cond = (point <= x) & (x < point + inc_x) & (point <= y) & (point <= y + inc_y)
     # return noise[cond]
 
-    def _residual_timeseries(self, X, Dt, bins, avg_drift, t_int):
+    def _residual_timeseries(self, X, Dt, bins, avg_drift, avg_diff, t_int):
         res = (X[Dt:] - X[:-Dt])
+        diff_strength = np.zeros_like(res)
         for i, x in enumerate(X[:-Dt]):
             # Find bin-index corresponding to x: minimum i such that x < bins[i], assuming bins is sorted
             try:
@@ -216,8 +217,9 @@ class UnderlyingNoise(SDE):
             except IndexError:
                 bin = len(bins) - 1
             res[i] -= avg_drift[bin] * t_int
+            diff_strength[i] = avg_diff[bin]
 
-        return res / np.sqrt(t_int * Dt)
+        return res , diff_strength
 
     def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, inc_x, inc_y, avg_drift_x, avg_drift_y, t_int):
         res_x = X[Dt:] - X[:-Dt]
