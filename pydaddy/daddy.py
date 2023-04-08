@@ -1211,21 +1211,26 @@ class Daddy(Preprocessing, Visualize):
             t_int = self._ddsde.t_int
             op_x, op_y = self._ddsde._op_x_, self._ddsde._op_y_
             avg_drift_x, avg_drift_y = self._ddsde._avgdriftX_, self._ddsde._avgdriftY_
+            avg_diff_x, avg_diff_y, avg_diff_xy = self._ddsde._avgdiffX_, self._ddsde._avgdiffY_, self._ddsde._avgdiffXY_
+
             res_x, res_y = self._ddsde._residual_timeseries_vector(
                 X=X, Y=Y, Dt=Dt,
                 bins_x=op_x, bins_y=op_y,
                 inc_x=inc_x, inc_y=inc_y,
                 avg_drift_x=avg_drift_x, avg_drift_y=avg_drift_y,
+                avg_diff_x=avg_diff_x, avg_diff_y=avg_diff_y,
+                avg_diff_xy=avg_diff_xy,
                 t_int=t_int
             )
 
-            if loc is None:
-                loc = (0, 0)
-            elif loc == 'mode':
-                H, edges = np.histogramdd([X, Y], bins=[op_x, op_y])
-                idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
-                loc = [op_x[idx_x], op_y[idx_y]]
-
+            # noise_dist_x, noise_dist_y = res_x, res_y
+            # if loc is None:
+            #     loc = (0, 0)
+            # elif loc == 'mode':
+            #     H, edges = np.histogramdd([X, Y], bins=[op_x, op_y])
+            #     idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
+            #     loc = [op_x[idx_x], op_y[idx_y]]
+            #
             noise_dist_x = res_x[
                 (loc[0] - inc_x <= X[:-Dt]) & (X[:-Dt] < loc[0]) & (loc[1] - inc_y <= Y[:-Dt]) & (Y[:-Dt] < loc[1])]
             noise_dist_y = res_y[
@@ -1284,17 +1289,17 @@ class Daddy(Preprocessing, Visualize):
             op = self._ddsde._op_
             avg_drift = self._ddsde._avgdrift_
             avg_diff = self._ddsde._avgdiff_
-            residual, diff_strength = self._ddsde._residual_timeseries(X=X,
-                                                        Dt=Dt,
-                                                        bins=op,
-                                                        avg_drift=avg_drift,
-                                                        avg_diff=avg_diff,
-                                                        t_int=t_int,
-                                                        )
+            residual = self._ddsde._residual_timeseries(X=X,
+                                                         Dt=Dt,
+                                                         bins=op,
+                                                         avg_drift=avg_drift,
+                                                         avg_diff=avg_diff,
+                                                         t_int=t_int,
+                                                         )
 
 
-            noise_distribution = residual / np.sqrt(diff_strength)
-            # noise_distribution = residual[(loc <= X[:-Dt]) & (X[:-Dt] < loc + inc)]
+            # noise_distribution = residual
+            noise_distribution = residual[(loc <= X[:-Dt]) & (X[:-Dt] < loc + inc)]
 
             # if noise_distribution.size <= 1:
             #     print(f'There are no data points near the specified location ({loc}).\n'
@@ -1303,8 +1308,9 @@ class Daddy(Preprocessing, Visualize):
             #     return
 
             # Compute residual autocorrelation
-            lags, acf = self._ddsde._acf(residual, t_lag=min(100, len(residual)))
+            lags, acf = self._ddsde._acf(residual, t_lag=min(1000, len(residual)))
             (a, b, c), _ = self._ddsde._fit_exp(lags, acf)  # Fit a * exp(-t / b) + c
+            print(a, b, c)
             act = b
 
             # Compute 2nd and 4th Kramers-Moyal coefficients
@@ -1314,9 +1320,9 @@ class Daddy(Preprocessing, Visualize):
             km_2_avg = np.zeros(len(op))
             km_4_avg = np.zeros(len(op))
             X = X[:-1]
-            for i, b in enumerate(op):
-                km_2_avg[i] = np.nanmean(km_2[(b <= X) & (X < (b + inc))])
-                km_4_avg[i] = np.nanmean(km_4[(b <= X) & (X < (b + inc))])
+            for i, bin in enumerate(op):
+                km_2_avg[i] = np.nanmean(km_2[(bin <= X) & (X < (bin + inc))])
+                km_4_avg[i] = np.nanmean(km_4[(bin <= X) & (X < (bin + inc))])
 
             # Print summary data
             print('Noise statistics:')
@@ -1330,7 +1336,9 @@ class Daddy(Preprocessing, Visualize):
             fig, ax = plt.subplots(2, 2, figsize=(7, 7), dpi=100)
             self._noise_plot(ax[0, 0], noise_distribution, title='Residual Distribution')
             self._qq_plot(ax[0, 1], noise_distribution, title='QQ Plot')
-            self._acf_plot(ax[1, 0], acf, lags, a, b, c, act, title='Residual Autocorrelation')
+            self._acf_plot(ax[1, 0],
+                           acf=acf, lags=lags, a=a, b=b, c=c, act=act,
+                           title='Residual Autocorrelation')
             self._km_plot(ax[1, 1], km_2_avg, km_4_avg, title='KM Coefficients')
 
             plt.tight_layout()
@@ -1527,11 +1535,17 @@ class Daddy(Preprocessing, Visualize):
                              alpha=self.fitters['G'].alpha,
                              library=self.fitters['G'].library)
 
+            lags, acf1 = self._ddsde._acf(self._data_X, t_lag=min(1000, len(self._data_X)))
+            lags, acf2 = self._ddsde._acf(x.squeeze(), t_lag=min(1000, len(x.squeeze())))
+
             # xs = np.linspace(np.nanmin(self._data_X), np.nanmax(self._data_X), 100)
-            fig, ax = plt.subplots(1, 3, figsize=(12, 4), dpi=100)
-            self._show_histograms_1d(ax[0], self._data_X, x, xlabel='$x$', title='Histogram')
-            self._show_functions_1d(ax[1], self.op, self.F, Fhat, ylabel='F', title='Drift')
-            self._show_functions_1d(ax[2], self.op, self.G, Ghat, ylabel='G', title='Diffusion')
+            fig, ax = plt.subplots(2, 2, figsize=(8, 8), dpi=100)
+            self._show_histograms_1d(ax[0, 0], self._data_X, x, xlabel='$x$', title='Histogram')
+            self._acf_plot_multi(ax[0, 1], acf1, acf2, lags=lags,
+                                 label1='Original',
+                                 label2='Reestimated', title='Autocorrelation')
+            self._show_functions_1d(ax[1, 0], self.op, self.F, Fhat, ylabel='F', title='Drift')
+            self._show_functions_1d(ax[1, 1], self.op, self.G, Ghat, ylabel='G', title='Diffusion')
 
             print('Drift:')
             print(f'    Original: {self.F}')

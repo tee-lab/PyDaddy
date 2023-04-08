@@ -289,24 +289,46 @@ class SDE:
             else:
                 G = fitter.fit(X_, diff_)
         else:
-            diff = self._diffusion(X, t_int, dt=dt)
+            # r = self._residual_timeseries(X=X, dt=dt, bins=op, avg_drift, avg_diff, t_int)
+            # diff = self._diffusion(X, t_int, dt=dt)
             F = G = None
 
         drift_ebar = []
         diff_ebar = []
         drift_num = []
         diff_num = []
-        X = X[0 : -max(Dt, dt)]
+        X_ = X[0 : -max(Dt, dt)]
         for b in op:
-            i = np.where(np.logical_and(X < (b + inc), X >= b))[0]
+            i = np.where(np.logical_and(X_ < (b + inc), X_ >= b))[0]
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=RuntimeWarning)
+                # avgdiff.append(np.nanmean(diff[i]))
+                avgdrift.append(np.nanmean(drift[i]))
+                drift_ebar.append(np.nanstd(drift[i])/np.sqrt(len(drift[i])))
+                # diff_ebar.append(np.nanstd(diff[i])/np.sqrt(len(diff[i])))
+                drift_num.append(len(drift[i]))
+                # diff_num.append(len(diff[i]))
+
+        res = X.copy() #(X[Dt:] - X[:-Dt])
+        for i, x in enumerate(X):
+            # Find bin-index corresponding to x: minimum i such that x < bins[i], assuming bins is sorted
+            try:
+                bin = np.argwhere(x < op)[0][0]
+            except IndexError:
+                bin = len(op) - 1
+            res[i] -= avgdrift[bin] * t_int
+
+        diff = self._diffusion(res, t_int, dt=dt)
+
+        for b in op:
+            i = np.where(np.logical_and(X_ < (b + inc), X_ >= b))[0]
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=RuntimeWarning)
                 avgdiff.append(np.nanmean(diff[i]))
-                avgdrift.append(np.nanmean(drift[i]))
-            drift_ebar.append(np.nanstd(drift[i])/np.sqrt(len(drift[i])))
-            diff_ebar.append(np.nanstd(diff[i])/np.sqrt(len(diff[i])))
-            drift_num.append(len(drift[i]))
-            diff_num.append(len(diff[i]))
+                diff_ebar.append(np.nanstd(diff[i])/np.sqrt(len(diff[i])))
+                diff_num.append(len(diff[i]))
+
+
         # return diff, drift, np.array(avgdiff), np.array(avgdrift), op, drift_ebar, diff_ebar, drift_num, diff_num, F, G
         DD = namedtuple('DD', 'diff drift avgdiff avgdrift op drift_ebar diff_ebar drift_num diff_num F G')
         return DD(
@@ -389,10 +411,10 @@ class SDE:
                 G12 = fitter.fit(v, diffusionXY_)
                 G21 = G12
         else:
-            diffusionX = self._diffusion(x, t_int, dt)
-            diffusionY = self._diffusion(y, t_int, dt)
-            diffusionXY = self._diffusion_xy(x, y, t_int, dt)
-            diffusionYX = self._diffusion_yx(x, y, t_int, dt)
+            # diffusionX = self._diffusion(x, t_int, dt)
+            # diffusionY = self._diffusion(y, t_int, dt)
+            # diffusionXY = self._diffusion_xy(x, y, t_int, dt)
+            # diffusionYX = self._diffusion_yx(x, y, t_int, dt)
 
             F1 = F2 = None
             G11 = G22 = G12 = G21 = None
@@ -412,6 +434,37 @@ class SDE:
                     warnings.simplefilter("ignore", category=RuntimeWarning)
                     avgdriftX[n, m] = np.nanmean(driftX[i])
                     avgdriftY[n, m] = np.nanmean(driftY[i])
+                    # avgdiffX[n, m] = np.nanmean(diffusionX[i])
+                    # avgdiffY[n, m] = np.nanmean(diffusionY[i])
+                    # avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
+                    # avgdiffYX[n, m] = np.nanmean(diffusionYX[i]xy
+        res_x = x.copy() #x[Dt:] - x[:-Dt]
+        res_y = y.copy() #y[Dt:] - y[:-Dt]
+
+        for i, (x, y) in enumerate(zip(x, y)):
+            try:
+                bin_x = np.argwhere(x < op_x)[0][0]
+            except IndexError:
+                bin_x = len(op_x) - 1
+
+            try:
+                bin_y = np.argwhere(y < op_y)[0][0]
+            except IndexError:
+                bin_y = len(op_y) - 1
+
+            res_x[i] -= avgdriftX[bin_x, bin_y] * t_int
+            res_y[i] -= avgdriftY[bin_x, bin_y] * t_int
+
+        diffusionX = self._diffusion(res_x, t_int, dt)
+        diffusionY = self._diffusion(res_y, t_int, dt)
+        diffusionXY = self._diffusion_xy(res_x, res_y, t_int, dt)
+        diffusionYX = diffusionXY
+
+        for m, bin_x in enumerate(op_x):
+            for n, bin_y in enumerate(op_y):
+                i = (bin_x <= x_) & (x_ <= bin_x + inc_x) & (bin_y <= y_) & (y_ <= bin_y + inc_y)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
                     avgdiffX[n, m] = np.nanmean(diffusionX[i])
                     avgdiffY[n, m] = np.nanmean(diffusionY[i])
                     avgdiffXY[n, m] = np.nanmean(diffusionXY[i])

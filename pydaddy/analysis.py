@@ -209,19 +209,20 @@ class UnderlyingNoise(SDE):
 
     def _residual_timeseries(self, X, Dt, bins, avg_drift, avg_diff, t_int):
         res = (X[Dt:] - X[:-Dt])
-        diff_strength = np.zeros_like(res)
         for i, x in enumerate(X[:-Dt]):
             # Find bin-index corresponding to x: minimum i such that x < bins[i], assuming bins is sorted
             try:
                 bin = np.argwhere(x < bins)[0][0]
             except IndexError:
                 bin = len(bins) - 1
-            res[i] -= avg_drift[bin] * t_int
-            diff_strength[i] = avg_diff[bin]
+            res[i] = (res[i] - avg_drift[bin] * t_int) / (np.sqrt(avg_diff[bin]) * t_int)
+            # diff_strength[i] = avg_diff[bin]
 
-        return res , diff_strength
+        return res
 
-    def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, inc_x, inc_y, avg_drift_x, avg_drift_y, t_int):
+    def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, inc_x, inc_y,
+                                    avg_drift_x, avg_drift_y, avg_diff_x, avg_diff_y, avg_diff_xy,
+                                    t_int):
         res_x = X[Dt:] - X[:-Dt]
         res_y = Y[Dt:] - Y[:-Dt]
 
@@ -236,8 +237,8 @@ class UnderlyingNoise(SDE):
             except IndexError:
                 bin_y = len(bins_y) - 1
 
-            res_x[i] -= avg_drift_x[bin_x, bin_y] * t_int
-            res_y[i] -= avg_drift_y[bin_x, bin_y] * t_int
+            res_x[i] = (res_x[i] - avg_drift_x[bin_x, bin_y] * t_int) #/ ((avg_diff_x[bin_x, bin_y] + avg_diff_xy[bin_x, bin_y]) * np.sqrt(t_int))
+            res_y[i] = (res_x[i] - avg_drift_y[bin_x, bin_y] * t_int) #/ ((avg_diff_y[bin_x, bin_y] + avg_diff_xy[bin_x, bin_y]) * np.sqrt(t_int))
 
         return res_x / np.sqrt(Dt * t_int), res_y / np.sqrt(Dt * t_int)
 

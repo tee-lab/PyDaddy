@@ -1579,18 +1579,18 @@ class Visualize(Metrics):
 
     @staticmethod
     def _acf_plot(ax, acf, lags, a, b, c, act, title):
-        acf, lags = acf[:(10 * int(np.ceil(act)))], lags[:(10 * int(np.ceil(act)))]
-
-        # expfit = a * np.exp(-lags / b) + c
+        acf, lags = acf[:(30 * int(np.ceil(act)))], lags[:(30 * int(np.ceil(act)))]
+        print(a, b, c)
+        expfit = a * np.exp(-lags / b) + c
         ax.plot(lags, acf, label='Autocorrelation')
-        # ax.plot(lags, expfit, '--', label='Exponential fit')
+        ax.plot(lags, expfit, '--', label='Exponential fit')
         ax.axvline(act, label='Autocorr. time', color='k')
 
         ax.set(xlabel='Time lag', ylabel='Autocorr.', title=title)
         ax.legend()
 
     @staticmethod
-    def _acf_plot_multi(ax, acf1, acf2, lags, act1, act2,
+    def _acf_plot_multi(ax, acf1, acf2, lags, act1=None, act2=None,
                         label1='Autocorr. $\\eta_{x}$',
                         label2='Autocorr. $\\eta_{y}$', title=None):
         if act1 is not None and act2 is not None:
