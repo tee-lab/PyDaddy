@@ -1205,6 +1205,9 @@ class Daddy(Preprocessing, Visualize):
         """
 
         if self.vector:
+            if loc is None:
+                loc = (0, 0)
+
             X, Y = self._ddsde._Mx, self._ddsde._My
             Dt = self._ddsde.Dt
             inc_x, inc_y = self._ddsde.inc_x, self._ddsde.inc_y

@@ -238,7 +238,7 @@ class UnderlyingNoise(SDE):
                 bin_y = len(bins_y) - 1
 
             res_x[i] = (res_x[i] - avg_drift_x[bin_x, bin_y] * t_int) #/ ((avg_diff_x[bin_x, bin_y] + avg_diff_xy[bin_x, bin_y]) * np.sqrt(t_int))
-            res_y[i] = (res_x[i] - avg_drift_y[bin_x, bin_y] * t_int) #/ ((avg_diff_y[bin_x, bin_y] + avg_diff_xy[bin_x, bin_y]) * np.sqrt(t_int))
+            res_y[i] = (res_y[i] - avg_drift_y[bin_x, bin_y] * t_int) #/ ((avg_diff_y[bin_x, bin_y] + avg_diff_xy[bin_x, bin_y]) * np.sqrt(t_int))
 
         return res_x / np.sqrt(Dt * t_int), res_y / np.sqrt(Dt * t_int)
 
