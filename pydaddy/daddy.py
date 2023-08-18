@@ -1205,8 +1205,6 @@ class Daddy(Preprocessing, Visualize):
         """
 
         if self.vector:
-            if loc is None:
-                loc = (0, 0)
 
             X, Y = self._ddsde._Mx, self._ddsde._My
             Dt = self._ddsde.Dt
@@ -1226,14 +1224,14 @@ class Daddy(Preprocessing, Visualize):
                 t_int=t_int
             )
 
-            # noise_dist_x, noise_dist_y = res_x, res_y
-            # if loc is None:
-            #     loc = (0, 0)
-            # elif loc == 'mode':
-            #     H, edges = np.histogramdd([X, Y], bins=[op_x, op_y])
-            #     idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
-            #     loc = [op_x[idx_x], op_y[idx_y]]
-            #
+            noise_dist_x, noise_dist_y = res_x, res_y
+            if loc is None:
+                loc = (0, 0)
+            elif loc == 'mode':
+                H, edges = np.histogramdd([X, Y], bins=[op_x, op_y])
+                idx_x, idx_y = np.unravel_index(H.argmax(), H.shape)
+                loc = [op_x[idx_x], op_y[idx_y]]
+
             noise_dist_x = res_x[
                 (loc[0] - inc_x <= X[:-Dt]) & (X[:-Dt] < loc[0]) & (loc[1] - inc_y <= Y[:-Dt]) & (Y[:-Dt] < loc[1])]
             noise_dist_y = res_y[

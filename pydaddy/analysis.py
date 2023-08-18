@@ -218,7 +218,7 @@ class UnderlyingNoise(SDE):
             res[i] = (res[i] - avg_drift[bin] * t_int) #/ (np.sqrt(avg_diff[bin]) * t_int)
             # diff_strength[i] = avg_diff[bin]
 
-        return res
+        return res / np.sqrt(Dt * t_int)
 
     def _residual_timeseries_vector(self, X, Y, Dt, bins_x, bins_y, inc_x, inc_y,
                                     avg_drift_x, avg_drift_y, avg_diff_x, avg_diff_y, avg_diff_xy,
