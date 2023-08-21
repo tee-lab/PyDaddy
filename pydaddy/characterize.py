@@ -377,6 +377,7 @@ def load_sample_dataset(name):
     ::
 
         'fish-data-etroplus'
+        'cell-data-cellhopping'
         'model-data-scalar-pairwise'
         'model-data-scalar-ternary'
         'model-data-vector-pairwise'
@@ -402,12 +403,41 @@ def load_sample_dataset(name):
         'model-data-vector-pairwise': 'data/model_data/vector/pairwise.csv',
         'model-data-vector-ternary': 'data/model_data/vector/ternary.csv'
     }
-    if name not in data_dict.keys():
-        print('Invalid data set name\nAvaiable data set\n{}'.format(list(data_dict.keys())))
-        raise InputError('', 'Invalid data set name')
 
-    if 'scalar' in name:
-        M, t = _load_sample_data(data_dict[name]).T
-        return [M], t
-    Mx, My = _load_sample_data(data_dict[name]).T
-    return [Mx, My], 0.12
+    if name == 'cell-data-cellhopping':
+        # data, t = pydaddy.load_sample_dataset('cell-data')
+        x = _load_sample_data('data/cell_data/trajectories_x_pattern5.txt')
+        x[np.abs(x) > 50] = np.nan
+        x = np.vstack((x, -x))  # 'Symmetrize' data
+
+        # Compute velocity (x_dot) and acceleration (x_ddot)
+
+        dt = 1. / 6.  # Time in hours
+        v = np.nan * np.zeros_like(x)
+        # a = np.nan * np.zeros_like(x)
+        v[:, :-1] = (x[:, 1:] - x[:, :-1]) / dt
+
+        x = np.hstack((x, np.nan * np.ones((x.shape[0], 1))))
+        v = np.hstack((v, np.nan * np.ones((v.shape[0], 1))))
+
+        x, v = x.flatten(), v.flatten()
+
+        xs = 50
+        vs = 300
+
+        x, v = x / xs, v / vs
+
+        dt = 1
+
+        return [x, v], dt
+
+    else:
+        if name not in data_dict.keys():
+            print('Invalid data set name\nAvaiable data set\n{}'.format(list(data_dict.keys())))
+            raise InputError('', 'Invalid data set name')
+
+        if 'scalar' in name:
+            M, t = _load_sample_data(data_dict[name]).T
+            return [M], t
+        Mx, My = _load_sample_data(data_dict[name]).T
+        return [Mx, My], 0.12
