@@ -22,7 +22,7 @@ To use PyDaddy from *any* Colab notebook, enter the following line to a cell and
 
 .. warning::
 
-    All files and data will be lost when you disconnect from the notebook. Make sure you download and save any relevant anaysis results.
+    All files and data will be lost when you disconnect from the notebook. Make sure you download and save any relevant analysis results.
 
 One-line operation
 ------------------
@@ -59,7 +59,7 @@ Python Interface
 
     If you installed PyDaddy in a separate conda environment, activate that environment before continuing.
 
-For full control over the estimation procedure, you can use PyDaddy through Python scripts or notebooks. To use PyDaddy in an Jupyter notebook, start a Jupyter notebook server using the following command:
+For full control over the estimation procedure, you can use PyDaddy through Python scripts or notebooks. To use PyDaddy in a Jupyter notebook, start a Jupyter notebook server using the following command:
 
 ::
 
