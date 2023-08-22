@@ -1290,6 +1290,13 @@ class Daddy(Preprocessing, Visualize):
             op = self._ddsde._op_
             avg_drift = self._ddsde._avgdrift_
             avg_diff = self._ddsde._avgdiff_
+
+            if loc is None:
+                loc = 0.
+            elif loc == 'mode':
+                h, _ = np.histogram(X, bins=op)
+                loc = op[h.argmax()]
+
             residual = self._ddsde._residual_timeseries(X=X,
                                                          Dt=Dt,
                                                          bins=op,
