@@ -37,6 +37,18 @@ Tutorials (no installation required)
 .. |github-synthetic| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
     :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/4_sdes_from_simulated_timeseries.ipynb
 
+.. |colab-fish| image:: https://colab.research.google.com/assets/colab-badge.svg
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb
+
+.. |github-fish| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/7_example_fish_school.ipynb
+
+.. |colab-cell| image:: https://colab.research.google.com/assets/colab-badge.svg
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb
+
+.. |github-cell| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/8_example_cell_migration.ipynb
+
 .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
 
 .. |github| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
@@ -91,3 +103,17 @@ Fitting non-polynomial functions (Experimental)
 |colab-nonpoly-fitting| |github-nonpoly-fitting|
 
 By default, PyDaddy fits polynomials for the drift and diffusion functions. However, this behaviour can be customized by providing a custom library of functions for the sparse regression procedure, this notebook demonstrates how to do this. (This is an experimental feature and not all functionality will work with non-polynomial functions).
+
+Example analysis: Fish schooling
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|colab-fish| |github-fish|
+
+An example analysis of a fish schooling dataset (Jhawar et. al., Nature Physics, 2020) using PyDaddy.
+
+Example analysis: Cell hopping
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+|colab-cell| |github-cell|
+
+An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019) using PyDaddy.
+
+
