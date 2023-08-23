@@ -678,7 +678,7 @@ class Daddy(Preprocessing, Visualize):
             for i in range(len(fields)):
                 summary.append(fields[i])
                 summary.append(values[i])
-            summary_format = ("| {:<30} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
+            summary_format = ("| {:<33} : {:^15}" * 1 + "|\n") * int(len(fields) / 1)
             print(summary_format.format(*summary))
             if self._ddsde.F1:
                 print(f'Drift (F1): {self._ddsde.F1}')
