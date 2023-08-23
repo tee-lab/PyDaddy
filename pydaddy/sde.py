@@ -438,26 +438,30 @@ class SDE:
                     # avgdiffY[n, m] = np.nanmean(diffusionY[i])
                     # avgdiffXY[n, m] = np.nanmean(diffusionXY[i])
                     # avgdiffYX[n, m] = np.nanmean(diffusionYX[i]xy
-        res_x = x.copy() #x[Dt:] - x[:-Dt]
-        res_y = y.copy() #y[Dt:] - y[:-Dt]
+        res_x = x[Dt:] - x[:-Dt]
+        res_y = y[Dt:] - y[:-Dt]
 
-        for i, (x, y) in enumerate(zip(x, y)):
+        # diffusionX = self._diffusion(x, t_int, dt)
+        # diffusionY = self._diffusion(y, t_int, dt)
+        # diffusionXY = self._diffusion_xy(x, y, t_int, dt)
+
+        for i, (x, y) in enumerate(zip(x_, y_)):
             try:
-                bin_x = np.argwhere(x < op_x)[0][0]
+                bin_x = np.argwhere(x < op_x + inc_x)[0][0]
             except IndexError:
                 bin_x = len(op_x) - 1
 
             try:
-                bin_y = np.argwhere(y < op_y)[0][0]
+                bin_y = np.argwhere(y < op_y + inc_y)[0][0]
             except IndexError:
                 bin_y = len(op_y) - 1
 
-            res_x[i] -= avgdriftX[bin_x, bin_y] * t_int
-            res_y[i] -= avgdriftY[bin_x, bin_y] * t_int
+            res_x[i] -= avgdriftX[bin_y, bin_x] * t_int * Dt
+            res_y[i] -= avgdriftY[bin_y, bin_x] * t_int * Dt
 
-        diffusionX = self._diffusion(res_x, t_int, dt)
-        diffusionY = self._diffusion(res_y, t_int, dt)
-        diffusionXY = self._diffusion_xy(res_x, res_y, t_int, dt)
+        diffusionX = res_x ** 2 / (t_int * dt)
+        diffusionY = res_y ** 2 / (t_int * dt)
+        diffusionXY = (res_x * res_y) / (t_int * dt)
         diffusionYX = diffusionXY
 
         for m, bin_x in enumerate(op_x):
