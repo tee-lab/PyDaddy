@@ -1580,7 +1580,6 @@ class Visualize(Metrics):
     @staticmethod
     def _acf_plot(ax, acf, lags, a, b, c, act, title):
         acf, lags = acf[:(30 * int(np.ceil(act)))], lags[:(30 * int(np.ceil(act)))]
-        print(a, b, c)
         expfit = a * np.exp(-lags / b) + c
         ax.plot(lags, acf, label='Autocorrelation')
         ax.plot(lags, expfit, '--', label='Exponential fit')

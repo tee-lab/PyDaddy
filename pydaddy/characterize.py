@@ -405,7 +405,7 @@ def load_sample_dataset(name):
     }
 
     if name == 'cell-data-cellhopping':
-        # data, t = pydaddy.load_sample_dataset('cell-data')
+
         x = _load_sample_data('data/cell_data/trajectories_x_pattern5.txt')
         x[np.abs(x) > 50] = np.nan
         x = np.vstack((x, -x))  # 'Symmetrize' data
@@ -414,7 +414,6 @@ def load_sample_dataset(name):
 
         dt = 1. / 6.  # Time in hours
         v = np.nan * np.zeros_like(x)
-        # a = np.nan * np.zeros_like(x)
         v[:, :-1] = (x[:, 1:] - x[:, :-1]) / dt
 
         x = np.hstack((x, np.nan * np.ones((x.shape[0], 1))))
