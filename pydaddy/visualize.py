@@ -1528,7 +1528,7 @@ class Visualize(Metrics):
         x = np.linspace(-6 * sigma, 6 * sigma, 100)
         gaussian = norm.pdf(x, scale=sigma)
 
-        ax.hist(residual, bins=100, density=True, histtype='stepfilled', label='Actual')
+        ax.hist(residual, bins=30, density=True, histtype='stepfilled', label='Actual')
         ax.plot(x, gaussian, label='Theoretical')
 
         ax.set(xlabel='Residual', ylabel='Density', title=title)
@@ -1623,8 +1623,8 @@ class Visualize(Metrics):
 
     @staticmethod
     def _show_histograms_1d(ax, x1, x2, xlabel, title):
-        ax.hist(x1, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Original')
-        ax.hist(x2, bins=100, density=True, histtype='stepfilled', alpha=0.5, label='Reestimated')
+        ax.hist(x1, bins=30, density=True, histtype='stepfilled', alpha=0.5, label='Original')
+        ax.hist(x2, bins=30, density=True, histtype='stepfilled', alpha=0.5, label='Reestimated')
         ax.set(xlabel=xlabel, title=title)
         ax.legend()
 
