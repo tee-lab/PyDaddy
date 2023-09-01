@@ -22,6 +22,27 @@ PyDaddy also provides a range of functionality such as equation-learning for the
 | :---: |
 | Schematic illustration of PyDaddy functionality. |
 
+## Getting started
+
+PyDaddy can be executed online on [Google Colab](https://colab.research.google.com/), without having to install it on your local machine. To run PyDaddy on Colab, open a notebook on Colab. Paste the following code on a notebook cell and run it:
+
+    %pip install git+https://github.com/tee-lab/PyDaddy.git
+
+This sets up PyDaddy in the notebook environment.
+
+There are several example notebooks provided, which can be used to familiarize yourself with various features and functionalities of PyDaddy. These can be executed on Colab.
+
+- [Getting started](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/1_getting_started.ipynb): Introduction to the basic functionalities of PyDaddy, using a 1-dimensional dataset.
+- [Getting started with vector data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/2_getting_started_vector.ipynb): Introduction to the basic functionalities of PyDaddy on 2-dimensional datasets.
+- [Advanced function fitting](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/3_advanced_function_fitting.ipynb): PyDaddy can discover analytical expressions for the drift and diffusion functions. This notebook describes how to customize the fitting procedure to obtain best results.
+- [Recovering SDEs from synthetic time series](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/4_sdes_from_simulated_timeseries.ipynb): This notebook generates a simulated time series from a user-specified SDE, and uses PyDaddy to recover the drift and diffusion functions from the simulated time series.
+- [Exporting data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/5_exporting_data.ipynb): Demonstrates how to export the recovered drift and diffusion data as CSV files or Pandas data-frames.
+- [Fitting non-polynomial functions](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/6_non_poly_function_fitting.ipynb): PyDaddy fits polynomial functions to drift and diffusion by default. This behaviour can be customized, this notebook illustrates how to do this.
+
+There are also two notebooks that use PyDaddy to discover SDEs from real-world datasets.
+- [Example analysis - fish schooling](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb): An example analysis of a fish schooling dataset (Jhawar et. al., Nature Physics, 2020) using PyDaddy. 
+- [Example analysis - cell migration](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb): An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019) using PyDaddy.
+
 ## Installation
 PyDaddy is available both on PyPI and Anaconda Cloud, and can be installed on any system with a Python 3 environment. If you don't have Python 3 installed on your system, we recommend using [Anaconda](https://www.anaconda.com) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html). See the PyDaddy [package documentation](https://pydaddy.readthedocs.io/) for detailed installation instructions.
 
@@ -53,7 +74,7 @@ For more information about PyDaddy, check out the [package documentation](https:
 ## Citation
 If you are using this package in your research, please cite the repository and the associated [paper](https://arxiv.org/abs/2205.02645) as follows:
 
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Danny Raj, M., & Guttal, V. (2022). PyDaddy: A Python Package for Discovering SDEs from Time Series Data (Version 0.1.5) [Computer software]. https://github.com/tee-lab/PyDaddy
+Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Danny Raj, M., & Guttal, V. (2022). PyDaddy: A Python Package for Discovering SDEs from Time Series Data (Version 1.1.0) [Computer software]. https://github.com/tee-lab/PyDaddy
 
 Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Danny Raj, M., & Guttal, V. (2022). PyDaddy: A Python package for discovering stochastic dynamical equations from timeseries data. arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645).
 
