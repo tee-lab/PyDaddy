@@ -24,7 +24,7 @@ authors:
   orcid: "https://orcid.org/0000-0002-2677-857X"
   
 title: "PyDaddy: A Python Package for Discovering SDEs from Time Series Data"
-version: 0.1.5
+version: 1.1.0
 
 date-released: 2022-05-05
 url: "https://github.com/tee-lab/PyDaddy"
