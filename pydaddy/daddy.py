@@ -350,7 +350,7 @@ class Daddy(Preprocessing, Visualize):
 
         """
 
-        if not (order or library):
+        if (order is None) and (library is None):
             raise TypeError('You should either specify the order of the polynomial, or provide a library.')
 
         if library:
