@@ -1,13 +1,13 @@
 
 # PyDaddy 
+Discovering stochastic dynamical equations from ecological time series data, together with an easy to use Python package.
 
-### Citation to the associated manuscript
+### Citation to the manuscript
 Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
 
 ### Citation to the package
 
 Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, David B., Danny Raj, M., & Guttal, V. (2024). PyDaddy: A Python Package for Discovering SDEs from Time Series Data (Version 1.1.1) [Computer software]. https://github.com/tee-lab/PyDaddy, DOI: XYZ.    
-
 
 ### Authors and Contact Details
 
