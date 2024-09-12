@@ -490,32 +490,43 @@ and run it:</p>
 <p>There are several <strong>example scripts / Jupyter
 notebooks</strong> provided, which can be used to familiarize yourself
 with various features and functionalities of PyDaddy. These can be
-executed on Colab.</p>
+executed on Colab. In the list below, we mention the path to location of
+each notebook as well as a link to the google colab notebook; the latter
+does not require installing either python or package on your system.</p>
 <ul>
-<li><strong>Notebook 1</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/1_getting_started.ipynb">Getting
+<li><strong>Notebook 1</strong>
+(<strong>notebooks/1_getting_started.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/1_getting_started.ipynb">Getting
 started with scalar data</a>: Introduction to the basic functionalities
-of PyDaddy, using a 1-dimensional dataset.</li>
-<li><strong>Notebook 2</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/2_getting_started_vector.ipynb">Getting
+of PyDaddy, using a 1-dimensional dataset.<br />
+</li>
+<li><strong>Notebook 2</strong>
+(<strong>notebooks/2_getting_started_vector.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/2_getting_started_vector.ipynb">Getting
 started with vector data</a>: Introduction to the basic functionalities
 of PyDaddy on 2-dimensional datasets.</li>
-<li><strong>Notebook 3</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/3_advanced_function_fitting.ipynb">Advanced
+<li><strong>Notebook 3</strong>
+(<strong>notebooks/3_advanced_function_fitting.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/3_advanced_function_fitting.ipynb">Advanced
 function fitting</a>: PyDaddy can discover analytical expressions for
 the drift and diffusion functions. This notebook describes how to
 customize the fitting procedure to obtain best results.</li>
-<li><strong>Notebook 4</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/4_sdes_from_simulated_timeseries.ipynb">Recovering
+<li><strong>Notebook 4</strong>
+(<strong>notebooks/4_sdes_from_simulated_timeseries.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/4_sdes_from_simulated_timeseries.ipynb">Recovering
 SDEs from synthetic time series</a>: This notebook generates a simulated
 time series from a user-specified SDE, and uses PyDaddy to recover the
 drift and diffusion functions from the simulated time series.</li>
-<li><strong>Notebook 5</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/5_exporting_data.ipynb">Exporting
+<li><strong>Notebook 5</strong>
+(<strong>notebooks/5_exporting_data.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/5_exporting_data.ipynb">Exporting
 data</a>: Demonstrates how to export the recovered drift and diffusion
 data as CSV files or Pandas data-frames.</li>
-<li><strong>Notebook 6</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/6_non_poly_function_fitting.ipynb">Fitting
+<li><strong>Notebook 6</strong>
+(<strong>notebooks/6_non_poly_function_fitting.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/6_non_poly_function_fitting.ipynb">Fitting
 non-polynomial functions</a>: PyDaddy fits polynomial functions to drift
 and diffusion by default. This behaviour can be customized, this
 notebook illustrates how to do this.</li>
-<li><strong>Notebook 9</strong>: [Demonstration with a 3-dimensional
-system] An example to demonstrate that, in principle, the method of
-stochastic equation discovery can be extended to higher dimensions.</li>
+<li><strong>Notebook 9</strong>
+(<strong>notebooks/9_higher_dimensions.ipynb</strong>): [Demonstration
+with a 3-dimensional system] An example to demonstrate that, in
+principle, the method of stochastic equation discovery can be extended
+to higher dimensions.</li>
 </ul>
 <p>(See below for Notebooks 7 and 8).</p>
 </div>
@@ -524,25 +535,31 @@ stochastic equation discovery can be extended to higher dimensions.</li>
 <p>There are also two notebooks that use PyDaddy to discover SDEs from
 real-world datasets.</p>
 <ul>
-<li><strong>Fish Schooling Dataset </strong>: The fish data
-(<strong>Folder: pydaddy/data/fish_data</strong>) contains a subset of
-the fish schooling dataset presented in the manuscript. The dataset
-contains the 2D polarisation vector time series of a fish school (15
-fish). The full dataset is available at <a href="https://zenodo.org/records/3632470" class="uri">https://zenodo.org/records/3632470</a>. For more details
-about the dataset, see <a href="https://doi.org/10.1038/s41567-020-0787-y" class="uri">https://doi.org/10.1038/s41567-020-0787-y</a>
+<li><strong>Fish Schooling Dataset </strong>
+(<strong>pydaddy/data/fish_data/ectroplus.csv</strong>) : The fish
+dataset contains the 2D polarisation vector time series of a fish school
+(15 fish). Two columns in the csv file represent the x- and y-components
+of the polarisation vector, respectively and each row corresponds to a
+time stamp, with consecutive rows separated by a time frame of 0.04
+seconds. The full dataset is available at a previously published
+repository: <a href="https://zenodo.org/records/3632470" class="uri">https://zenodo.org/records/3632470</a>. For more details
+about the dataset, see the manuscript Jhawar et al - <a href="https://doi.org/10.1038/s41567-020-0787-y" class="uri">https://doi.org/10.1038/s41567-020-0787-y</a>
 <ul>
-<li><strong>Notebook 7</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb">Example
+<li><strong>Notebook 7</strong>
+(<strong>notebooks/7_example_fish_school.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb">Example
 analysis - fish schooling</a>: An example analysis of a fish schooling
 dataset (Jhawar et. al., Nature Physics, 2020) using PyDaddy.</li>
 </ul></li>
-<li><strong>Cell Migration Dataset </strong>: The confine cell migration
-dataset (<strong>Folder: pydaddy/data/cell_data</strong>) contains
-tracked trajectories of 149 cells, tracked for upto 300 time steps each,
-with one data point every 15 minutes. The data is provided as a plain
-text file. Each row corresponds to the time series of one cell. For more
-details about the dataset, see <a href="https://doi.org/10.1038/s41567-019-0445-4" class="uri">https://doi.org/10.1038/s41567-019-0445-4</a>.
+<li><strong>Cell Migration Dataset </strong>
+(<strong>pydaddy/data/cell_data/trajectories_x_pattern5.txt</strong>):
+The confine cell migration dataset contains tracked trajectories of 149
+cells, tracked for upto 300 time steps each, with one data point every
+15 minutes. The data is provided as a plain text file. Each row
+corresponds to the time series of one cell. For more details about the
+dataset, see <a href="https://doi.org/10.1038/s41567-019-0445-4" class="uri">https://doi.org/10.1038/s41567-019-0445-4</a>.
 <ul>
-<li><strong>Notebook 8</strong>: <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb">Example
+<li><strong>Notebook 8</strong>
+(<strong>notebooks/8_example_cell_migration.ipynb</strong>): <a href="https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb">Example
 analysis - cell migration</a>: An example analysis of a confined cell
 migration dataset (Brückner et. al., Nature Physics, 2019) using
 PyDaddy.</li>
@@ -551,8 +568,26 @@ PyDaddy.</li>
 </div>
 <div id="folder-structure" class="section level3">
 <h3>Folder structure</h3>
-<p>The zipped folder whose link is given below is structured as follows:
-<strong>(TO BE DONE)</strong></p>
+<p>The zipped folder of codes and data is structured as follows:</p>
+<ul>
+<li>parent folder has licence, citation, readme.md, etc files</li>
+<li><strong>doc</strong> and its subfolders contain python codes and
+style files relevant to the package. Edit these only you are a developer
+and are proficient with python.</li>
+<li><strong>notebooks</strong> contains nine well commented/documented
+jupyter-notebooks/scripts which help the readers to familiarise with the
+usage of the package.</li>
+<li><strong>pydaddy/data</strong> folder contains three subfolders
+containing key real and model datasets:
+<ul>
+<li><strong>cell_data</strong></li>
+<li><strong>fish_data</strong></li>
+<li><strong>model_data</strong></li>
+</ul></li>
+<li><strong>pydaddy</strong> and its subfolders contain various codes
+related to python package. Edit these only you are a developer and are
+proficient with python.</li>
+</ul>
 </div>
 <div id="package-installation" class="section level3">
 <h3>Package Installation</h3>
@@ -563,7 +598,7 @@ the PyDaddy <a href="https://pydaddy.readthedocs.io/">package
 documentation</a> for detailed installation instructions.</p>
 <div id="using-pip" class="section level4">
 <h4>Using pip</h4>
-<p><img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNzgiIGhlaWdodD0iMjAiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0icHlwaTogdjEuMC4wIj48dGl0bGU+cHlwaTogdjEuMC4wPC90aXRsZT48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgyPSIwIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYmJiIiBzdG9wLW9wYWNpdHk9Ii4xIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLW9wYWNpdHk9Ii4xIi8+PC9saW5lYXJHcmFkaWVudD48Y2xpcFBhdGggaWQ9InIiPjxyZWN0IHdpZHRoPSI3OCIgaGVpZ2h0PSIyMCIgcng9IjMiIGZpbGw9IiNmZmYiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNyKSI+PHJlY3Qgd2lkdGg9IjMzIiBoZWlnaHQ9IjIwIiBmaWxsPSIjNTU1Ii8+PHJlY3QgeD0iMzMiIHdpZHRoPSI0NSIgaGVpZ2h0PSIyMCIgZmlsbD0iIzAwN2VjNiIvPjxyZWN0IHdpZHRoPSI3OCIgaGVpZ2h0PSIyMCIgZmlsbD0idXJsKCNzKSIvPjwvZz48ZyBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iVmVyZGFuYSxHZW5ldmEsRGVqYVZ1IFNhbnMsc2Fucy1zZXJpZiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgZm9udC1zaXplPSIxMTAiPjx0ZXh0IGFyaWEtaGlkZGVuPSJ0cnVlIiB4PSIxNzUiIHk9IjE1MCIgZmlsbD0iIzAxMDEwMSIgZmlsbC1vcGFjaXR5PSIuMyIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIHRleHRMZW5ndGg9IjIzMCI+cHlwaTwvdGV4dD48dGV4dCB4PSIxNzUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjIzMCI+cHlwaTwvdGV4dD48dGV4dCBhcmlhLWhpZGRlbj0idHJ1ZSIgeD0iNTQ1IiB5PSIxNTAiIGZpbGw9IiMwMTAxMDEiIGZpbGwtb3BhY2l0eT0iLjMiIHRyYW5zZm9ybT0ic2NhbGUoLjEpIiB0ZXh0TGVuZ3RoPSIzNTAiPnYxLjAuMDwvdGV4dD48dGV4dCB4PSI1NDUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjM1MCI+djEuMC4wPC90ZXh0PjwvZz48L3N2Zz4=" alt="PyPI" /> <img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNzIiIGhlaWdodD0iMjAiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0id2hlZWw6IHllcyI+PHRpdGxlPndoZWVsOiB5ZXM8L3RpdGxlPjxsaW5lYXJHcmFkaWVudCBpZD0icyIgeDI9IjAiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNiYmIiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjxjbGlwUGF0aCBpZD0iciI+PHJlY3Qgd2lkdGg9IjcyIiBoZWlnaHQ9IjIwIiByeD0iMyIgZmlsbD0iI2ZmZiIvPjwvY2xpcFBhdGg+PGcgY2xpcC1wYXRoPSJ1cmwoI3IpIj48cmVjdCB3aWR0aD0iNDMiIGhlaWdodD0iMjAiIGZpbGw9IiM1NTUiLz48cmVjdCB4PSI0MyIgd2lkdGg9IjI5IiBoZWlnaHQ9IjIwIiBmaWxsPSIjNGMxIi8+PHJlY3Qgd2lkdGg9IjcyIiBoZWlnaHQ9IjIwIiBmaWxsPSJ1cmwoI3MpIi8+PC9nPjxnIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJWZXJkYW5hLEdlbmV2YSxEZWphVnUgU2FucyxzYW5zLXNlcmlmIiB0ZXh0LXJlbmRlcmluZz0iZ2VvbWV0cmljUHJlY2lzaW9uIiBmb250LXNpemU9IjExMCI+PHRleHQgYXJpYS1oaWRkZW49InRydWUiIHg9IjIyNSIgeT0iMTUwIiBmaWxsPSIjMDEwMTAxIiBmaWxsLW9wYWNpdHk9Ii4zIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgdGV4dExlbmd0aD0iMzMwIj53aGVlbDwvdGV4dD48dGV4dCB4PSIyMjUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjMzMCI+d2hlZWw8L3RleHQ+PHRleHQgYXJpYS1oaWRkZW49InRydWUiIHg9IjU2NSIgeT0iMTUwIiBmaWxsPSIjMDEwMTAxIiBmaWxsLW9wYWNpdHk9Ii4zIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgdGV4dExlbmd0aD0iMTkwIj55ZXM8L3RleHQ+PHRleHQgeD0iNTY1IiB5PSIxNDAiIHRyYW5zZm9ybT0ic2NhbGUoLjEpIiBmaWxsPSIjZmZmIiB0ZXh0TGVuZ3RoPSIxOTAiPnllczwvdGV4dD48L2c+PC9zdmc+" alt="PyPI - Wheel" /> <img src="https://img.shields.io/pypi/status/pydaddy" alt="PyPI - Status" /></p>
+<p><img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNzgiIGhlaWdodD0iMjAiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0icHlwaTogdjEuMC4wIj48dGl0bGU+cHlwaTogdjEuMC4wPC90aXRsZT48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgyPSIwIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYmJiIiBzdG9wLW9wYWNpdHk9Ii4xIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLW9wYWNpdHk9Ii4xIi8+PC9saW5lYXJHcmFkaWVudD48Y2xpcFBhdGggaWQ9InIiPjxyZWN0IHdpZHRoPSI3OCIgaGVpZ2h0PSIyMCIgcng9IjMiIGZpbGw9IiNmZmYiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNyKSI+PHJlY3Qgd2lkdGg9IjMzIiBoZWlnaHQ9IjIwIiBmaWxsPSIjNTU1Ii8+PHJlY3QgeD0iMzMiIHdpZHRoPSI0NSIgaGVpZ2h0PSIyMCIgZmlsbD0iIzAwN2VjNiIvPjxyZWN0IHdpZHRoPSI3OCIgaGVpZ2h0PSIyMCIgZmlsbD0idXJsKCNzKSIvPjwvZz48ZyBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iVmVyZGFuYSxHZW5ldmEsRGVqYVZ1IFNhbnMsc2Fucy1zZXJpZiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgZm9udC1zaXplPSIxMTAiPjx0ZXh0IGFyaWEtaGlkZGVuPSJ0cnVlIiB4PSIxNzUiIHk9IjE1MCIgZmlsbD0iIzAxMDEwMSIgZmlsbC1vcGFjaXR5PSIuMyIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIHRleHRMZW5ndGg9IjIzMCI+cHlwaTwvdGV4dD48dGV4dCB4PSIxNzUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjIzMCI+cHlwaTwvdGV4dD48dGV4dCBhcmlhLWhpZGRlbj0idHJ1ZSIgeD0iNTQ1IiB5PSIxNTAiIGZpbGw9IiMwMTAxMDEiIGZpbGwtb3BhY2l0eT0iLjMiIHRyYW5zZm9ybT0ic2NhbGUoLjEpIiB0ZXh0TGVuZ3RoPSIzNTAiPnYxLjAuMDwvdGV4dD48dGV4dCB4PSI1NDUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjM1MCI+djEuMC4wPC90ZXh0PjwvZz48L3N2Zz4=" alt="PyPI" /> <img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNzIiIGhlaWdodD0iMjAiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0id2hlZWw6IHllcyI+PHRpdGxlPndoZWVsOiB5ZXM8L3RpdGxlPjxsaW5lYXJHcmFkaWVudCBpZD0icyIgeDI9IjAiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNiYmIiIHN0b3Atb3BhY2l0eT0iLjEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3Atb3BhY2l0eT0iLjEiLz48L2xpbmVhckdyYWRpZW50PjxjbGlwUGF0aCBpZD0iciI+PHJlY3Qgd2lkdGg9IjcyIiBoZWlnaHQ9IjIwIiByeD0iMyIgZmlsbD0iI2ZmZiIvPjwvY2xpcFBhdGg+PGcgY2xpcC1wYXRoPSJ1cmwoI3IpIj48cmVjdCB3aWR0aD0iNDMiIGhlaWdodD0iMjAiIGZpbGw9IiM1NTUiLz48cmVjdCB4PSI0MyIgd2lkdGg9IjI5IiBoZWlnaHQ9IjIwIiBmaWxsPSIjNGMxIi8+PHJlY3Qgd2lkdGg9IjcyIiBoZWlnaHQ9IjIwIiBmaWxsPSJ1cmwoI3MpIi8+PC9nPjxnIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJWZXJkYW5hLEdlbmV2YSxEZWphVnUgU2FucyxzYW5zLXNlcmlmIiB0ZXh0LXJlbmRlcmluZz0iZ2VvbWV0cmljUHJlY2lzaW9uIiBmb250LXNpemU9IjExMCI+PHRleHQgYXJpYS1oaWRkZW49InRydWUiIHg9IjIyNSIgeT0iMTUwIiBmaWxsPSIjMDEwMTAxIiBmaWxsLW9wYWNpdHk9Ii4zIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgdGV4dExlbmd0aD0iMzMwIj53aGVlbDwvdGV4dD48dGV4dCB4PSIyMjUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjMzMCI+d2hlZWw8L3RleHQ+PHRleHQgYXJpYS1oaWRkZW49InRydWUiIHg9IjU2NSIgeT0iMTUwIiBmaWxsPSIjMDEwMTAxIiBmaWxsLW9wYWNpdHk9Ii4zIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgdGV4dExlbmd0aD0iMTkwIj55ZXM8L3RleHQ+PHRleHQgeD0iNTY1IiB5PSIxNDAiIHRyYW5zZm9ybT0ic2NhbGUoLjEpIiBmaWxsPSIjZmZmIiB0ZXh0TGVuZ3RoPSIxOTAiPnllczwvdGV4dD48L2c+PC9zdmc+" alt="PyPI - Wheel" /> <img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNzgiIGhlaWdodD0iMjAiIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0ic3RhdHVzOiBiZXRhIj48dGl0bGU+c3RhdHVzOiBiZXRhPC90aXRsZT48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgyPSIwIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYmJiIiBzdG9wLW9wYWNpdHk9Ii4xIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLW9wYWNpdHk9Ii4xIi8+PC9saW5lYXJHcmFkaWVudD48Y2xpcFBhdGggaWQ9InIiPjxyZWN0IHdpZHRoPSI3OCIgaGVpZ2h0PSIyMCIgcng9IjMiIGZpbGw9IiNmZmYiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNyKSI+PHJlY3Qgd2lkdGg9IjQzIiBoZWlnaHQ9IjIwIiBmaWxsPSIjNTU1Ii8+PHJlY3QgeD0iNDMiIHdpZHRoPSIzNSIgaGVpZ2h0PSIyMCIgZmlsbD0iI2RmYjMxNyIvPjxyZWN0IHdpZHRoPSI3OCIgaGVpZ2h0PSIyMCIgZmlsbD0idXJsKCNzKSIvPjwvZz48ZyBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iVmVyZGFuYSxHZW5ldmEsRGVqYVZ1IFNhbnMsc2Fucy1zZXJpZiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgZm9udC1zaXplPSIxMTAiPjx0ZXh0IGFyaWEtaGlkZGVuPSJ0cnVlIiB4PSIyMjUiIHk9IjE1MCIgZmlsbD0iIzAxMDEwMSIgZmlsbC1vcGFjaXR5PSIuMyIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIHRleHRMZW5ndGg9IjMzMCI+c3RhdHVzPC90ZXh0Pjx0ZXh0IHg9IjIyNSIgeT0iMTQwIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgZmlsbD0iI2ZmZiIgdGV4dExlbmd0aD0iMzMwIj5zdGF0dXM8L3RleHQ+PHRleHQgYXJpYS1oaWRkZW49InRydWUiIHg9IjU5NSIgeT0iMTUwIiBmaWxsPSIjMDEwMTAxIiBmaWxsLW9wYWNpdHk9Ii4zIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgdGV4dExlbmd0aD0iMjUwIj5iZXRhPC90ZXh0Pjx0ZXh0IHg9IjU5NSIgeT0iMTQwIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgZmlsbD0iI2ZmZiIgdGV4dExlbmd0aD0iMjUwIj5iZXRhPC90ZXh0PjwvZz48L3N2Zz4=" alt="PyPI - Status" /></p>
 <p>To install the latest stable release version of PyDaddy, use:</p>
 <pre><code>pip install pydaddy</code></pre>
 <p>To install the latest development version of PyDaddy, use:</p>
@@ -571,7 +606,7 @@ documentation</a> for detailed installation instructions.</p>
 </div>
 <div id="using-anaconda" class="section level4">
 <h4>Using anaconda</h4>
-<p><img src="https://anaconda.org/tee-lab/pydaddy/badges/version.svg" />
+<p><img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTI2IiBoZWlnaHQ9IjIwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkFuYWNvbmRhLm9yZzogMS4wLjAiPjx0aXRsZT5BbmFjb25kYS5vcmc6IDEuMC4wPC90aXRsZT48ZyBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxyZWN0IHdpZHRoPSI4NyIgaGVpZ2h0PSIyMCIgZmlsbD0iIzU1NSIvPjxyZWN0IHg9Ijg3IiB3aWR0aD0iMzkiIGhlaWdodD0iMjAiIGZpbGw9IiMwMDdlYzYiLz48L2c+PGcgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlZlcmRhbmEsR2VuZXZhLERlamFWdSBTYW5zLHNhbnMtc2VyaWYiIHRleHQtcmVuZGVyaW5nPSJnZW9tZXRyaWNQcmVjaXNpb24iIGZvbnQtc2l6ZT0iMTEwIj48dGV4dCB4PSI0NDUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9Ijc3MCI+QW5hY29uZGEub3JnPC90ZXh0Pjx0ZXh0IHg9IjEwNTUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjI5MCI+MS4wLjA8L3RleHQ+PC9nPjwvc3ZnPg==" />
 <img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTYyIiBoZWlnaHQ9IjIwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ikxhc3QgdXBkYXRlZDogMTQgU2VwIDIwMjIiPjx0aXRsZT5MYXN0IHVwZGF0ZWQ6IDE0IFNlcCAyMDIyPC90aXRsZT48ZyBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxyZWN0IHdpZHRoPSI4MSIgaGVpZ2h0PSIyMCIgZmlsbD0iIzU1NSIvPjxyZWN0IHg9IjgxIiB3aWR0aD0iODEiIGhlaWdodD0iMjAiIGZpbGw9IiMwMDdlYzYiLz48L2c+PGcgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlZlcmRhbmEsR2VuZXZhLERlamFWdSBTYW5zLHNhbnMtc2VyaWYiIHRleHQtcmVuZGVyaW5nPSJnZW9tZXRyaWNQcmVjaXNpb24iIGZvbnQtc2l6ZT0iMTEwIj48dGV4dCB4PSI0MTUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjcxMCI+TGFzdCB1cGRhdGVkPC90ZXh0Pjx0ZXh0IHg9IjEyMDUiIHk9IjE0MCIgdHJhbnNmb3JtPSJzY2FsZSguMSkiIGZpbGw9IiNmZmYiIHRleHRMZW5ndGg9IjcxMCI+MTQgU2VwIDIwMjI8L3RleHQ+PC9nPjwvc3ZnPg==" />
 <img src="data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjIwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlBsYXRmb3Jtczogbm9hcmNoIj48dGl0bGU+UGxhdGZvcm1zOiBub2FyY2g8L3RpdGxlPjxnIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+PHJlY3Qgd2lkdGg9IjYzIiBoZWlnaHQ9IjIwIiBmaWxsPSIjNTU1Ii8+PHJlY3QgeD0iNjMiIHdpZHRoPSI0NyIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZlN2QzNyIvPjwvZz48ZyBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iVmVyZGFuYSxHZW5ldmEsRGVqYVZ1IFNhbnMsc2Fucy1zZXJpZiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgZm9udC1zaXplPSIxMTAiPjx0ZXh0IHg9IjMyNSIgeT0iMTQwIiB0cmFuc2Zvcm09InNjYWxlKC4xKSIgZmlsbD0iI2ZmZiIgdGV4dExlbmd0aD0iNTMwIj5QbGF0Zm9ybXM8L3RleHQ+PHRleHQgeD0iODU1IiB5PSIxNDAiIHRyYW5zZm9ybT0ic2NhbGUoLjEpIiBmaWxsPSIjZmZmIiB0ZXh0TGVuZ3RoPSIzNzAiPm5vYXJjaDwvdGV4dD48L2c+PC9zdmc+" /></p>
 <p>To install using <code>conda</code>, <a href="https://www.anaconda.com">Anaconda</a> or <a href="https://docs.conda.io/en/latest/miniconda.html">Miniconda</a> need
@@ -598,6 +633,12 @@ Package for Discovering SDEs from Time Series Data (Version 1.1.1)
 B., Danny Raj, M., &amp; Guttal, V., “Discovering stochastic dynamical
 equations from ecological time series data”, arXiv preprint <a href="https://arxiv.org/abs/2205.02645">arXiv:2205.02645</a>, to appear
 in <strong>The American Naturalist</strong>.</p>
+</div>
+<div id="funding" class="section level3">
+<h3>Funding</h3>
+<p>This study was partially funded by Science and Engineering Research
+Board, Department of Science and Technology, Government of India to
+Vishwesha Guttal.</p>
 </div>
 <div id="licence" class="section level3">
 <h3>Licence</h3>

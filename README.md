@@ -74,29 +74,38 @@ First, we emphasise that PyDaddy can be executed online on [Google Colab](https:
 This sets up PyDaddy in the notebook environment.
 
 ### Example Scripts/Jupyter Notebooks
-There are several <strong>example scripts / Jupyter notebooks</strong> provided, which can be used to familiarize yourself with various features and functionalities of PyDaddy. These can be executed on Colab.
+There are several <strong>example scripts / Jupyter notebooks</strong> provided, which can be used to familiarize yourself with various features and functionalities of PyDaddy. These can be executed on Colab. In the list below, we mention the path to location of each notebook as well as a link to the google colab notebook; the latter does not require installing either python or package on your system. 
 
-- <strong>Notebook 1</strong>: [Getting started with scalar data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/1_getting_started.ipynb): Introduction to the basic functionalities of PyDaddy, using a 1-dimensional dataset.
-- <strong>Notebook 2</strong>: [Getting started with vector data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/2_getting_started_vector.ipynb): Introduction to the basic functionalities of PyDaddy on 2-dimensional datasets.
-- <strong>Notebook 3</strong>: [Advanced function fitting](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/3_advanced_function_fitting.ipynb): PyDaddy can discover analytical expressions for the drift and diffusion functions. This notebook describes how to customize the fitting procedure to obtain best results.
-- <strong>Notebook 4</strong>: [Recovering SDEs from synthetic time series](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/4_sdes_from_simulated_timeseries.ipynb): This notebook generates a simulated time series from a user-specified SDE, and uses PyDaddy to recover the drift and diffusion functions from the simulated time series.
-- <strong>Notebook 5</strong>: [Exporting data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/5_exporting_data.ipynb): Demonstrates how to export the recovered drift and diffusion data as CSV files or Pandas data-frames.
-- <strong>Notebook 6</strong>: [Fitting non-polynomial functions](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/6_non_poly_function_fitting.ipynb): PyDaddy fits polynomial functions to drift and diffusion by default. This behaviour can be customized, this notebook illustrates how to do this.
-- <strong>Notebook 9</strong>: [Demonstration with a 3-dimensional system] An example to demonstrate that, in principle, the method of stochastic equation discovery can be extended to higher dimensions. 
+- <strong>Notebook 1</strong> (<strong>notebooks/1_getting_started.ipynb</strong>): [Getting started with scalar data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/1_getting_started.ipynb): Introduction to the basic functionalities of PyDaddy, using a 1-dimensional dataset.  
+- <strong>Notebook 2</strong> (<strong>notebooks/2_getting_started_vector.ipynb</strong>): [Getting started with vector data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/2_getting_started_vector.ipynb): Introduction to the basic functionalities of PyDaddy on 2-dimensional datasets. 
+- <strong>Notebook 3</strong> (<strong>notebooks/3_advanced_function_fitting.ipynb</strong>): [Advanced function fitting](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/3_advanced_function_fitting.ipynb): PyDaddy can discover analytical expressions for the drift and diffusion functions. This notebook describes how to customize the fitting procedure to obtain best results. 
+- <strong>Notebook 4</strong> (<strong>notebooks/4_sdes_from_simulated_timeseries.ipynb</strong>): [Recovering SDEs from synthetic time series](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/4_sdes_from_simulated_timeseries.ipynb): This notebook generates a simulated time series from a user-specified SDE, and uses PyDaddy to recover the drift and diffusion functions from the simulated time series. 
+- <strong>Notebook 5</strong> (<strong>notebooks/5_exporting_data.ipynb</strong>): [Exporting data](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/5_exporting_data.ipynb): Demonstrates how to export the recovered drift and diffusion data as CSV files or Pandas data-frames. 
+- <strong>Notebook 6</strong> (<strong>notebooks/6_non_poly_function_fitting.ipynb</strong>): [Fitting non-polynomial functions](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/6_non_poly_function_fitting.ipynb): PyDaddy fits polynomial functions to drift and diffusion by default. This behaviour can be customized, this notebook illustrates how to do this.
+- <strong>Notebook 9</strong> (<strong>notebooks/9_higher_dimensions.ipynb</strong>): [Demonstration with a 3-dimensional system] An example to demonstrate that, in principle, the method of stochastic equation discovery can be extended to higher dimensions. 
 
 (See below for Notebooks 7 and 8).
 
 ### Real datasets and Scripts/Jupyter Notebooks
 There are also two notebooks that use PyDaddy to discover SDEs from real-world datasets.
 
-* <strong>Fish Schooling Dataset </strong>: The fish data (<strong>Folder: pydaddy/data/fish_data</strong>) contains a subset of the fish schooling dataset presented in the manuscript. The dataset contains the 2D polarisation vector time series of a fish school (15 fish). The full dataset is available at https://zenodo.org/records/3632470. For more details about the dataset, see https://doi.org/10.1038/s41567-020-0787-y 
-   * <strong>Notebook 7</strong>: [Example analysis - fish schooling](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb): An example analysis of a fish schooling dataset (Jhawar et. al., Nature Physics, 2020) using PyDaddy. 
+* <strong>Fish Schooling Dataset </strong> (<strong>pydaddy/data/fish_data/ectroplus.csv</strong>) : The fish  dataset contains the 2D polarisation vector time series of a fish school (15 fish). Two columns in the csv file represent the x- and y-components of the polarisation vector, respectively and each row corresponds to a time stamp, with consecutive rows separated by a time frame of 0.04 seconds. The full dataset is available at a previously published repository: https://zenodo.org/records/3632470. For more details about the dataset, see the manuscript Jhawar et al - https://doi.org/10.1038/s41567-020-0787-y 
+   * <strong>Notebook 7</strong> (<strong>notebooks/7_example_fish_school.ipynb</strong>): [Example analysis - fish schooling](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb): An example analysis of a fish schooling dataset (Jhawar et. al., Nature Physics, 2020) using PyDaddy. 
 
-* <strong>Cell Migration Dataset </strong>: The confine cell migration dataset (<strong>Folder: pydaddy/data/cell_data</strong>) contains tracked trajectories of 149 cells, tracked for upto 300 time steps each, with one data point every 15 minutes. The data is provided as a plain text file. Each row corresponds to the time series of one cell. For more details about the dataset, see https://doi.org/10.1038/s41567-019-0445-4.
-   * <strong>Notebook 8</strong>: [Example analysis - cell migration](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb): An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019) using PyDaddy.
+* <strong>Cell Migration Dataset </strong> (<strong>pydaddy/data/cell_data/trajectories_x_pattern5.txt</strong>): The confine cell migration dataset contains tracked trajectories of 149 cells, tracked for upto 300 time steps each, with one data point every 15 minutes. The data is provided as a plain text file. Each row corresponds to the time series of one cell. For more details about the dataset, see https://doi.org/10.1038/s41567-019-0445-4. 
+   * <strong>Notebook 8</strong> (<strong>notebooks/8_example_cell_migration.ipynb</strong>): [Example analysis - cell migration](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb): An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019) using PyDaddy.
    
 ### Folder structure
-The zipped folder whose link is given below is structured as follows: <strong>(TO BE DONE)</strong>
+The zipped folder of codes and data is structured as follows:
+
+* parent folder has licence, citation, readme.md, etc files
+* <strong>doc</strong> and its subfolders contain python codes and style files relevant to the package. Edit these only you are a developer and are proficient with python.
+* <strong>notebooks</strong> contains nine well commented/documented jupyter-notebooks/scripts which help the readers to familiarise with the usage of the package.
+* <strong>pydaddy/data</strong> folder contains three subfolders containing key real and model datasets:
+   * <strong>cell_data</strong>
+   * <strong>fish_data</strong>
+   * <strong>model_data</strong>
+* <strong>pydaddy</strong> and its subfolders contain various codes related to python package. Edit these only you are a developer and are proficient with python.
 
 ### Package Installation
 PyDaddy is available both on PyPI and Anaconda Cloud, and can be installed on any system with a Python 3 environment. If you don't have Python 3 installed on your system, we recommend using [Anaconda](https://www.anaconda.com) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html). See the PyDaddy [package documentation](https://pydaddy.readthedocs.io/) for detailed installation instructions.
@@ -133,6 +142,8 @@ Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, David B., 
 
 Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
 
+### Funding
+This study was partially funded by Science and Engineering Research Board, Department of Science and Technology, Government of India to Vishwesha Guttal. 
 
 ### Licence
 PyDaddy is distributed under the [**GNU General Public License v3.0**](./LICENSE.txt).
