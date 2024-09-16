@@ -143,3 +143,6 @@ conda_build
 
 # macOS temporary files
 .DS_Store
+
+# R temporary files
+.Rhistory
