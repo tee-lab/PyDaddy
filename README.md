@@ -7,11 +7,9 @@
 Discovering stochastic dynamical equations from ecological time series data, together with an easy to use Python package.
 
 ### Citation to the manuscript
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
+If you are using this software package or any code from this repo in your research, please cite us as follows:
 
-### Citation to the package
-
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, David B., Danny Raj, M., & Guttal, V. (2024). PyDaddy: A Python Package for Discovering SDEs from Time Series Data (Version 1.1.1) [Computer software]. https://github.com/tee-lab/PyDaddy   
+Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
 
 ### Authors and Contact Details
 
@@ -26,7 +24,7 @@ Vishwesha Guttal, Centre for Ecological Sciences, Indian Institute of Science, B
 Email: guttal@iisc.ac.in
 
 #### Code and Data Contributors
-Codes and package were written by Arshed Nabeel and Ashwin Karichannavar. 
+The PyDaddy software package was developed by Arshed Nabeel and Ashwin Karichannavar. 
 
 The package uses two datasets from previously published papers, which are also made available as part of the package. 
 
@@ -89,23 +87,23 @@ There are several <strong>example scripts / Jupyter notebooks</strong> provided,
 ### Real datasets and Scripts/Jupyter Notebooks
 There are also two notebooks that use PyDaddy to discover SDEs from real-world datasets.
 
-* <strong>Fish Schooling Dataset </strong> (<strong>pydaddy/data/fish_data/ectroplus.csv</strong>) : The fish  dataset contains the 2D polarisation vector time series of a fish school (15 fish). Two columns in the csv file represent the x- and y-components of the polarisation vector, respectively and each row corresponds to a time stamp, with consecutive rows separated by a time frame of 0.04 seconds. The full dataset is available at a previously published repository: https://zenodo.org/records/3632470. For more details about the dataset, see the manuscript Jhawar et al - https://doi.org/10.1038/s41567-020-0787-y 
-   * <strong>Notebook 7</strong> (<strong>notebooks/7_example_fish_school.ipynb</strong>): [Example analysis - fish schooling](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb): An example analysis of a fish schooling dataset (Jhawar et. al., Nature Physics, 2020) using PyDaddy. 
+* <strong>Fish Schooling Dataset </strong> (<strong>pydaddy/data/fish_data/ectroplus.csv</strong>): The fish  dataset contains the 2D polarisation vector time series of a fish school (15 fish). Two columns in the csv file represent the x- and y-components of the polarisation vector, respectively and each row corresponds to a time stamp, with consecutive rows separated by a time frame of 0.04 seconds. The full dataset is available at a previously published repository: https://zenodo.org/records/3632470. For more details about the dataset, see (Jhawar et. al., Nature Physics, 2020)[https://doi.org/10.1038/s41567-020-0787-y].
+   * <strong>Notebook 7</strong> (<strong>notebooks/7_example_fish_school.ipynb</strong>): [Example analysis - fish schooling](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/7_example_fish_school.ipynb): An example analysis of a fish schooling dataset from [Jhawar et. al., Nature Physics, 2020](https://doi.org/10.1038/s41567-020-0787-y) using PyDaddy. 
 
-* <strong>Cell Migration Dataset </strong> (<strong>pydaddy/data/cell_data/trajectories_x_pattern5.txt</strong>): The confine cell migration dataset contains tracked trajectories of 149 cells, tracked for upto 300 time steps each, with one data point every 15 minutes. The data is provided as a plain text file. Each row corresponds to the time series of one cell. For more details about the dataset, see https://doi.org/10.1038/s41567-019-0445-4. 
-   * <strong>Notebook 8</strong> (<strong>notebooks/8_example_cell_migration.ipynb</strong>): [Example analysis - cell migration](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb): An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019) using PyDaddy.
+* <strong>Cell Migration Dataset </strong> (<strong>pydaddy/data/cell_data/trajectories_x_pattern5.txt</strong>): The confine cell migration dataset contains tracked trajectories of 149 cells, tracked for upto 300 time steps each, with one data point every 15 minutes. The data is provided as a plain text file. Each row corresponds to the time series of one cell, with each column corresponding to the cell x-position (in micrometer units). For more details about the dataset, see (Brückner et. al., Nature Physics, 2019)[https://doi.org/10.1038/s41567-019-0445-4]. 
+   * <strong>Notebook 8</strong> (<strong>notebooks/8_example_cell_migration.ipynb</strong>): [Example analysis - cell migration](https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/8_example_cell_migration.ipynb): An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019)[https://doi.org/10.1038/s41567-019-0445-4] using PyDaddy.
    
 ### Folder structure
 The zipped folder of codes and data is structured as follows:
 
-* parent folder has licence, citation, readme.md, etc files
-* <strong>doc</strong> and its subfolders contain python codes and style files relevant to the package. Edit these only you are a developer and are proficient with python.
+* The root folder contains mostly metadata, such as readme, license etc. as well as metadata required for installation of the package.
+* <strong>doc</strong> contains comprehensive documentation to the package, auto-generated by Sphinx.
 * <strong>notebooks</strong> contains nine well commented/documented jupyter-notebooks/scripts which help the readers to familiarise with the usage of the package.
+* <strong>pydaddy</strong> Is the main folder of the package, and contains all the main code and datasets.
 * <strong>pydaddy/data</strong> folder contains three subfolders containing key real and model datasets:
-   * <strong>cell_data</strong>
-   * <strong>fish_data</strong>
-   * <strong>model_data</strong>
-* <strong>pydaddy</strong> and its subfolders contain various codes related to python package. Edit these only you are a developer and are proficient with python.
+   * <strong>fish_data</strong> Contains the fish-schooling datasets.
+   * <strong>cell_data</strong> Contains the cell migration dataset (see above).
+   * <strong>model_data</strong> Contains simulated datasets, generated with Gillespie stochastic simulations. The models used are both scalar and vector versions of simple interaction models, as described in detail in [Jhawar et. al., Nature Physics, 2020](https://doi.org/10.1038/s41567-020-0787-y) and [Jhawar & Guttal, Phil. Trans. B, 2020](http://dx.doi.org/10.1098/rstb.2019.0381).
 
 ### Package Installation
 PyDaddy is available both on PyPI and Anaconda Cloud, and can be installed on any system with a Python 3 environment. If you don't have Python 3 installed on your system, we recommend using [Anaconda](https://www.anaconda.com) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html). See the PyDaddy [package documentation](https://pydaddy.readthedocs.io/) for detailed installation instructions.
@@ -136,11 +134,9 @@ To install using `conda`, [Anaconda](https://www.anaconda.com) or [Miniconda](ht
 For more information about PyDaddy, check out the [package documentation](https://pydaddy.readthedocs.io/).
 
 ### Citation
-If you are using this package in your research, please cite the repository and the associated [paper](https://arxiv.org/abs/2205.02645) as follows:
+If you are using this package in your research, please cite the associated [paper](https://arxiv.org/abs/2205.02645) as follows:
 
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, David B., Danny Raj, M., & Guttal, V. (2024). PyDaddy: A Python Package for Discovering SDEs from Time Series Data (Version 1.1.1) [Computer software]. https://github.com/tee-lab/PyDaddy, DOI: To Do. 
-
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Bruckner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
+Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
 
 ### Funding
 This study was partially funded by Science and Engineering Research Board, Department of Science and Technology, Government of India to Vishwesha Guttal. 
