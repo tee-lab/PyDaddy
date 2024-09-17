@@ -9,7 +9,7 @@ Discovering stochastic dynamical equations from ecological time series data, tog
 ### Citation to the manuscript
 If you are using this software package or any code from this repo in your research, please cite us as follows:
 
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
+Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, D. B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
 
 ### Authors and Contact Details
 
@@ -136,7 +136,7 @@ For more information about PyDaddy, check out the [package documentation](https:
 ### Citation
 If you are using this package in your research, please cite the associated [paper](https://arxiv.org/abs/2205.02645) as follows:
 
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
+Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, D. B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
 
 ### Funding
 This study was partially funded by Science and Engineering Research Board, Department of Science and Technology, Government of India to Vishwesha Guttal. 
