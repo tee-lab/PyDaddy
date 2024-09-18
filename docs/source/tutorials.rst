@@ -1,4 +1,4 @@
-Tutorials (no installation required)
+Tutorials
 =========
 
 .. |colab-getting-started| image:: https://colab.research.google.com/assets/colab-badge.svg
@@ -48,6 +48,12 @@ Tutorials (no installation required)
 
 .. |github-cell| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
     :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/8_example_cell_migration.ipynb
+
+.. |colab-3d| image:: https://colab.research.google.com/assets/colab-badge.svg
+    :target: https://colab.research.google.com/github/tee-lab/PyDaddy/blob/colab/notebooks/9_higher_dimensions.ipynb
+
+.. |github-3d| image:: https://img.shields.io/badge/Open_in_GitHub-grey?logo=github
+    :target: https://www.github.com/tee-lab/PyDaddy/blob/master/notebooks/9_higher_dimensions.ipynb
 
 .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
 
@@ -115,5 +121,12 @@ Example analysis: Cell hopping
 |colab-cell| |github-cell|
 
 An example analysis of a confined cell migration dataset (Brückner et. al., Nature Physics, 2019) using PyDaddy.
+
+Higher dimensions
+^^^^^^^^^^^^^^^^^
+|colab-3d| |github-3d|
+
+This notebooks demonstrates how to use the principles of SDE estimations and tools in PyDaddy to estimate SDEs for higher-dimensional systems. The notebook uses the example of a (3-dimensional) stochastic Lorenz system.
+
 
 
