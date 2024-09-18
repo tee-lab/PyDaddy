@@ -20,5 +20,5 @@ The simulated datasets were generated using a continuous-time stochastic simulat
 
 
 .. [1] Jhawar, J., Morris, R. G., Amith-Kumar, U. R., Danny Raj, M., Rogers, T., Rajendran, H., & Guttal, V. (2020). Noise-induced schooling of fish. Nature Physics, 16(4), 488-493 (`doi <https://doi.org/10.1038/s41567-020-0787-y>`_).
-.. [2] Brückner, D. B., Fink, A., Schreiber, C. et al. Stochastic nonlinear dynamics of confined cell migration in two-state systems. Nat. Phys. 15, 595–601 (2019) (`doi <https://doi.org/10.1038/s41567-020-0787-y>`_.
+.. [2] Brückner, D. B., Fink, A., Schreiber, C. et al. Stochastic nonlinear dynamics of confined cell migration in two-state systems. Nat. Phys. 15, 595–601 (2019) (`doi <https://doi.org/10.1038/s41567-019-0445-4>`_).
 .. [3] Jhawar, J., & Guttal, V. (2020). Noise-induced effects in collective dynamics and inferring local interactions from data. Philosophical Transactions of the Royal Society B, 375(1807), 20190381. (`doi <http://dx.doi.org/10.1098/rstb.2019.0381>`_)

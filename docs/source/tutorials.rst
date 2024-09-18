@@ -1,4 +1,4 @@
-Tutorials (no installation required)
+Tutorials
 =========
 
 .. |colab-getting-started| image:: https://colab.research.google.com/assets/colab-badge.svg
