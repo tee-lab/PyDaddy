@@ -1339,7 +1339,7 @@ class Visualize(Metrics):
         z = data.copy()
         ax.set_title(title, fontsize=title_size)
 
-        ax.scatter3D(x, y, z.ravel(), c=z.ravel(), label=label, marker='.')
+        ax.scatter(x, y, z.ravel(), c=z.ravel(), label=label, marker='.')
         if plot_plane:
             if plane_id:
                 # print('Plane 2')
