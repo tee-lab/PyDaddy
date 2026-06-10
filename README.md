@@ -9,7 +9,7 @@ Discovering stochastic dynamical equations from ecological time series data, tog
 ### Citation to the manuscript
 If you are using this software package or any code from this repo in your research, please cite us as follows:
 
-Nabeel, A., Karichannavar, A., Palathingal, S., Jhawar, J., Brückner, D. B., Danny Raj, M., & Guttal, V., "Discovering stochastic dynamical equations from ecological time series data", arXiv preprint [arXiv:2205.02645](https://arxiv.org/abs/2205.02645), to appear in <strong>The American Naturalist</strong>. 
+Arshed Nabeel, Ashwin Karichannavar, Shuaib Palathingal, Jitesh Jhawar, David B. Bruckner, Danny Raj M, Vishwesha Guttal, 2025, Discovering stochastic dynamical equations from ecological timeseries data, The American Naturalist, 205: E100-E117; doi: https://doi.org/10.1086/734083
 
 ### Authors and Contact Details
 
